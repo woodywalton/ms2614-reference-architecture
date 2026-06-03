@@ -1,5 +1,6 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
+import { EuiIcon } from '@elastic/eui'
 
 const TABS = [
   { to: '/',         label: 'Overview' },
@@ -14,11 +15,7 @@ export default function Nav() {
     <header className="sticky top-0 z-20 border-b border-line bg-ink-900/95 backdrop-blur">
       <div className="mx-auto max-w-[1500px] px-6 py-4 flex items-center gap-6">
         <div className="flex items-center gap-3">
-          <img
-            src="/brand/elastic-logo-white.svg"
-            alt="Elastic"
-            className="h-7 w-auto opacity-90"
-          />
+          <EuiIcon type="logoElastic" size="xl" />
           <div className="h-7 w-px bg-line" />
           <div className="leading-tight">
             <h1 className="text-sm font-semibold text-text-primary">

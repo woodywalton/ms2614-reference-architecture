@@ -1,6 +1,32 @@
 // Reusable SVG primitives for the architecture diagrams.
 
 import React from 'react'
+import { EuiIcon } from '@elastic/eui'
+
+/**
+ * Renders an EUI icon at (x, y) inside an SVG via foreignObject. The icon is
+ * centered in a `size`x`size` box. `type` is an EUI icon type string (e.g.
+ * "logoElasticsearch", "logoKibana", "machineLearningApp").
+ */
+export function DiagramIcon({ type, x, y, size = 36 }) {
+  if (!type) return null
+  return (
+    <foreignObject x={x} y={y} width={size} height={size}>
+      <div
+        xmlns="http://www.w3.org/1999/xhtml"
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <EuiIcon type={type} size={size >= 32 ? 'xl' : 'l'} />
+      </div>
+    </foreignObject>
+  )
+}
 
 export const ACCENT = {
   teal: '#00BFB3',
@@ -80,17 +106,8 @@ export function Node({
       />
       {/* left accent bar */}
       <rect x={x} y={y} width={6} height={h} rx={3} ry={3} fill={accent} />
-      {/* icon */}
-      {hasIcon && (
-        <image
-          href={icon}
-          x={x + 16}
-          y={y + 14}
-          width={36}
-          height={36}
-          preserveAspectRatio="xMidYMid meet"
-        />
-      )}
+      {/* icon (EUI icon type string) */}
+      {hasIcon && <DiagramIcon type={icon} x={x + 14} y={y + 12} size={36} />}
       {/* title */}
       <text
         className="diagram-label"
@@ -122,6 +139,225 @@ export function Node({
           ))}
         </g>
       )}
+    </g>
+  )
+}
+
+/**
+ * Tier fleet card — shows a tier (hot/cold/frozen/ml/master/kibana) along
+ * with the node fleet inside it as a strip of mini-node rectangles.
+ *
+ *  - If nodeCount ≤ 6: render that many mini-nodes, each labeled prefix-1..prefix-N.
+ *  - If nodeCount > 6: render `prefix-1`, `prefix-2`, `prefix-3`, …, `prefix-N`
+ *    (3 leading mini-nodes + ellipsis + 1 trailing mini-node showing the total).
+ *
+ * The card is clickable like any Node and opens the drawer for `componentId`.
+ */
+export function TierFleetCard({
+  x,
+  y,
+  w = 300,
+  h = 140,
+  title,
+  subtitle,
+  color = 'blue',
+  nodeCount,
+  nodePrefix,
+  instanceType,
+  badges = [],
+  azsLabel = '3 AZs',
+  icon, // EUI icon type
+  onClick,
+  componentId,
+}) {
+  const accent = ACCENT[color] || ACCENT.teal
+  const handleClick = () => onClick && onClick(componentId)
+  const handleKey = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleClick()
+    }
+  }
+
+  // Mini-node strip
+  const minis =
+    nodeCount <= 6
+      ? Array.from({ length: nodeCount }, (_, i) => ({ label: `${nodePrefix}-${i + 1}` }))
+      : [
+          { label: `${nodePrefix}-1` },
+          { label: `${nodePrefix}-2` },
+          { label: `${nodePrefix}-3` },
+          { ellipsis: true },
+          { label: `${nodePrefix}-${nodeCount}` },
+        ]
+  const miniW = 44
+  const miniH = 20
+  const miniGap = 4
+  const ellipsisW = 16
+  const stripWidth =
+    minis.reduce((acc, m) => acc + (m.ellipsis ? ellipsisW : miniW), 0) +
+    (minis.length - 1) * miniGap
+  const stripStartX = x + (w - stripWidth) / 2
+  const stripY = y + 64
+
+  return (
+    <g
+      className="diagram-node"
+      onClick={handleClick}
+      onKeyDown={handleKey}
+      tabIndex={0}
+      role="button"
+      aria-label={`${title} (${nodeCount} nodes)`}
+    >
+      <rect x={x} y={y} width={w} height={h} rx={10} ry={10} fill="#161B22" stroke="#2A3344" strokeWidth={1.5} />
+      <rect x={x} y={y} width={6} height={h} rx={3} ry={3} fill={accent} />
+
+      {/* Icon (EUI) — sits above the title */}
+      {icon && <DiagramIcon type={icon} x={x + 14} y={y + 10} size={28} />}
+
+      {/* Title (offset right if icon is present) */}
+      <text className="diagram-label" x={x + (icon ? 50 : 18)} y={y + 26} fontSize="14" fontWeight="700" fill="#E6EDF3">
+        {title}
+      </text>
+      {subtitle && (
+        <text className="diagram-label" x={x + (icon ? 50 : 18)} y={y + 44} fontSize="11" fill="#8B949E">
+          {subtitle}
+        </text>
+      )}
+
+      {/* Top-right: node count + instance type */}
+      <text x={x + w - 14} y={y + 26} fontSize="11" fontWeight="700" fill="#6FDCD3" textAnchor="end" style={{ letterSpacing: '0.06em' }}>
+        {nodeCount} {nodeCount === 1 ? 'NODE' : 'NODES'}
+      </text>
+      <text x={x + w - 14} y={y + 44} fontSize="10.5" fill="#8B949E" textAnchor="end" fontFamily="ui-monospace, SFMono-Regular, monospace">
+        {instanceType}
+      </text>
+
+      {/* Node strip */}
+      {(() => {
+        let cursor = stripStartX
+        return minis.map((m, i) => {
+          const width = m.ellipsis ? ellipsisW : miniW
+          const cx = cursor
+          cursor += width + miniGap
+          if (m.ellipsis) {
+            return (
+              <text
+                key={`e-${i}`}
+                x={cx + width / 2}
+                y={stripY + miniH / 2 + 4}
+                fontSize="16"
+                fontWeight="700"
+                fill="#8B949E"
+                textAnchor="middle"
+              >
+                …
+              </text>
+            )
+          }
+          return (
+            <g key={`n-${i}`}>
+              <rect x={cx} y={stripY} width={miniW} height={miniH} rx={3} fill="#1C2333" stroke={accent} strokeWidth={1} />
+              <text
+                x={cx + miniW / 2}
+                y={stripY + miniH / 2 + 3.5}
+                fontSize="9"
+                fontWeight="600"
+                fill="#E6EDF3"
+                textAnchor="middle"
+              >
+                {m.label}
+              </text>
+            </g>
+          )
+        })
+      })()}
+
+      {/* AZ label + badges row */}
+      <text x={x + 18} y={y + h - 14} fontSize="9.5" fontWeight="700" fill="#8B949E" style={{ letterSpacing: '0.12em' }}>
+        {azsLabel}
+      </text>
+      {badges.length > 0 && (
+        <g transform={`translate(${x + 64}, ${y + h - 26})`}>
+          {badges.map((label, i) => (
+            <Badge key={label} label={label} x={i * 82} />
+          ))}
+        </g>
+      )}
+    </g>
+  )
+}
+
+/**
+ * Smaller variant of TierFleetCard for the control-plane lane (master + Kibana).
+ * Wider than a regular Node but shorter than a TierFleetCard, since these
+ * tiers only ever show 3 fixed nodes.
+ */
+export function ControlPlaneCard({
+  x,
+  y,
+  w = 220,
+  h = 110,
+  title,
+  ramLabel,
+  instanceType,
+  nodeCount = 3,
+  nodePrefix,
+  color = 'gray',
+  icon, // EUI icon type
+  onClick,
+  componentId,
+}) {
+  const accent = ACCENT[color] || ACCENT.gray
+  const handleClick = () => onClick && onClick(componentId)
+  const handleKey = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleClick()
+    }
+  }
+  const miniW = 38, miniH = 18, miniGap = 4
+  const stripWidth = nodeCount * miniW + (nodeCount - 1) * miniGap
+  const stripStartX = x + (w - stripWidth) / 2
+
+  return (
+    <g
+      className="diagram-node"
+      onClick={handleClick}
+      onKeyDown={handleKey}
+      tabIndex={0}
+      role="button"
+      aria-label={title}
+    >
+      <rect x={x} y={y} width={w} height={h} rx={10} ry={10} fill="#161B22" stroke="#2A3344" strokeWidth={1.5} />
+      <rect x={x} y={y} width={6} height={h} rx={3} ry={3} fill={accent} />
+
+      {icon && <DiagramIcon type={icon} x={x + 12} y={y + 8} size={24} />}
+
+      <text className="diagram-label" x={x + (icon ? 42 : 16)} y={y + 22} fontSize="13" fontWeight="700" fill="#E6EDF3">
+        {title}
+      </text>
+      <text className="diagram-label" x={x + (icon ? 42 : 16)} y={y + 38} fontSize="10" fill="#8B949E">
+        {ramLabel} · <tspan fontFamily="ui-monospace, SFMono-Regular, monospace">{instanceType}</tspan>
+      </text>
+
+      {/* mini-node strip */}
+      {Array.from({ length: nodeCount }).map((_, i) => {
+        const mx = stripStartX + i * (miniW + miniGap)
+        return (
+          <g key={i}>
+            <rect x={mx} y={y + 52} width={miniW} height={miniH} rx={3} fill="#1C2333" stroke={accent} strokeWidth={1} />
+            <text x={mx + miniW / 2} y={y + 52 + miniH / 2 + 3.5} fontSize="9" fontWeight="600" fill="#E6EDF3" textAnchor="middle">
+              {nodePrefix}-{i + 1}
+            </text>
+          </g>
+        )
+      })}
+
+      {/* fixed-across-sizes caveat */}
+      <text x={x + w / 2} y={y + h - 10} fontSize="9" fontWeight="600" fill="#8B949E" textAnchor="middle" style={{ letterSpacing: '0.08em' }}>
+        FIXED ACROSS SIZES
+      </text>
     </g>
   )
 }

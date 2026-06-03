@@ -1,8 +1,11 @@
 import React, { useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { LEVELS } from '../data/levels.js'
+import { sizingTable, SIZE_ORDER } from '../data/sizing.js'
 import Drawer from './Drawer.jsx'
 import RetentionTimeline from './RetentionTimeline.jsx'
+import SizeTabs from './SizeTabs.jsx'
+import SizingPanel from './SizingPanel.jsx'
 import Level1Diagram from './diagrams/Level1Diagram.jsx'
 import Level2Diagram from './diagrams/Level2Diagram.jsx'
 import Level3Diagram from './diagrams/Level3Diagram.jsx'
@@ -16,13 +19,17 @@ const DIAGRAMS = {
 }
 
 export default function LevelView() {
-  const { id } = useParams()
+  const { id, size } = useParams()
   const level = Number(id)
   const meta = LEVELS.find((l) => l.id === level)
   const Diagram = DIAGRAMS[level]
   const [selected, setSelected] = useState(null)
 
   if (!meta || !Diagram) return <Navigate to="/" replace />
+  // Validate size — fall back to small on garbage input
+  if (!SIZE_ORDER.includes(size)) return <Navigate to={`/level/${level}/small`} replace />
+
+  const activeSize = sizingTable[size]
 
   return (
     <main className="mx-auto max-w-[1500px] px-6 py-8 space-y-6">
@@ -37,6 +44,8 @@ export default function LevelView() {
         </div>
       </header>
 
+      <SizeTabs />
+
       <section className="rounded-lg border border-line bg-ink-800 p-4">
         <p className="text-sm text-text-primary leading-relaxed max-w-4xl">{meta.summary}</p>
         <ul className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-text-muted">
@@ -49,15 +58,19 @@ export default function LevelView() {
         </ul>
       </section>
 
-      <section className="rounded-lg border border-line bg-ink-800 p-4 overflow-x-auto">
-        <Diagram onNodeClick={setSelected} />
+      {/* Diagram + sizing panel: side-by-side on wide screens, stacked on narrow */}
+      <section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-4">
+        <div className="rounded-lg border border-line bg-ink-800 p-4 overflow-x-auto">
+          <Diagram size={size} onNodeClick={setSelected} />
+        </div>
+        <SizingPanel size={size} level={level} />
       </section>
 
       <section>
         <RetentionTimeline level={level} />
       </section>
 
-      <Drawer componentId={selected} onClose={() => setSelected(null)} />
+      <Drawer componentId={selected} size={size} onClose={() => setSelected(null)} />
     </main>
   )
 }

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { LEVELS } from '../data/levels.js'
+import { sizingTable, SIZE_ORDER } from '../data/sizing.js'
 
 export default function Overview() {
   return (
@@ -36,6 +37,22 @@ export default function Overview() {
           Deadline Timeline
         </h2>
         <Timeline />
+      </section>
+
+      <section className="rounded-lg border border-line bg-ink-800 p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted mb-2">
+          Organization Size Tiers
+        </h2>
+        <p className="text-xs text-text-muted mb-4 max-w-3xl leading-relaxed">
+          Each maturity level scales across three size tiers — Small, Medium, and Large — keyed
+          to daily ingest volume. The hot/cold/frozen node counts and S3 footprint below come
+          from Elastic's reference deployment sizing table.
+        </p>
+        <SizingTable />
+        <p className="mt-3 text-xs text-text-muted italic">
+          Organizations ingesting &gt; 25 TB/day (e.g., CISA, VA) should treat the Large tier as a
+          starting point and engage Elastic Professional Services for custom sizing.
+        </p>
       </section>
 
       <section className="rounded-lg border border-line bg-ink-800 p-6">
@@ -105,6 +122,40 @@ function Row({ label, value, dim }) {
     <div className="flex justify-between gap-3">
       <dt className="text-text-muted">{label}</dt>
       <dd className={dim ? 'text-text-muted italic' : 'text-text-primary font-medium'}>{value}</dd>
+    </div>
+  )
+}
+
+function SizingTable() {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm border-collapse">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wider text-text-muted">
+            <th className="border-b border-line py-2 pr-4">Size</th>
+            <th className="border-b border-line py-2 pr-4">Daily ingest</th>
+            <th className="border-b border-line py-2 pr-4">Hot nodes</th>
+            <th className="border-b border-line py-2 pr-4">Cold nodes <span className="text-[10px] normal-case italic text-text-muted">(L3 / L4)</span></th>
+            <th className="border-b border-line py-2 pr-4">Frozen nodes</th>
+            <th className="border-b border-line py-2">S3 stored</th>
+          </tr>
+        </thead>
+        <tbody>
+          {SIZE_ORDER.map((key) => {
+            const s = sizingTable[key]
+            return (
+              <tr key={key} className="text-text-primary">
+                <td className="border-b border-line/60 py-2.5 pr-4 font-semibold text-accent-teal">{s.label}</td>
+                <td className="border-b border-line/60 py-2.5 pr-4">{s.ingestRange}</td>
+                <td className="border-b border-line/60 py-2.5 pr-4">{s.hotNodes}</td>
+                <td className="border-b border-line/60 py-2.5 pr-4">{s.coldNodes}</td>
+                <td className="border-b border-line/60 py-2.5 pr-4">{s.frozenNodes}</td>
+                <td className="border-b border-line/60 py-2.5">{s.s3StoredTB.toLocaleString()} TB</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
     </div>
   )
 }

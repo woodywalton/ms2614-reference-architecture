@@ -1,7 +1,9 @@
 // Right-side detail drawer. Driven by the global selected component state.
 
 import React, { useEffect } from 'react'
+import { EuiIcon } from '@elastic/eui'
 import { COMPONENTS } from '../data/components.js'
+import { getSizing } from '../data/sizing.js'
 
 const ACCENT = {
   teal: '#00BFB3',
@@ -13,9 +15,12 @@ const ACCENT = {
   yellow: '#D29922',
 }
 
-export default function Drawer({ componentId, onClose }) {
+export default function Drawer({ componentId, size, onClose }) {
   const open = Boolean(componentId)
   const data = componentId ? COMPONENTS[componentId] : null
+  const sizing = size ? getSizing(size) : null
+  const tierKey = data?.tierKey
+  const showSizing = Boolean(tierKey && sizing)
 
   useEffect(() => {
     if (!open) return
@@ -47,6 +52,11 @@ export default function Drawer({ componentId, onClose }) {
               className="border-b border-line px-5 py-4 flex items-start gap-3"
               style={{ borderTopColor: ACCENT[data.color] || ACCENT.teal, borderTopWidth: 3, borderTopStyle: 'solid' }}
             >
+              {data.euiIcon && (
+                <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded bg-ink-700/60 border border-line">
+                  <EuiIcon type={data.euiIcon} size="l" />
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg font-semibold text-text-primary leading-tight">{data.name}</h2>
                 <p className="mt-1 text-xs text-text-muted truncate">{data.product}</p>
@@ -93,6 +103,12 @@ export default function Drawer({ componentId, onClose }) {
                   </ul>
                 </Section>
               )}
+
+              {showSizing && (
+                <Section label={`Sizing at this tier — ${sizing.label}`}>
+                  <TierSizing tierKey={tierKey} sizing={sizing} />
+                </Section>
+              )}
             </div>
           </div>
         )}
@@ -109,5 +125,56 @@ function Section({ label, children }) {
       </h3>
       {children}
     </section>
+  )
+}
+
+const TIER_LABEL = {
+  hot: 'Hot tier — fast SSD nodes handling ingest and immediate query.',
+  cold: 'Cold tier — read-only nodes carrying the days 4–10 searchable window.',
+  frozen: 'Frozen tier — mounted searchable snapshots backed by object storage.',
+  ml: 'ML nodes — dedicated compute pool for Elastic Machine Learning jobs.',
+  master: 'Master nodes — dedicated cluster-state management; fixed across sizes.',
+  kibana: 'Kibana instances — SOC frontend; fixed across sizes.',
+}
+
+function TierSizing({ tierKey, sizing }) {
+  const count = (() => {
+    switch (tierKey) {
+      case 'hot':    return sizing.hotNodes
+      case 'cold':   return sizing.coldNodes
+      case 'frozen': return sizing.frozenNodes
+      default:       return 3 // ml / master / kibana fixed at 3 per AZ
+    }
+  })()
+  const instance = sizing.instanceTypes[tierKey]
+  const isFixed = tierKey === 'master' || tierKey === 'kibana'
+  const ramByKey = {
+    ml: sizing.mlNodeRamGB,
+    master: sizing.masterNodeRamGB,
+    kibana: sizing.kibanaRamGB,
+  }
+  const ram = ramByKey[tierKey]
+
+  return (
+    <div className="rounded border border-line bg-ink-900/60 p-3 space-y-2 text-sm">
+      <div className="grid grid-cols-[120px_1fr] gap-x-3 gap-y-1.5 text-xs">
+        <span className="text-text-muted">Node count</span>
+        <span className="text-text-primary font-medium">
+          {count} {count === 1 ? 'node' : 'nodes'}
+          {isFixed && <span className="text-text-muted"> (fixed across sizes)</span>}
+        </span>
+        <span className="text-text-muted">Instance type</span>
+        <span className="text-text-primary font-medium font-mono">{instance}</span>
+        {ram != null && (
+          <>
+            <span className="text-text-muted">RAM per node</span>
+            <span className="text-text-primary font-medium">{ram} GB</span>
+          </>
+        )}
+      </div>
+      <p className="text-xs text-text-muted italic leading-snug pt-2 border-t border-line/60">
+        {TIER_LABEL[tierKey]}
+      </p>
+    </div>
   )
 }

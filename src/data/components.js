@@ -6,6 +6,7 @@ export const COMPONENTS = {
     name: 'Log Sources',
     product: 'Endpoints, Servers, Cloud, Network, IAM, Apps',
     color: 'gray',
+    euiIcon: 'documents',
     role:
       'Federal agency systems that emit logs: endpoints (Windows, Linux, macOS), servers, cloud control planes (AWS CloudTrail, Azure Activity, GCP Audit), network devices (firewall, IDS, DNS), identity providers (Okta, Entra ID, Active Directory), and mission applications.',
     requirement:
@@ -22,6 +23,7 @@ export const COMPONENTS = {
     name: 'Legacy / OT Sources',
     product: 'Syslog, SNMP, OT/ICS protocols',
     color: 'gray',
+    euiIcon: 'flag',
     role:
       'Systems that cannot run an Elastic Agent: legacy syslog devices, SNMP-only network gear, OT/ICS controllers, vendor appliances. Forwarded to a Logstash collector for protocol translation and parsing.',
     requirement:
@@ -37,6 +39,7 @@ export const COMPONENTS = {
     name: 'Elastic Agent',
     product: 'Elastic Agent + Integrations',
     color: 'teal',
+    euiIcon: 'logoBeats',
     role:
       'Single unified agent that collects logs and metrics via 300+ prebuilt integrations. Normalizes events to ECS (Elastic Common Schema) at the edge so downstream detection and search are consistent across data sources.',
     requirement:
@@ -53,6 +56,7 @@ export const COMPONENTS = {
     name: 'Fleet Server',
     product: 'Fleet Server',
     color: 'teal',
+    euiIcon: 'gear',
     role:
       'Control plane for Elastic Agent: manages agent enrollment, distributes integration policies, and orchestrates agent upgrades. Does NOT sit in the data path — logs flow directly from agents to Elasticsearch.',
     requirement:
@@ -68,6 +72,7 @@ export const COMPONENTS = {
     name: 'Logstash',
     product: 'Logstash (optional)',
     color: 'teal',
+    euiIcon: 'logoLogstash',
     optional: true,
     role:
       'Optional pipeline tier. Use for legacy syslog ingestion, OT protocol translation, complex ETL, or buffering bursts. Can sit between sources and Elasticsearch, or augment an Elastic Agent stream.',
@@ -80,19 +85,20 @@ export const COMPONENTS = {
     ],
   },
 
-  cribl: {
-    name: 'Cribl Stream / Logstash Enrichment',
-    product: 'Cribl Stream or Logstash',
+  ingestPipelines: {
+    name: 'Ingest Pipelines',
+    product: 'Elasticsearch ingest pipelines + Logstash filters',
     color: 'teal',
+    euiIcon: 'pipelineApp',
     role:
-      'Pre-SIEM enrichment and routing pipeline. Drops low-value events, samples high-volume streams, masks PII, enriches with asset and identity context, and routes copies to multiple destinations. Typically achieves 40–60% volume reduction before data reaches the searchable tier.',
+      'Pre-storage enrichment and routing layer. Uses Elasticsearch ingest processors (drop, script, remove, geoip, set) and Logstash filter plugins to drop low-value events, sample high-volume streams, redact sensitive fields, enrich with asset and identity context, and route copies to multiple destinations. Typically achieves 40–60% volume reduction before data reaches the searchable tier.',
     requirement:
       'M-26-14 supports cost-effective implementations. Reducing volume before storage lowers the hot/cold footprint without sacrificing the events that matter for CEM and THIRF.',
     config:
-      'Implement masking BEFORE storage, not downstream — sensitive data must never land unredacted on disk. Keep a separate full-fidelity path to the snapshot repo for THIRF where redaction is incompatible with investigation.',
+      'Apply redaction processors BEFORE indexing — sensitive data must never land unredacted on disk. Keep a separate full-fidelity path to the snapshot repo for THIRF where redaction would interfere with investigation. Define pipelines as versioned artifacts and attach them to index templates.',
     docs: [
-      { label: 'Cribl Stream', url: 'https://cribl.io/stream/' },
-      { label: 'Logstash mutate filter', url: 'https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html' },
+      { label: 'Elasticsearch ingest pipelines', url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html' },
+      { label: 'Logstash filter plugins', url: 'https://www.elastic.co/guide/en/logstash/current/filter-plugins.html' },
     ],
   },
 
@@ -100,6 +106,7 @@ export const COMPONENTS = {
     name: 'PII Masking & Field Redaction',
     product: 'Ingest pipeline processors',
     color: 'coral',
+    euiIcon: 'lock',
     role:
       'Field-level redaction applied in the ingest pipeline. Targets PII, credentials, session tokens, and other sensitive values per the Agency Logging Plan classification rules.',
     requirement:
@@ -115,6 +122,8 @@ export const COMPONENTS = {
     name: 'Hot Tier',
     product: 'Elasticsearch — hot data nodes',
     color: 'blue',
+    tierKey: 'hot',
+    euiIcon: 'logoElasticsearch',
     role:
       'Fast SSD-backed Elasticsearch nodes that handle ingest, indexing, and immediate query. Newest data lives here. At L1/L2 the hot tier is intentionally tiny (~1 day) because M-26-14 does NOT require searchable data at those levels; at L3+ the hot tier holds ~3 days of the hottest data.',
     requirement:
@@ -130,6 +139,8 @@ export const COMPONENTS = {
     name: 'Cold Tier',
     product: 'Elasticsearch — cold data nodes',
     color: 'green',
+    tierKey: 'cold',
+    euiIcon: 'logoElasticsearch',
     role:
       'Cheaper-storage Elasticsearch nodes holding fully searchable data for ~7 days after rollover from hot. Indices are read-only and may be backed by searchable snapshots for storage efficiency while remaining directly queryable.',
     requirement:
@@ -145,6 +156,8 @@ export const COMPONENTS = {
     name: 'Frozen Tier',
     product: 'Elasticsearch — frozen data nodes (searchable snapshots)',
     color: 'gray',
+    tierKey: 'frozen',
+    euiIcon: 'logoElasticsearch',
     role:
       'Frozen nodes hold only a small local cache; the actual index data lives in an S3-compatible object store as a mounted searchable snapshot. Queries are slower but data remains directly queryable in Kibana without a separate thaw step. At L1/L2 acts as a ~1-day cache; at L3+ it carries the bulk of the searchable window (6 or 12 months).',
     requirement:
@@ -160,6 +173,7 @@ export const COMPONENTS = {
     name: 'ILM + SLM Policy',
     product: 'Index Lifecycle Management + Snapshot Lifecycle Management',
     color: 'green',
+    euiIcon: 'indexManagementApp',
     role:
       'ILM automates index transitions across Hot → Cold (L3+) → Frozen → Delete. SLM runs scheduled snapshots into the object-store repo and prunes expired snapshots. Together they enforce M-26-14 retention without human intervention.',
     requirement:
@@ -177,6 +191,7 @@ export const COMPONENTS = {
     product: 'AWS S3 / Azure Blob / GCS — unmounted searchable snapshot repo',
     color: 'purple',
     dashed: true,
+    euiIcon: 'logoCloud',
     role:
       'Unmounted snapshot repository. Snapshots sit in object storage and consume ZERO Elasticsearch memory or CPU until explicitly mounted. To investigate, mount as a searchable snapshot index on the frozen tier.',
     requirement:
@@ -193,6 +208,7 @@ export const COMPONENTS = {
     product: 'AWS S3 / Azure Blob / GCS — unmounted searchable snapshot repo',
     color: 'purple',
     dashed: true,
+    euiIcon: 'logoCloud',
     role:
       'Same shape as the 6-month repo but with extended retention to cover THIRF investigations that look back 12 months. Optional at L1/L2, required at L3+.',
     requirement:
@@ -208,6 +224,7 @@ export const COMPONENTS = {
     name: 'Kibana / Elastic Security SIEM',
     product: 'Kibana + Elastic Security',
     color: 'coral',
+    euiIcon: 'logoSecurity',
     role:
       'Primary SOC interface. Provides the Detection Engine (prebuilt + custom rules), Alerts, Cases, Timeline for investigation, Discover for ad-hoc log search, and the Fleet UI for agent management.',
     requirement:
@@ -220,10 +237,62 @@ export const COMPONENTS = {
     ],
   },
 
+  mlNodes: {
+    name: 'ML Nodes',
+    product: 'Elasticsearch — ML node pool',
+    color: 'purple',
+    tierKey: 'ml',
+    euiIcon: 'machineLearningApp',
+    role:
+      'Dedicated compute pool for Elastic Machine Learning jobs (anomaly detection, data frame analytics). RAM per node scales with size tier (15 / 30 / 60 GB). Three nodes deployed across three AZs for HA, even at L1/L2 where ML workloads are not yet active.',
+    requirement:
+      'M-26-14: provisioning ML capacity up-front lets agencies enable AI/ML enrichment when they advance to L3+ without re-architecting. ML nodes are part of the standard Elastic Cloud deployment template.',
+    config:
+      'Instance type `m5dn`. RAM = `mlNodeRamGB` for the size. Reserve 50% of RAM for the JVM heap; the rest is used by ML processes. Bind detection jobs to indices on cold + frozen tiers for 6+ months of baseline data.',
+    docs: [
+      { label: 'ML node sizing', url: 'https://www.elastic.co/guide/en/machine-learning/current/setup.html' },
+    ],
+  },
+
+  masterNodes: {
+    name: 'Master Nodes',
+    product: 'Elasticsearch — dedicated master-eligible nodes',
+    color: 'gray',
+    tierKey: 'master',
+    euiIcon: 'logoElasticsearch',
+    role:
+      'Dedicated master-eligible nodes manage the cluster state, shard allocation, and node membership. Three nodes deployed across three AZs to maintain quorum during a single-AZ failure.',
+    requirement:
+      'M-26-14: cluster resilience is foundational. Dedicated masters keep the control plane independent of data-plane load.',
+    config:
+      'Instance type `c7gd`. RAM 45 GB fixed across all size tiers — master overhead does not scale with ingest. Set `node.roles: [master]` only; do not co-locate data roles.',
+    docs: [
+      { label: 'Dedicated master nodes', url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-node.html#dedicated-master-node' },
+    ],
+  },
+
+  kibanaNodes: {
+    name: 'Kibana Instances',
+    product: 'Kibana — frontend instances',
+    color: 'coral',
+    tierKey: 'kibana',
+    euiIcon: 'logoKibana',
+    role:
+      'Kibana frontend instances serve the SOC UI: Discover, Dashboards, Detection Engine, Cases, Fleet UI. Three instances across three AZs behind a load balancer for HA.',
+    requirement:
+      'M-26-14: SOC access to logs must remain available during single-AZ failures. Multiple Kibana instances behind a load balancer is the standard pattern.',
+    config:
+      'Instance type `c7gd`. RAM 30 GB fixed across all size tiers — Kibana memory needs are driven by concurrent users and saved-object volume, not log ingest rate.',
+    docs: [
+      { label: 'Kibana production deployment', url: 'https://www.elastic.co/guide/en/kibana/current/production.html' },
+    ],
+  },
+
   ml: {
     name: 'AI/ML Enrichment',
     product: 'Elastic Machine Learning',
     color: 'purple',
+    euiIcon: 'machineLearningApp',
     role:
       'Elastic ML jobs running behavioral baselines: anomaly detection (single/multi-metric), population analysis (peer-group comparison for UBA/UEBA), rare-term detection (IOC surfacing), and lateral-movement detection. Scores events before they reach the SIEM detection engine.',
     requirement:
@@ -239,6 +308,7 @@ export const COMPONENTS = {
     name: 'IOC Matching (STIX/TAXII)',
     product: 'Elastic Security threat intel module',
     color: 'purple',
+    euiIcon: 'securitySignal',
     role:
       'Threat intelligence pipeline. Ingests STIX/TAXII feeds — including the CISA Known Exploited Vulnerabilities (KEV) catalog and commercial threat-intel — and matches indicators against incoming events in near real time.',
     requirement:
@@ -255,6 +325,7 @@ export const COMPONENTS = {
     name: 'Alert Correlator / Risk Scoring',
     product: 'Elastic Security Detection Engine + risk scoring',
     color: 'coral',
+    euiIcon: 'bell',
     role:
       'Combines signals from ML anomalies, IOC matches, and rule-based detections into a single risk score per host / user. Feeds prioritized alerts into the SIEM workflow instead of raw firehose.',
     requirement:
@@ -271,6 +342,7 @@ export const COMPONENTS = {
     product: 'Elasticsearch API + documented procedure',
     color: 'coral',
     dashed: true,
+    euiIcon: 'exportAction',
     role:
       'On-request log export channel for CISA and FBI during known or suspected compromise. The mechanism (format, transport, point of contact, scope) must be pre-agreed and documented BEFORE an incident occurs.',
     requirement:
@@ -287,6 +359,7 @@ export const COMPONENTS = {
     name: 'Federated Search (CCS)',
     product: 'Elasticsearch Cross-Cluster Search',
     color: 'teal',
+    euiIcon: 'crossClusterReplicationApp',
     role:
       'Lets the top-level agency SOC query remote Elasticsearch clusters in place — sub-agencies, cloud regions, OT enclaves — without physically replicating all data to a central SIEM. Reduces duplication while preserving central visibility.',
     requirement:
@@ -303,6 +376,7 @@ export const COMPONENTS = {
     product: 'Elasticsearch CCR',
     color: 'teal',
     optional: true,
+    euiIcon: 'crossClusterReplicationApp',
     role:
       'Optional alternative or complement to CCS. Replicates selected indices to a central cluster for resilience or compliance-driven full visibility. Use when query latency or sub-agency cluster availability is a concern.',
     requirement:
@@ -318,6 +392,7 @@ export const COMPONENTS = {
     name: 'On-Prem Cold/Frozen Store',
     product: 'Self-managed Elasticsearch (cold + frozen tiers)',
     color: 'green',
+    euiIcon: 'logoElasticsearch',
     role:
       'Agency-operated Elasticsearch cluster handling sensitive workloads that cannot leave on-prem infrastructure. Holds its own cold and frozen tiers and is federated into the central SOC via CCS.',
     requirement:
@@ -333,6 +408,7 @@ export const COMPONENTS = {
     name: 'Cloud Cold Tier (FedRAMP High)',
     product: 'Elastic Cloud on AWS GovCloud / Azure Government',
     color: 'green',
+    euiIcon: 'logoCloud',
     role:
       'FedRAMP High Elastic Cloud deployment hosting searchable cold-tier data. Used for workloads suitable for FedRAMP-authorized commercial cloud, federated to the central SOC.',
     requirement:
@@ -348,6 +424,7 @@ export const COMPONENTS = {
     name: 'Cloud Object Store',
     product: 'AWS S3 / Azure Blob / GCS',
     color: 'purple',
+    euiIcon: 'logoAWS',
     role:
       'Long-term object storage backing both searchable snapshots (frozen tier) and unmounted snapshot repositories. The cheapest tier in the architecture and the one that carries the bulk of THIRF retention.',
     requirement:
@@ -363,6 +440,7 @@ export const COMPONENTS = {
     name: 'IoT / OT Edge Collector',
     product: 'Elastic Agent / Logstash at the edge',
     color: 'gray',
+    euiIcon: 'logoBeats',
     role:
       'Edge collector deployed near IoT, OT, or ICS systems. Buffers locally during connectivity loss, applies edge filtering, and forwards to the agency or cloud Elastic cluster.',
     requirement:
@@ -378,6 +456,7 @@ export const COMPONENTS = {
     name: 'BYOK Encryption',
     product: 'AWS KMS / Azure Key Vault / GCP Cloud KMS',
     color: 'yellow',
+    euiIcon: 'lock',
     role:
       'Agency-controlled key material protects data at rest across the snapshot repositories and cloud-resident tiers. Key rotation and revocation stay under agency control even when storage is cloud-resident.',
     requirement:
@@ -394,6 +473,7 @@ export const COMPONENTS = {
     name: 'NTP Time Sync',
     product: 'USNO / NIST traceable NTP',
     color: 'yellow',
+    euiIcon: 'clock',
     role:
       'Authoritative time source for all agents, collectors, and Elasticsearch nodes. Without traceable time, log correlation and forensic timelines are unreliable.',
     requirement:
@@ -409,6 +489,7 @@ export const COMPONENTS = {
     name: 'Agency SOC',
     product: 'Top-level agency Security Operations Center',
     color: 'coral',
+    euiIcon: 'logoSecurity',
     role:
       'The agency’s central security operations team. At L4 sits at the hub of a federated topology with spoke connections to every distributed log store, querying them via Cross-Cluster Search.',
     requirement:

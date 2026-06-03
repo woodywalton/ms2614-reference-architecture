@@ -1,85 +1,139 @@
 import React from 'react'
 import {
-  Node, Arrow, Defs, Legend, StageHeader, SwimLane,
+  Node, TierFleetCard, ControlPlaneCard, Arrow, Defs, Legend, StageHeader, SwimLane,
   arrowPath, zpath, underPath,
 } from './primitives.jsx'
+import { getSizing, getTierNodeCount } from '../../data/sizing.js'
 
-// Stage definitions — the five M-26-14 phases the data passes through.
-// Each becomes a numbered header above the swim lane.
+// Stage definitions — five M-26-14 phases.
 const STAGES = [
   { label: 'SOURCES',          x: 40,   width: 220 },
   { label: 'COLLECTION',       x: 320,  width: 220 },
-  { label: 'ELASTIC STACK',    x: 600,  width: 220 },
-  { label: 'LONG-TERM STORAGE',x: 880,  width: 260 },
-  { label: 'SOC ACCESS',       x: 1200, width: 240 },
+  { label: 'ELASTIC STACK',    x: 600,  width: 360 },
+  { label: 'LONG-TERM STORAGE',x: 1020, width: 240 },
+  { label: 'SOC ACCESS',       x: 1320, width: 220 },
 ]
 
 const SWIM_Y = 70
-const SWIM_H = 410
+const SWIM_H = 670
 
-export default function Level1Diagram({ onNodeClick }) {
+export default function Level1Diagram({ size = 'small', onNodeClick }) {
+  const s = getSizing(size)
+  const hotCount = getTierNodeCount('hot', size)
+  const frozenCount = getTierNodeCount('frozen', size)
+  const mlCount = getTierNodeCount('ml', size)
+  const masterCount = getTierNodeCount('master', size)
+  const kibanaInfraCount = getTierNodeCount('kibana', size)
+
   return (
     <svg
-      viewBox="0 0 1480 600"
+      viewBox="0 0 1580 880"
       className="w-full h-auto"
       role="img"
-      aria-label="Level 1 architecture diagram"
+      aria-label={`Level 1 architecture diagram — ${s.label} size`}
     >
       <Defs />
 
-      {/* Swim lanes (rendered first, behind everything else) */}
-      {STAGES.map((s) => (
-        <SwimLane key={s.label} x={s.x} y={SWIM_Y} width={s.width} height={SWIM_H} />
+      {STAGES.map((stg) => (
+        <SwimLane key={stg.label} x={stg.x} y={SWIM_Y} width={stg.width} height={SWIM_H} />
       ))}
 
       <StageHeader stages={STAGES} />
 
-      {/* Nodes */}
+      {/* Sources */}
       <Node x={40}  y={80}  title="Log Sources" subtitle="Endpoints · Cloud · Network · IAM" color="gray" onClick={onNodeClick} componentId="sources" />
       <Node x={40}  y={220} title="Legacy / OT" subtitle="Syslog · SNMP · ICS" color="gray" dashed onClick={onNodeClick} componentId="legacySources" badges={['OPTIONAL']} />
 
-      <Node x={320} y={80}  title="Elastic Agent" subtitle="300+ integrations · ECS" color="teal" icon="/brand/icon-logging.svg" onClick={onNodeClick} componentId="elasticAgent" />
-      <Node x={320} y={220} title="Fleet Server" subtitle="Agent policy plane" color="teal" icon="/brand/icon-monitor-graph-cog.svg" onClick={onNodeClick} componentId="fleetServer" />
-      <Node x={320} y={360} title="Logstash" subtitle="Legacy / OT pipeline" color="teal" dashed icon="/brand/icon-infra.svg" onClick={onNodeClick} componentId="logstash" badges={['OPTIONAL']} />
+      {/* Collection */}
+      <Node x={320} y={80}  title="Elastic Agent" subtitle="300+ integrations · ECS" color="teal" icon="logoBeats" onClick={onNodeClick} componentId="elasticAgent" />
+      <Node x={320} y={220} title="Fleet Server" subtitle="Agent policy plane" color="teal" icon="gear" onClick={onNodeClick} componentId="fleetServer" />
+      <Node x={320} y={360} title="Logstash" subtitle="Legacy / OT pipeline" color="teal" dashed icon="logoLogstash" onClick={onNodeClick} componentId="logstash" badges={['OPTIONAL']} />
 
-      <Node x={600} y={80}  title="Hot Tier" subtitle="~1 day SSD · ILM ingest" color="blue" onClick={onNodeClick} componentId="hotTier" />
-      <Node x={600} y={220} title="Frozen Tier" subtitle="~1 day local cache" color="gray" onClick={onNodeClick} componentId="frozenTier" badges={['RETRIEVABLE']} />
-      <Node x={600} y={360} title="ILM + SLM" subtitle="Hot → Frozen → Snapshot" color="green" icon="/brand/icon-monitor-graph-cog.svg" onClick={onNodeClick} componentId="ilm" />
+      {/* Elastic Stack — tier fleet cards (centered in 360-wide stack column) */}
+      <TierFleetCard
+        x={630} y={80} w={300} h={130}
+        title="Hot Tier" subtitle="~1 day SSD · ILM ingest" color="blue"
+        icon="logoElasticsearch"
+        nodeCount={hotCount} nodePrefix="hot" instanceType={s.instanceTypes.hot}
+        onClick={onNodeClick} componentId="hotTier"
+      />
+      <TierFleetCard
+        x={630} y={230} w={300} h={130}
+        title="Frozen Tier" subtitle="~1 day local cache" color="gray"
+        icon="logoElasticsearch"
+        nodeCount={frozenCount} nodePrefix="frozen" instanceType={s.instanceTypes.frozen}
+        badges={['RETRIEVABLE']}
+        onClick={onNodeClick} componentId="frozenTier"
+      />
+      <TierFleetCard
+        x={630} y={380} w={300} h={130}
+        title="ML Nodes" subtitle={`${s.mlNodeRamGB} GB RAM · provisioned, idle at L1`} color="purple"
+        icon="machineLearningApp"
+        nodeCount={mlCount} nodePrefix="ml" instanceType={s.instanceTypes.ml}
+        onClick={onNodeClick} componentId="mlNodes"
+      />
 
-      <Node x={880} y={80}  w={260} title="Snapshot Repo 6-mo" subtitle="S3 / Blob — unmounted" color="purple" dashed onClick={onNodeClick} componentId="snapshot6mo" badges={['UNMOUNTED']} />
-      <Node x={880} y={220} w={260} title="Snapshot Repo 12-mo" subtitle="S3 / Blob — unmounted" color="purple" dashed onClick={onNodeClick} componentId="snapshot12mo" badges={['OPTIONAL']} />
+      {/* ILM bar */}
+      <Node
+        x={620} y={530} w={320} h={70}
+        title="ILM + SLM" subtitle="Hot → Frozen → Snapshot"
+        color="green" icon="indexManagementApp"
+        onClick={onNodeClick} componentId="ilm"
+      />
 
-      <Node x={1200} y={80}  w={240} title="Kibana / SIEM" subtitle="Elastic Security" color="coral" icon="/brand/icon-siem.svg" onClick={onNodeClick} componentId="kibana" />
-      <Node x={1200} y={220} w={240} title="CISA / FBI Export" subtitle="On-request" color="coral" dashed icon="/brand/icon-threat-detection.svg" onClick={onNodeClick} componentId="cisaExport" />
+      {/* Control plane lane */}
+      <text x={620} y={624} fontSize="9.5" fontWeight="700" fill="#8B949E" style={{ letterSpacing: '0.16em' }}>
+        CONTROL PLANE (FIXED ACROSS SIZES)
+      </text>
+      <ControlPlaneCard
+        x={620} y={630} w={155} h={100}
+        title="Master Nodes" ramLabel={`${s.masterNodeRamGB} GB`} instanceType={s.instanceTypes.master}
+        nodeCount={masterCount} nodePrefix="master" color="gray" icon="logoElasticsearch"
+        onClick={onNodeClick} componentId="masterNodes"
+      />
+      <ControlPlaneCard
+        x={785} y={630} w={155} h={100}
+        title="Kibana" ramLabel={`${s.kibanaRamGB} GB`} instanceType={s.instanceTypes.kibana}
+        nodeCount={kibanaInfraCount} nodePrefix="kib" color="coral" icon="logoKibana"
+        onClick={onNodeClick} componentId="kibanaNodes"
+      />
+
+      {/* Long-term storage */}
+      <Node x={1020} y={80}  w={240} title="Snapshot Repo 6-mo" subtitle="S3 / Blob — unmounted" color="purple" dashed onClick={onNodeClick} componentId="snapshot6mo" badges={['UNMOUNTED']} />
+      <Node x={1020} y={220} w={240} title="Snapshot Repo 12-mo" subtitle="S3 / Blob — unmounted" color="purple" dashed onClick={onNodeClick} componentId="snapshot12mo" badges={['OPTIONAL']} />
+
+      {/* SOC Access */}
+      <Node x={1320} y={80}  w={220} title="Kibana / SIEM" subtitle="Elastic Security" color="coral" icon="logoSecurity" onClick={onNodeClick} componentId="kibana" />
+      <Node x={1320} y={220} w={220} title="CISA / FBI Export" subtitle="On-request" color="coral" dashed icon="exportAction" onClick={onNodeClick} componentId="cisaExport" />
 
       {/* === Arrows === */}
       {/* Sources → Collection */}
       <Arrow d={arrowPath(260, 130, 320, 130)} kind="data" />
       <Arrow d={zpath(260, 270, 320, 410, 290)} kind="data" variant="dashed" />
 
-      {/* Fleet policy (yellow, dashed) */}
+      {/* Fleet policy */}
       <Arrow d={arrowPath(430, 220, 430, 180)} kind="policy" />
 
-      {/* Collection → Hot */}
-      <Arrow d={arrowPath(540, 130, 600, 130)} kind="data" />
-      <Arrow d={zpath(540, 410, 600, 130, 570)} kind="data" variant="dashed" />
+      {/* Collection → Hot tier */}
+      <Arrow d={arrowPath(540, 130, 630, 145)} kind="data" />
+      <Arrow d={zpath(540, 410, 630, 145, 580)} kind="data" variant="dashed" />
 
       {/* Tier transitions */}
-      <Arrow d={arrowPath(710, 180, 710, 220)} kind="data" />
+      <Arrow d={arrowPath(780, 210, 780, 230)} kind="data" />
 
       {/* SLM: Frozen → snapshot repos */}
-      <Arrow d={zpath(820, 270, 880, 130, 850)} kind="data" />
-      <Arrow d={arrowPath(820, 270, 880, 270)} kind="data" variant="dashed" />
+      <Arrow d={zpath(930, 295, 1020, 130, 975)} kind="data" />
+      <Arrow d={arrowPath(930, 295, 1020, 290)} kind="data" variant="dashed" />
 
-      {/* SOC access: Hot → Kibana (ducks under the snapshot row) */}
-      <Arrow d={underPath(820, 130, 1200, 130, 200)} kind="data" />
+      {/* SOC access: Hot → Kibana (ducks under the snapshot row at y=215) */}
+      <Arrow d={underPath(930, 145, 1320, 130, 215)} kind="data" />
 
-      {/* CISA/FBI exports (coral, dashed) */}
-      <Arrow d={zpath(1140, 130, 1200, 270, 1170)} kind="export" />
-      <Arrow d={arrowPath(1140, 270, 1200, 270)} kind="export" />
-      <Arrow d={arrowPath(1320, 180, 1320, 220)} kind="export" />
+      {/* CISA exports */}
+      <Arrow d={zpath(1260, 130, 1320, 270, 1290)} kind="export" />
+      <Arrow d={arrowPath(1260, 290, 1320, 270)} kind="export" />
+      <Arrow d={arrowPath(1430, 180, 1430, 220)} kind="export" />
 
-      <Legend x={40} y={510} />
+      <Legend x={40} y={760} />
     </svg>
   )
 }

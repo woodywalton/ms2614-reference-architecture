@@ -53,11 +53,11 @@ export const LEVELS = [
     searchable: '≥ 6 months (CEM)',
     retrievable: '≥ 12 months (THIRF)',
     summary:
-      'Same hot 3d / cold 7d / frozen 12mo retention as Level 3, now distributed across a federated topology with the agency SOC at the hub. Cross-Cluster Search reaches on-prem, cloud, and edge clusters in place. Pre-storage enrichment (Cribl Stream or Logstash) cuts volume 40–60%. BYOK encryption (AWS KMS, Azure Key Vault, GCP Cloud KMS) and USNO/NIST-traceable NTP enforced everywhere. CISA/FBI export path runs through the federated SOC.',
+      'Same hot 3d / cold 7d / frozen 12mo retention as Level 3, now distributed across a federated topology with the agency SOC at the hub. Cross-Cluster Search reaches on-prem, cloud, and edge clusters in place. Pre-storage enrichment via Elasticsearch ingest pipelines and Logstash filters cuts volume 40–60%. BYOK encryption (AWS KMS, Azure Key Vault, GCP Cloud KMS) and USNO/NIST-traceable NTP enforced everywhere. CISA/FBI export path runs through the federated SOC.',
     keyPoints: [
       'Hot 3d · Cold 7d · Frozen 12mo, replicated/federated across distributed stores.',
       'Cross-Cluster Search federates on-prem, cloud, and edge clusters.',
-      'Cribl/Logstash enrichment trims 40–60% of volume before storage.',
+      'Ingest pipelines (Elasticsearch + Logstash) trim 40–60% of volume before storage.',
       'BYOK across every cloud-resident tier; NTP traceable to USNO/NIST.',
     ],
   },

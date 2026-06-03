@@ -41,7 +41,7 @@ const TIMELINES = {
     ],
   },
   4: {
-    note: 'Same hot 3d / cold 7d / frozen 12mo envelope as Level 3, but distributed across federated clusters and reachable via CCS. Cribl-style enrichment trims volume 40–60% before any of these tiers.',
+    note: 'Same hot 3d / cold 7d / frozen 12mo envelope as Level 3, but distributed across federated clusters and reachable via CCS. Pre-storage ingest pipelines trim volume 40–60% before any of these tiers.',
     segments: [
       { label: 'Hot 3 days',           days: 3,   color: '#0077CC', kind: 'searchable' },
       { label: 'Cold 7 days',          days: 7,   color: '#2EA043', kind: 'searchable' },
