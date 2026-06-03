@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body { font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif; }
+}
+
+@layer components {
+  .diagram-node {
+    cursor: pointer;
+    transition: filter 150ms ease, transform 150ms ease;
+  }
+  .diagram-node:hover {
+    filter: brightness(1.18) drop-shadow(0 4px 10px rgba(0, 191, 179, 0.25));
+  }
+  .diagram-node:focus-within {
+    outline: none;
+  }
+  .diagram-label {
+    pointer-events: none;
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    fill: #E6EDF3;
+  }
+  .pill {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide;
+  }
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #0D1117; }
+::-webkit-scrollbar-thumb { background: #2A3344; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #3A4357; }
