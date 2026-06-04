@@ -6,39 +6,50 @@ import { sizingTable, SIZE_ORDER } from '../data/sizing.js'
 export default function Overview() {
   return (
     <main className="mx-auto max-w-[1500px] px-6 py-8 space-y-8">
+
+      {/* Title + program description + CEM/THIRF definitions */}
       <section>
-        <h1 className="text-2xl font-semibold text-text-primary">OMB M-26-14 Logging Maturity Model</h1>
-        <p className="mt-3 max-w-3xl text-sm text-text-muted leading-relaxed">
+        <h1 className="text-3xl font-semibold text-text-primary">
+          OMB M-26-14 Logging Maturity Model Overview
+        </h1>
+        <p className="mt-6 text-base text-text-muted leading-relaxed">
           OMB Memorandum M-26-14 (May 22, 2026) establishes a four-level Logging Maturity Model
           for federal agencies and requires Elasticsearch-based logging architectures aligned
-          with two objectives:
+          with two core objectives:
         </p>
-        <ul className="mt-3 max-w-3xl space-y-1.5 text-sm text-text-primary">
-          <li>
-            <span className="text-accent-green font-semibold">CEM</span> — Continuous Event
-            Monitoring. Real-time, <em>searchable</em> data. <span className="text-text-muted">"Searchable" = immediately usable, no prep steps.</span>
-          </li>
-          <li>
-            <span className="text-accent-blue font-semibold">THIRF</span> — Threat Hunting,
-            Investigation, Response &amp; Forensics. <em>Retrievable</em> data; may require thawing
-            from cold storage. <span className="text-text-muted">"Retrievable" = usable after intermediary steps.</span>
-          </li>
-        </ul>
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-lg border border-accent-teal/40 bg-ink-800 p-5">
+            <p className="text-base font-semibold text-accent-teal mb-1">CEM — Continuous Event Monitoring</p>
+            <p className="text-sm text-text-primary leading-relaxed">
+              Real-time, <em>searchable</em> data. Immediately usable — no thaw or mount step required.
+            </p>
+          </div>
+          <div className="rounded-lg border border-accent-blue/40 bg-ink-800 p-5">
+            <p className="text-base font-semibold text-accent-blue mb-1">THIRF — Threat Hunting, Investigation, Response &amp; Forensics</p>
+            <p className="text-sm text-text-primary leading-relaxed">
+              <em>Retrievable</em> data; may require intermediate steps (e.g., mounting an unmounted
+              snapshot) before it is queryable.
+            </p>
+          </div>
+        </div>
       </section>
 
+      {/* Maturity Timeline */}
+      <section className="rounded-lg border border-line bg-ink-800 p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted mb-4">
+          Maturity Timeline
+        </h2>
+        <Timeline />
+      </section>
+
+      {/* 4 Level cards — link to /level/:id/small */}
       <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {LEVELS.map((lvl) => (
           <LevelCard key={lvl.id} level={lvl} />
         ))}
       </section>
 
-      <section className="rounded-lg border border-line bg-ink-800 p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted mb-4">
-          Deadline Timeline
-        </h2>
-        <Timeline />
-      </section>
-
+      {/* Organization Size Tiers — rows link to /maturity/:size/1 */}
       <section className="rounded-lg border border-line bg-ink-800 p-6">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted mb-2">
           Organization Size Tiers
@@ -46,7 +57,8 @@ export default function Overview() {
         <p className="text-xs text-text-muted mb-4 max-w-3xl leading-relaxed">
           Each maturity level scales across three size tiers — Small, Medium, and Large — keyed
           to daily ingest volume. The hot/cold/frozen node counts and S3 footprint below come
-          from Elastic's reference deployment sizing table.
+          from Elastic's reference deployment sizing table. Select a tier to explore the full
+          architecture by level.
         </p>
         <SizingTable />
         <p className="mt-3 text-xs text-text-muted italic">
@@ -55,38 +67,6 @@ export default function Overview() {
         </p>
       </section>
 
-      <section className="rounded-lg border border-line bg-ink-800 p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted mb-4">
-          Key architectural decisions
-        </h2>
-        <ol className="list-decimal pl-5 space-y-2 text-sm text-text-primary max-w-4xl">
-          <li>
-            L1/L2 use MINIMAL hot (1 day) + frozen (1 day cache) to minimize cost — no cold tier
-            needed because searchable is <strong>not</strong> required.
-          </li>
-          <li>Snapshot repos are UNMOUNTED — zero Elasticsearch overhead until thawed.</li>
-          <li>
-            Thaw path: unmounted snapshot → frozen tier (searchable snapshot mount) → analyst can
-            query.
-          </li>
-          <li>
-            L3 adds the cold tier (7 days) and treats frozen as searchable via mounted searchable
-            snapshots to satisfy the "searchable ≥ 6 months" CEM requirement.
-          </li>
-          <li>
-            L4 adds federated search so distributed agencies don't replicate everything to a
-            central SIEM.
-          </li>
-          <li>
-            CISA/FBI access path must be pre-defined in the Agency Logging Plan, not figured out
-            during an incident.
-          </li>
-          <li>
-            Sensitive-data masking (PII, field-level redaction) happens in the pipeline BEFORE
-            storage.
-          </li>
-        </ol>
-      </section>
     </main>
   )
 }
@@ -94,12 +74,12 @@ export default function Overview() {
 function LevelCard({ level }) {
   return (
     <Link
-      to={`/level/${level.id}`}
+      to={`/maturity/small/${level.id}`}
       className="block rounded-lg border border-line bg-ink-800 p-5 hover:border-accent-teal/60 hover:bg-ink-700/60 transition-colors"
     >
       <div className="flex items-baseline justify-between">
         <h3 className="text-lg font-semibold text-text-primary">{level.name}</h3>
-        <span className="text-[11px] font-semibold text-accent-teal">L{level.id}</span>
+        <span className="text-xs font-semibold text-accent-teal">L{level.id}</span>
       </div>
       <p className="mt-1 text-xs text-text-muted">Due: {level.deadline}</p>
 
@@ -131,11 +111,14 @@ function SizingTable() {
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="text-left text-[11px] uppercase tracking-wider text-text-muted">
+          <tr className="text-left text-xs uppercase tracking-wider text-text-muted">
             <th className="border-b border-line py-2 pr-4">Size</th>
             <th className="border-b border-line py-2 pr-4">Daily ingest</th>
             <th className="border-b border-line py-2 pr-4">Hot nodes</th>
-            <th className="border-b border-line py-2 pr-4">Cold nodes <span className="text-[10px] normal-case italic text-text-muted">(L3 / L4)</span></th>
+            <th className="border-b border-line py-2 pr-4">
+              Cold nodes{' '}
+              <span className="text-xs normal-case italic text-text-muted">(L3 / L4)</span>
+            </th>
             <th className="border-b border-line py-2 pr-4">Frozen nodes</th>
             <th className="border-b border-line py-2">S3 stored</th>
           </tr>
@@ -144,8 +127,18 @@ function SizingTable() {
           {SIZE_ORDER.map((key) => {
             const s = sizingTable[key]
             return (
-              <tr key={key} className="text-text-primary">
-                <td className="border-b border-line/60 py-2.5 pr-4 font-semibold text-accent-teal">{s.label}</td>
+              <tr
+                key={key}
+                className="text-text-primary hover:bg-ink-700/40 transition-colors group"
+              >
+                <td className="border-b border-line/60 py-2.5 pr-4">
+                  <Link
+                    to={`/maturity/${key}/1`}
+                    className="font-semibold text-accent-teal hover:underline"
+                  >
+                    {s.label}
+                  </Link>
+                </td>
                 <td className="border-b border-line/60 py-2.5 pr-4">{s.ingestRange}</td>
                 <td className="border-b border-line/60 py-2.5 pr-4">{s.hotNodes}</td>
                 <td className="border-b border-line/60 py-2.5 pr-4">{s.coldNodes}</td>
@@ -161,8 +154,6 @@ function SizingTable() {
 }
 
 function Timeline() {
-  // Position markers proportionally to days. Total horizon = 400 days so the
-  // L3 marker at 320d sits at 80% and L4 ("ongoing") anchors the right edge.
   const HORIZON = 400
   const fixedLabels = [
     { id: 1, days: 120, label: 'L1', detail: '120 days' },
@@ -172,8 +163,7 @@ function Timeline() {
   return (
     <div className="relative pt-2 pb-14">
       <div className="h-1 w-full rounded-full bg-line" />
-      {/* axis tick labels */}
-      <div className="absolute left-0 right-0 -top-3 text-[10px] text-text-muted">
+      <div className="absolute left-0 right-0 -top-3 text-xs text-text-muted">
         <span className="absolute left-0">LRA publication</span>
         <span className="absolute right-0">≈ 1 year+</span>
       </div>
@@ -182,11 +172,10 @@ function Timeline() {
           <div className="h-4 w-px bg-accent-teal mx-auto" />
           <div className="mt-1 -translate-x-1/2 text-center">
             <p className="text-xs font-semibold text-accent-teal">{l.label}</p>
-            <p className="text-[11px] text-text-muted whitespace-nowrap">{l.detail}</p>
+            <p className="text-xs text-text-muted whitespace-nowrap">{l.detail}</p>
           </div>
         </div>
       ))}
-      {/* L4: ongoing — shown as a hatched band extending past L3 */}
       <div
         className="absolute top-0 h-1 rounded-r-full bg-gradient-to-r from-accent-coral/60 to-accent-coral/20"
         style={{ left: `${(320 / HORIZON) * 100}%`, right: 0 }}
@@ -198,7 +187,7 @@ function Timeline() {
         <div className="h-4 w-px bg-accent-coral mx-auto" />
         <div className="mt-1 -translate-x-1/2 text-center">
           <p className="text-xs font-semibold text-accent-coral">L4</p>
-          <p className="text-[11px] text-text-muted whitespace-nowrap">ongoing</p>
+          <p className="text-xs text-text-muted whitespace-nowrap">ongoing</p>
         </div>
       </div>
     </div>
