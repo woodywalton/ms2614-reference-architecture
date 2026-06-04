@@ -29,13 +29,16 @@ export function DiagramIcon({ type, x, y, size = 36 }) {
 }
 
 export const ACCENT = {
-  teal: '#00BFB3',
-  blue: '#0077CC',
-  gray: '#6E7681',
-  purple: '#7B5EA7',
-  green: '#2EA043',
-  coral: '#CF4F27',
-  yellow: '#D29922',
+  teal:   '#00BFB3',
+  blue:   '#0077CC',  // cold tier
+  gray:   '#6E7681',  // snapshots, neutral
+  purple: '#7B5EA7',  // frozen tier (and ML group — visually adjacent but in different lanes)
+  green:  '#2EA043',  // ILM/SLM policy, on-prem cluster
+  coral:  '#CF4F27',  // Kibana/SIEM, SOC, sensitive data protection
+  yellow: '#D29922',  // BYOK, NTP
+  orange: '#EC7211',  // hot tier
+  pink:   '#F04E98',  // Kibana node infrastructure (matches Kibana brand pink)
+  cyan:   '#06B6D4',  // ML compute + AI/ML enrichment workload
 }
 
 // Arrow color palette — semantic, not per-tier.
@@ -69,7 +72,8 @@ export function Node({
   color = 'teal',
   badges = [],
   dashed = false,
-  icon, // optional path to an SVG/PNG in /public
+  icon, // EUI icon type string
+  bullets, // optional string[] — renders as compact bulleted list below subtitle
   onClick,
   componentId,
 }) {
@@ -130,6 +134,23 @@ export function Node({
         >
           {subtitle}
         </text>
+      )}
+      {/* bulleted capability list (used for the Sensitive Data Protection card) */}
+      {bullets && bullets.length > 0 && (
+        <g transform={`translate(${x + 16}, ${y + (subtitle ? 72 : 56)})`}>
+          {bullets.map((b, i) => (
+            <text
+              key={b}
+              y={i * 15}
+              fontSize="10.5"
+              fill="#E6EDF3"
+              className="diagram-label"
+            >
+              <tspan fill="#6FDCD3" fontWeight="700">›</tspan>
+              <tspan dx="6">{b}</tspan>
+            </text>
+          ))}
+        </g>
       )}
       {/* badges */}
       {badges.length > 0 && (

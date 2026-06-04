@@ -47,18 +47,25 @@ export default function Level2Diagram({ size = 'small', onNodeClick }) {
       <Node x={320} y={80}  title="Elastic Agent" subtitle="Complete Fleet inventory" color="teal" icon="logoBeats" onClick={onNodeClick} componentId="elasticAgent" />
       <Node x={320} y={220} title="Fleet Server" subtitle="Agent policy plane" color="teal" icon="gear" onClick={onNodeClick} componentId="fleetServer" />
       <Node x={320} y={360} title="Logstash" subtitle="Legacy / OT pipeline" color="teal" icon="logoLogstash" onClick={onNodeClick} componentId="logstash" />
+      <Node
+        x={320} y={490} w={220} h={130}
+        title="Sensitive Data Protection"
+        color="coral" icon="lock"
+        bullets={['Redact processor', 'NER via ELSER', 'Anonymization processor']}
+        onClick={onNodeClick} componentId="sensitiveDataProtection"
+      />
 
       {/* Elastic Stack — tier fleet cards */}
       <TierFleetCard
         x={630} y={80} w={300} h={130}
-        title="Hot Tier" subtitle="~1 day SSD · ILM ingest" color="blue"
+        title="Hot Tier" subtitle="~1 day SSD · ILM ingest" color="orange"
         icon="logoElasticsearch"
         nodeCount={hotCount} nodePrefix="hot" instanceType={s.instanceTypes.hot}
         onClick={onNodeClick} componentId="hotTier"
       />
       <TierFleetCard
         x={630} y={230} w={300} h={130}
-        title="Frozen Tier" subtitle="~1 day local cache" color="gray"
+        title="Frozen Tier" subtitle="~1 day local cache" color="purple"
         icon="logoElasticsearch"
         nodeCount={frozenCount} nodePrefix="frozen" instanceType={s.instanceTypes.frozen}
         badges={['RETRIEVABLE']}
@@ -66,7 +73,7 @@ export default function Level2Diagram({ size = 'small', onNodeClick }) {
       />
       <TierFleetCard
         x={630} y={380} w={300} h={130}
-        title="ML Nodes" subtitle={`${s.mlNodeRamGB} GB RAM · provisioned, idle at L2`} color="purple"
+        title="ML Nodes" subtitle={`${s.mlNodeRamGB} GB RAM · provisioned, idle at L2`} color="cyan"
         icon="machineLearningApp"
         nodeCount={mlCount} nodePrefix="ml" instanceType={s.instanceTypes.ml}
         onClick={onNodeClick} componentId="mlNodes"
@@ -93,13 +100,13 @@ export default function Level2Diagram({ size = 'small', onNodeClick }) {
       <ControlPlaneCard
         x={785} y={630} w={155} h={100}
         title="Kibana" ramLabel={`${s.kibanaRamGB} GB`} instanceType={s.instanceTypes.kibana}
-        nodeCount={kibanaInfraCount} nodePrefix="kib" color="coral" icon="logoKibana"
+        nodeCount={kibanaInfraCount} nodePrefix="kib" color="pink" icon="logoKibana"
         onClick={onNodeClick} componentId="kibanaNodes"
       />
 
       {/* Long-term storage — both repos standard at L2 */}
-      <Node x={1020} y={80}  w={240} title="Snapshot Repo 6-mo" subtitle="S3 / Blob — unmounted" color="purple" onClick={onNodeClick} componentId="snapshot6mo" badges={['UNMOUNTED']} />
-      <Node x={1020} y={220} w={240} title="Snapshot Repo 12-mo" subtitle="S3 / Blob — unmounted" color="purple" onClick={onNodeClick} componentId="snapshot12mo" badges={['UNMOUNTED']} />
+      <Node x={1020} y={80}  w={240} title="Snapshot Repo 6-mo" subtitle="S3 / Blob — unmounted" color="gray" onClick={onNodeClick} componentId="snapshot6mo" badges={['UNMOUNTED']} />
+      <Node x={1020} y={220} w={240} title="Snapshot Repo 12-mo" subtitle="S3 / Blob — unmounted" color="gray" onClick={onNodeClick} componentId="snapshot12mo" badges={['UNMOUNTED']} />
 
       {/* SOC Access */}
       <Node x={1320} y={80}  w={220} title="Kibana / SIEM" subtitle="Elastic Security" color="coral" icon="logoSecurity" onClick={onNodeClick} componentId="kibana" />
@@ -111,18 +118,27 @@ export default function Level2Diagram({ size = 'small', onNodeClick }) {
 
       <Arrow d={arrowPath(430, 220, 430, 180)} kind="policy" />
 
-      <Arrow d={arrowPath(540, 130, 630, 145)} kind="data" />
-      <Arrow d={zpath(540, 410, 630, 145, 580)} kind="data" />
+      {/* Collection → Sensitive Data Protection → Hot tier */}
+      {/* Agent → SDP — right edge, 8px above mid */}
+      <Arrow d="M 540 130 L 555 130 L 555 547 L 540 547" kind="data" />
+      <Arrow d={arrowPath(430, 460, 430, 490)} kind="data" />
+      {/* SDP → Hot — right edge, 8px below mid */}
+      <Arrow d="M 540 563 L 575 563 L 575 145 L 630 145" kind="data" />
 
       <Arrow d={arrowPath(780, 210, 780, 230)} kind="data" />
 
-      <Arrow d={zpath(930, 295, 1020, 130, 975)} kind="data" />
-      <Arrow d={arrowPath(930, 295, 1020, 290)} kind="data" />
+      {/* Frozen → Snap6 — 10px above Frozen right-mid via lane x=975 */}
+      <Arrow d={zpath(930, 285, 1020, 130, 975)} kind="data" />
+      {/* Frozen → Snap12 — 10px below Frozen right-mid via lane x=985, orthogonal */}
+      <Arrow d={zpath(930, 305, 1020, 270, 985)} kind="data" />
 
-      <Arrow d={underPath(930, 145, 1320, 130, 215)} kind="data" />
+      {/* Hot → Kibana — elbow out, duck under snapshots, approach Kibana horizontally */}
+      <Arrow d="M 930 145 L 945 145 L 945 215 L 1305 215 L 1305 130 L 1320 130" kind="data" />
 
-      <Arrow d={zpath(1260, 130, 1320, 270, 1290)} kind="export" />
-      <Arrow d={arrowPath(1260, 290, 1320, 270)} kind="export" />
+      {/* Snap6 → CISA — 10px above CISA left-mid */}
+      <Arrow d={zpath(1260, 130, 1320, 260, 1290)} kind="export" />
+      {/* Snap12 → CISA — 10px below CISA left-mid, orthogonal */}
+      <Arrow d={zpath(1260, 270, 1320, 280, 1310)} kind="export" />
       <Arrow d={arrowPath(1430, 180, 1430, 220)} kind="export" />
 
       <Legend x={40} y={760} />

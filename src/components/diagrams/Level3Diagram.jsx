@@ -48,12 +48,18 @@ export default function Level3Diagram({ size = 'small', onNodeClick }) {
       <Node x={320} y={80}  title="Elastic Agent" subtitle="Complete Fleet inventory" color="teal" icon="logoBeats" onClick={onNodeClick} componentId="elasticAgent" />
       <Node x={320} y={220} title="Fleet Server" subtitle="Agent policy plane" color="teal" icon="gear" onClick={onNodeClick} componentId="fleetServer" />
       <Node x={320} y={360} title="Logstash" subtitle="Legacy / OT pipeline" color="teal" icon="logoLogstash" onClick={onNodeClick} componentId="logstash" />
-      <Node x={320} y={500} title="PII Masking" subtitle="Pre-storage redaction" color="coral" icon="lock" onClick={onNodeClick} componentId="piiMasking" badges={['L3']} />
+      <Node
+        x={320} y={480} w={220} h={130}
+        title="Sensitive Data Protection"
+        color="coral" icon="lock"
+        bullets={['Redact processor', 'NER via ELSER', 'Anonymization processor']}
+        onClick={onNodeClick} componentId="sensitiveDataProtection"
+      />
 
       {/* Elastic Stack — tier sub-col (centered in 600+580 = stack span) */}
       <TierFleetCard
         x={620} y={80} w={300} h={130}
-        title="Hot Tier" subtitle="3 days SSD" color="blue"
+        title="Hot Tier" subtitle="3 days SSD" color="orange"
         icon="logoElasticsearch"
         nodeCount={hotCount} nodePrefix="hot" instanceType={s.instanceTypes.hot}
         badges={['SEARCHABLE']}
@@ -61,7 +67,7 @@ export default function Level3Diagram({ size = 'small', onNodeClick }) {
       />
       <TierFleetCard
         x={620} y={230} w={300} h={130}
-        title="Cold Tier" subtitle="7 days" color="green"
+        title="Cold Tier" subtitle="7 days" color="blue"
         icon="logoElasticsearch"
         nodeCount={coldCount} nodePrefix="cold" instanceType={s.instanceTypes.cold}
         badges={['SEARCHABLE']}
@@ -69,7 +75,7 @@ export default function Level3Diagram({ size = 'small', onNodeClick }) {
       />
       <TierFleetCard
         x={620} y={380} w={300} h={130}
-        title="Frozen Tier" subtitle="→ 6 / 12 months" color="gray"
+        title="Frozen Tier" subtitle="→ 6 / 12 months" color="purple"
         icon="logoElasticsearch"
         nodeCount={frozenCount} nodePrefix="frozen" instanceType={s.instanceTypes.frozen}
         badges={['SEARCHABLE']}
@@ -77,14 +83,14 @@ export default function Level3Diagram({ size = 'small', onNodeClick }) {
       />
       <TierFleetCard
         x={620} y={530} w={300} h={130}
-        title="ML Nodes" subtitle={`${s.mlNodeRamGB} GB RAM`} color="purple"
+        title="ML Nodes" subtitle={`${s.mlNodeRamGB} GB RAM`} color="cyan"
         icon="machineLearningApp"
         nodeCount={mlCount} nodePrefix="ml" instanceType={s.instanceTypes.ml}
         onClick={onNodeClick} componentId="mlNodes"
       />
 
       {/* Elastic Stack — workload sub-col (AI/ML, IOC, Correlator) */}
-      <Node x={980} y={80}  w={200} h={130} title="AI/ML Enrichment" subtitle="Anomaly · UEBA" color="purple" icon="machineLearningApp" onClick={onNodeClick} componentId="ml" badges={['L3']} />
+      <Node x={980} y={80}  w={200} h={130} title="AI/ML Enrichment" subtitle="Anomaly · UEBA" color="cyan" icon="machineLearningApp" onClick={onNodeClick} componentId="ml" badges={['L3']} />
       <Node x={980} y={230} w={200} h={130} title="IOC Matching" subtitle="STIX/TAXII · CISA KEV" color="purple" icon="securitySignal" onClick={onNodeClick} componentId="iocMatching" badges={['L3']} />
       <Node x={980} y={380} w={200} h={130} title="Alert Correlator" subtitle="Risk scoring → SIEM" color="coral" icon="bell" onClick={onNodeClick} componentId="alertCorrelator" badges={['L3']} />
 
@@ -109,13 +115,13 @@ export default function Level3Diagram({ size = 'small', onNodeClick }) {
       <ControlPlaneCard
         x={785} y={780} w={155} h={100}
         title="Kibana" ramLabel={`${s.kibanaRamGB} GB`} instanceType={s.instanceTypes.kibana}
-        nodeCount={kibanaInfraCount} nodePrefix="kib" color="coral" icon="logoKibana"
+        nodeCount={kibanaInfraCount} nodePrefix="kib" color="pink" icon="logoKibana"
         onClick={onNodeClick} componentId="kibanaNodes"
       />
 
       {/* Long-term storage */}
-      <Node x={1240} y={80}  w={240} title="Snapshot Repo 6-mo" subtitle="S3 / Blob — unmounted" color="purple" dashed onClick={onNodeClick} componentId="snapshot6mo" badges={['UNMOUNTED']} />
-      <Node x={1240} y={220} w={240} title="Snapshot Repo 12-mo" subtitle="S3 / Blob — unmounted" color="purple" dashed onClick={onNodeClick} componentId="snapshot12mo" badges={['UNMOUNTED']} />
+      <Node x={1240} y={80}  w={240} title="Snapshot Repo 6-mo" subtitle="S3 / Blob — unmounted" color="gray" dashed onClick={onNodeClick} componentId="snapshot6mo" badges={['UNMOUNTED']} />
+      <Node x={1240} y={220} w={240} title="Snapshot Repo 12-mo" subtitle="S3 / Blob — unmounted" color="gray" dashed onClick={onNodeClick} componentId="snapshot12mo" badges={['UNMOUNTED']} />
 
       {/* SOC Access */}
       <Node x={1520} y={80}  w={220} title="Kibana / SIEM" subtitle="Elastic Security" color="coral" icon="logoSecurity" onClick={onNodeClick} componentId="kibana" />
@@ -128,12 +134,12 @@ export default function Level3Diagram({ size = 'small', onNodeClick }) {
 
       <Arrow d={arrowPath(430, 220, 430, 180)} kind="policy" />
 
-      {/* Agent → PII (down lane x=575) */}
-      <Arrow d="M 540 130 L 575 130 L 575 550 L 540 550" kind="data" />
-      {/* Logstash → PII (short vertical) */}
-      <Arrow d={arrowPath(430, 460, 430, 500)} kind="data" />
-      {/* PII → Hot (up lane x=595) */}
-      <Arrow d="M 540 550 L 595 550 L 595 145 L 620 145" kind="data" />
+      {/* Agent → SDP — enters right edge 8px above mid via lane x=575 */}
+      <Arrow d="M 540 130 L 575 130 L 575 537 L 540 537" kind="data" />
+      {/* Logstash → SDP — short vertical into top edge */}
+      <Arrow d={arrowPath(430, 460, 430, 480)} kind="data" />
+      {/* SDP → Hot — leaves right edge 8px below mid via lane x=595 */}
+      <Arrow d="M 540 553 L 595 553 L 595 145 L 620 145" kind="data" />
 
       {/* Tier ILM chain */}
       <Arrow d={arrowPath(770, 210, 770, 230)} kind="data" />
@@ -147,17 +153,23 @@ export default function Level3Diagram({ size = 'small', onNodeClick }) {
       <Arrow d={arrowPath(1080, 210, 1080, 230)} kind="data" />
       <Arrow d={arrowPath(1080, 360, 1080, 380)} kind="data" />
 
-      {/* Correlator → Kibana SIEM (ducks under via lane y=215) */}
-      <Arrow d="M 1180 445 L 1210 445 L 1210 215 L 1520 215 L 1520 130" kind="data" />
+      {/* Correlator → Kibana SIEM — duck-under via lane y=215, then approach Kibana
+          horizontally via lane x=1505 so arrowhead points INTO Kibana (not up its edge) */}
+      <Arrow d="M 1180 445 L 1210 445 L 1210 215 L 1505 215 L 1505 130 L 1520 130" kind="data" />
 
-      {/* Frozen → Snap6 (SLM, lane y=520 then up x=1220) */}
-      <Arrow d="M 920 445 L 960 445 L 960 520 L 1220 520 L 1220 130 L 1240 130" kind="data" />
-      {/* Frozen → Snap12 (lane y=520 then up x=1230) */}
-      <Arrow d="M 920 445 L 960 445 L 960 520 L 1230 520 L 1230 270 L 1240 270" kind="data" />
+      {/* Frozen → Snap6 — UPPER route: above Correlator via lane y=370,
+          then up the workload/snap gutter via lane x=1200 */}
+      <Arrow d="M 920 435 L 950 435 L 950 370 L 1200 370 L 1200 130 L 1240 130" kind="data" />
+      {/* Frozen → Snap12 — LOWER route: below Correlator via lane y=520,
+          then up the workload/snap gutter via lane x=1230. Separated horizontals
+          (y=370 vs y=520) and verticals (x=1200 vs x=1230) keep these visually distinct. */}
+      <Arrow d="M 920 455 L 960 455 L 960 520 L 1230 520 L 1230 270 L 1240 270" kind="data" />
 
       {/* CISA exports */}
-      <Arrow d={zpath(1480, 130, 1520, 270, 1500)} kind="export" />
-      <Arrow d={arrowPath(1480, 270, 1520, 270)} kind="export" />
+      {/* Snap6 → CISA — enters CISA left edge 10px ABOVE mid via lane x=1500 */}
+      <Arrow d={zpath(1480, 130, 1520, 260, 1500)} kind="export" />
+      {/* Snap12 → CISA — enters CISA left edge 10px BELOW mid via lane x=1510 (was direct line ending at convergence point) */}
+      <Arrow d={zpath(1480, 270, 1520, 280, 1510)} kind="export" />
       <Arrow d={arrowPath(1630, 180, 1630, 220)} kind="export" />
 
       <Legend x={40} y={950} />

@@ -82,7 +82,7 @@ export default function Drawer({ componentId, size, onClose }) {
               </Section>
 
               <Section label="Elastic config notes">
-                <p className="text-sm text-text-primary leading-relaxed">{data.config}</p>
+                <p className="text-sm text-text-primary leading-relaxed whitespace-pre-line">{data.config}</p>
               </Section>
 
               {data.docs?.length > 0 && (

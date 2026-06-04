@@ -90,14 +90,20 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
       <Node x={320} y={220} title="Fleet Server" subtitle="Agent policy plane" color="teal" icon="gear" onClick={onNodeClick} componentId="fleetServer" />
       <Node x={320} y={360} title="Logstash" subtitle="Legacy / OT pipeline" color="teal" icon="logoLogstash" onClick={onNodeClick} componentId="logstash" />
 
-      {/* Collection sub-col 2b (Ingest Pipelines + PII Masking) */}
+      {/* Collection sub-col 2b (Ingest Pipelines + Sensitive Data Protection) */}
       <Node x={560} y={80}  title="Ingest Pipelines" subtitle="40–60% volume reduction" color="teal" icon="pipelineApp" onClick={onNodeClick} componentId="ingestPipelines" badges={['L4']} />
-      <Node x={560} y={220} title="PII Masking" subtitle="Pre-storage redaction" color="coral" icon="lock" onClick={onNodeClick} componentId="piiMasking" />
+      <Node
+        x={560} y={220} w={220} h={130}
+        title="Sensitive Data Protection"
+        color="coral" icon="lock"
+        bullets={['Redact processor', 'NER via ELSER', 'Anonymization processor']}
+        onClick={onNodeClick} componentId="sensitiveDataProtection"
+      />
 
       {/* Elastic Stack — tier sub-col */}
       <TierFleetCard
         x={860} y={80} w={300} h={130}
-        title="Hot Tier" subtitle="3 days SSD" color="blue"
+        title="Hot Tier" subtitle="3 days SSD" color="orange"
         icon="logoElasticsearch"
         nodeCount={hotCount} nodePrefix="hot" instanceType={s.instanceTypes.hot}
         badges={['SEARCHABLE']}
@@ -105,7 +111,7 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
       />
       <TierFleetCard
         x={860} y={230} w={300} h={130}
-        title="Cold Tier" subtitle="7 days" color="green"
+        title="Cold Tier" subtitle="7 days" color="blue"
         icon="logoElasticsearch"
         nodeCount={coldCount} nodePrefix="cold" instanceType={s.instanceTypes.cold}
         badges={['SEARCHABLE']}
@@ -113,7 +119,7 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
       />
       <TierFleetCard
         x={860} y={380} w={300} h={130}
-        title="Frozen Tier" subtitle="→ 12 months" color="gray"
+        title="Frozen Tier" subtitle="→ 12 months" color="purple"
         icon="logoElasticsearch"
         nodeCount={frozenCount} nodePrefix="frozen" instanceType={s.instanceTypes.frozen}
         badges={['SEARCHABLE']}
@@ -121,14 +127,14 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
       />
       <TierFleetCard
         x={860} y={530} w={300} h={130}
-        title="ML Nodes" subtitle={`${s.mlNodeRamGB} GB RAM`} color="purple"
+        title="ML Nodes" subtitle={`${s.mlNodeRamGB} GB RAM`} color="cyan"
         icon="machineLearningApp"
         nodeCount={mlCount} nodePrefix="ml" instanceType={s.instanceTypes.ml}
         onClick={onNodeClick} componentId="mlNodes"
       />
 
       {/* Workload sub-col */}
-      <Node x={1220} y={80}  w={200} h={130} title="AI/ML Enrichment" subtitle="Anomaly · UEBA · lateral mvmt" color="purple" icon="machineLearningApp" onClick={onNodeClick} componentId="ml" badges={['L4']} />
+      <Node x={1220} y={80}  w={200} h={130} title="AI/ML Enrichment" subtitle="Anomaly · UEBA · lateral mvmt" color="cyan" icon="machineLearningApp" onClick={onNodeClick} componentId="ml" badges={['L4']} />
       <Node x={1220} y={230} w={200} h={130} title="IOC Matching" subtitle="STIX/TAXII · CISA KEV" color="purple" icon="securitySignal" onClick={onNodeClick} componentId="iocMatching" />
       <Node x={1220} y={380} w={200} h={130} title="Alert Correlator" subtitle="Risk scoring → SIEM" color="coral" icon="bell" onClick={onNodeClick} componentId="alertCorrelator" />
 
@@ -153,12 +159,12 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
       <ControlPlaneCard
         x={1150} y={780} w={155} h={100}
         title="Kibana" ramLabel={`${s.kibanaRamGB} GB`} instanceType={s.instanceTypes.kibana}
-        nodeCount={kibanaInfraCount} nodePrefix="kib" color="coral" icon="logoKibana"
+        nodeCount={kibanaInfraCount} nodePrefix="kib" color="pink" icon="logoKibana"
         onClick={onNodeClick} componentId="kibanaNodes"
       />
 
       {/* Long-term storage (only 12-mo at L4) */}
-      <Node x={1480} y={80}  w={240} title="Snapshot Repo 12-mo" subtitle="S3 / Blob — unmounted" color="purple" dashed onClick={onNodeClick} componentId="snapshot12mo" badges={['UNMOUNTED']} />
+      <Node x={1480} y={80}  w={240} title="Snapshot Repo 12-mo" subtitle="S3 / Blob — unmounted" color="gray" dashed onClick={onNodeClick} componentId="snapshot12mo" badges={['UNMOUNTED']} />
 
       {/* SOC Access (pipeline-side; SOC hub is below) */}
       <Node x={1760} y={80}  w={220} title="Kibana / SIEM" subtitle="Elastic Security" color="coral" icon="logoSecurity" onClick={onNodeClick} componentId="kibana" />
@@ -170,15 +176,16 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
 
       <Arrow d={arrowPath(430, 220, 430, 180)} kind="policy" />
 
-      {/* Agent + Logstash → Ingest Pipelines */}
-      <Arrow d={arrowPath(540, 130, 560, 130)} kind="data" />
-      <Arrow d={zpath(540, 410, 560, 130, 550)} kind="data" />
+      {/* Agent → Ingest Pipelines — enters left edge 8px ABOVE mid (small elbow via lane x=550) */}
+      <Arrow d="M 540 130 L 550 130 L 550 122 L 560 122" kind="data" />
+      {/* Logstash → Ingest Pipelines — enters left edge 8px BELOW mid via lane x=545 */}
+      <Arrow d="M 540 410 L 545 410 L 545 138 L 560 138" kind="data" />
 
-      {/* Ingest Pipelines → PII Masking */}
+      {/* Ingest Pipelines → Sensitive Data Protection */}
       <Arrow d={arrowPath(670, 180, 670, 220)} kind="data" />
 
-      {/* PII → Hot (up via lane x=820) */}
-      <Arrow d={zpath(780, 270, 860, 145, 820)} kind="data" />
+      {/* Sensitive Data Protection → Hot (up via lane x=820) */}
+      <Arrow d={zpath(780, 285, 860, 145, 820)} kind="data" />
 
       {/* Tier ILM chain */}
       <Arrow d={arrowPath(1010, 210, 1010, 230)} kind="data" />
@@ -192,11 +199,13 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
       <Arrow d={arrowPath(1320, 210, 1320, 230)} kind="data" />
       <Arrow d={arrowPath(1320, 360, 1320, 380)} kind="data" />
 
-      {/* Correlator → Kibana SIEM (lane y=215, x=1450) */}
-      <Arrow d="M 1420 445 L 1450 445 L 1450 215 L 1760 215 L 1760 130" kind="data" />
+      {/* Correlator → Kibana SIEM — duck-under via lane y=215, then approach Kibana
+          horizontally via lane x=1745 so arrowhead points INTO Kibana (not up its edge) */}
+      <Arrow d="M 1420 445 L 1450 445 L 1450 215 L 1745 215 L 1745 130 L 1760 130" kind="data" />
 
-      {/* Frozen → Snap12 (SLM, lane y=520, x=1450) */}
-      <Arrow d="M 1160 445 L 1190 445 L 1190 520 L 1450 520 L 1450 130 L 1480 130" kind="data" />
+      {/* Frozen → Snap12 — uses lane x=1460 (not 1450) to avoid sharing the vertical
+          with the Correlator → Kibana arrow above */}
+      <Arrow d="M 1160 445 L 1190 445 L 1190 520 L 1460 520 L 1460 130 L 1480 130" kind="data" />
 
       {/* ===== DIVIDER + FEDERATION HEADER ===== */}
       <line x1={40} y1={910} x2={1980} y2={910} stroke="#2A3344" strokeWidth={1} />
