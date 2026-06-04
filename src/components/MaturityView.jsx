@@ -46,7 +46,7 @@ export default function MaturityView() {
   const Diagram = DIAGRAMS[levelNum]
 
   return (
-    <main className="mx-auto max-w-[1500px] px-6 py-8 space-y-6">
+    <main className="mx-auto max-w-[1800px] px-6 py-8 space-y-6">
       <header>
         <h1 className="text-3xl font-semibold text-text-primary">
           M-26-14 Maturity Levels by Organizational Size
@@ -85,7 +85,7 @@ export default function MaturityView() {
       </div>
 
       {/* Main content: fixed 340px info panel + fluid diagram */}
-      <div className="grid grid-cols-1 xl:grid-cols-[340px_minmax(0,1fr)] gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[340px_minmax(0,1fr)] gap-3">
 
         {/* Left: detail pane */}
         <div className="rounded-lg border border-line bg-ink-800 overflow-hidden min-h-[500px] flex flex-col">
@@ -119,7 +119,7 @@ export default function MaturityView() {
 
         {/* Right: architecture diagram */}
         <div
-          className="rounded-lg border border-line p-4 overflow-x-auto"
+          className="rounded-lg border border-line p-2 overflow-x-auto"
           style={{ backgroundColor: theme === 'dark' ? '#0D1117' : '#FFFFFF' }}
         >
           <Diagram size={size} onNodeClick={setSelectedNode} />
