@@ -1,178 +1,159 @@
 import React from 'react'
 import {
   Node, TierFleetCard, ControlPlaneCard, Arrow, Defs, Legend, StageHeader, SwimLane,
-  arrowPath, zpath,
+  arrowPath, zpath, zpathV, useDiagramTheme,
 } from './primitives.jsx'
 import { getSizing, getTierNodeCount } from '../../data/sizing.js'
 
 const STAGES = [
-  { label: 'SOURCES',          x: 40,   width: 220 },
-  { label: 'COLLECTION',       x: 320,  width: 220 },
-  { label: 'ELASTIC STACK',    x: 600,  width: 580 },
-  { label: 'LONG-TERM STORAGE',x: 1240, width: 240 },
-  { label: 'SOC ACCESS',       x: 1520, width: 220 },
+  { label: 'SOURCES',                    x: 30,   width: 200 },
+  { label: 'COLLECTION',                 x: 258,  width: 200 },
+  { label: 'ELASTIC SEARCH AI PLATFORM', x: 486,  width: 422 },
+  { label: 'CEM',                        x: 936,  width: 270 },
+  { label: 'THIRF',                      x: 1234, width: 270 },
 ]
 
-const SWIM_Y = 70
-const SWIM_H = 820
+const SWIM_Y      = 60
+const SWIM_H      = 800
+const SNAP_BAND_Y = 876
+const SNAP_Y      = 900
+const LEG_Y       = 1002
 
 export default function Level3Diagram({ size = 'small', onNodeClick }) {
-  const s = getSizing(size)
-  const hotCount = getTierNodeCount('hot', size)
-  const coldCount = getTierNodeCount('cold', size)
-  const frozenCount = getTierNodeCount('frozen', size)
-  const mlCount = getTierNodeCount('ml', size)
-  const masterCount = getTierNodeCount('master', size)
-  const kibanaInfraCount = getTierNodeCount('kibana', size)
+  const s         = getSizing(size)
+  const hotCount  = getTierNodeCount('hot',    size)
+  const coldCount = getTierNodeCount('cold',   size)
+  const frozenCnt = getTierNodeCount('frozen', size)
+  const mlCount   = getTierNodeCount('ml',     size)
+  const masterCnt = getTierNodeCount('master', size)
+  const kibanaCnt = getTierNodeCount('kibana', size)
+
+  const { isDark, C } = useDiagramTheme()
+
+  const HOT_CX      = 641
+  const TIER_RIGHT  = 786
+  const CP_LABEL_Y  = 662
+  const CP_CARD_Y   = 670
+  const ILM_Y       = 772
+  const ILM_BOTTOM  = ILM_Y + 60
 
   return (
-    <svg
-      viewBox="0 0 1780 1080"
+    <svg viewBox="0 0 1540 1064"
       className="w-full h-auto"
-      role="img"
-      aria-label={`Level 3 architecture diagram — ${s.label} size`}
-    >
+      style={{ backgroundColor: isDark ? '#0D1117' : '#FFFFFF' }}
+      role="img" aria-label={`Level 3 architecture diagram — ${s.label} size`}>
       <Defs />
 
-      {STAGES.map((stg) => (
+      {STAGES.map(stg => (
         <SwimLane key={stg.label} x={stg.x} y={SWIM_Y} width={stg.width} height={SWIM_H} />
       ))}
-
       <StageHeader stages={STAGES} />
 
-      {/* Sources */}
-      <Node x={40}  y={80}  title="Log Sources" subtitle="Full Appendix B coverage" color="gray" onClick={onNodeClick} componentId="sources" />
-      <Node x={40}  y={220} title="Legacy / OT" subtitle="Syslog · SNMP · ICS" color="gray" onClick={onNodeClick} componentId="legacySources" />
+      {/* ── Sources ── */}
+      <Node x={30} y={72}  title="Log Sources" subtitle="Full Appendix B coverage"
+        color="gray" onClick={onNodeClick} componentId="sources" />
+      <Node x={30} y={212} title="Legacy / OT" subtitle="Syslog · SNMP · ICS"
+        color="gray" dashed onClick={onNodeClick} componentId="legacySources" badges={['OPTIONAL']} />
 
-      {/* Collection */}
-      <Node x={320} y={80}  title="Elastic Agent" subtitle="Complete Fleet inventory" color="teal" icon="logoBeats" onClick={onNodeClick} componentId="elasticAgent" />
-      <Node x={320} y={220} title="Fleet Server" subtitle="Agent policy plane" color="teal" icon="gear" onClick={onNodeClick} componentId="fleetServer" />
-      <Node x={320} y={360} title="Logstash" subtitle="Legacy / OT pipeline" color="teal" icon="logoLogstash" onClick={onNodeClick} componentId="logstash" />
-      <Node
-        x={320} y={480} w={220} h={130}
-        title="Sensitive Data Protection"
-        color="coral" icon="lock"
+      {/* ── Collection (adds PII Masking at L3) ── */}
+      <Node x={258} y={72}  title="Elastic Agent" subtitle="Complete Fleet inventory"
+        color="teal" icon="logoBeats" onClick={onNodeClick} componentId="elasticAgent" />
+      <Node x={258} y={212} title="Fleet Server"  subtitle="Agent policy plane"
+        color="teal" icon="gear"      onClick={onNodeClick} componentId="fleetServer" />
+      <Node x={258} y={352} title="Logstash"      subtitle="Legacy / OT pipeline"
+        color="teal" dashed icon="logoLogstash" onClick={onNodeClick} componentId="logstash" badges={['OPTIONAL']} />
+      <Node x={258} y={492} w={220} h={130}
+        title="Sensitive Data Protection" color="coral" icon="lock"
         bullets={['Redact processor', 'NER via ELSER', 'Anonymization processor']}
-        onClick={onNodeClick} componentId="sensitiveDataProtection"
-      />
+        onClick={onNodeClick} componentId="sensitiveDataProtection" badges={['L3']} />
 
-      {/* Elastic Stack — tier sub-col (centered in 600+580 = stack span) */}
-      <TierFleetCard
-        x={620} y={80} w={300} h={130}
-        title="Hot Tier" subtitle="3 days SSD" color="orange"
-        icon="logoElasticsearch"
+      {/* ── ES AI Platform — 4 tiers ── */}
+      <TierFleetCard x={496} y={72} w={290} h={130}
+        title="Hot Tier" subtitle="3 days SSD" color="orange" icon="logoElasticsearch"
         nodeCount={hotCount} nodePrefix="hot" instanceType={s.instanceTypes.hot}
-        badges={['SEARCHABLE']}
-        onClick={onNodeClick} componentId="hotTier"
-      />
-      <TierFleetCard
-        x={620} y={230} w={300} h={130}
-        title="Cold Tier" subtitle="7 days" color="blue"
-        icon="logoElasticsearch"
+        badges={['SEARCHABLE']} onClick={onNodeClick} componentId="hotTier" />
+      <TierFleetCard x={496} y={222} w={290} h={130}
+        title="Cold Tier" subtitle="7 days" color="blue" icon="logoElasticsearch"
         nodeCount={coldCount} nodePrefix="cold" instanceType={s.instanceTypes.cold}
-        badges={['SEARCHABLE']}
-        onClick={onNodeClick} componentId="coldTier"
-      />
-      <TierFleetCard
-        x={620} y={380} w={300} h={130}
-        title="Frozen Tier" subtitle="→ 6 / 12 months" color="purple"
-        icon="logoElasticsearch"
-        nodeCount={frozenCount} nodePrefix="frozen" instanceType={s.instanceTypes.frozen}
-        badges={['SEARCHABLE']}
-        onClick={onNodeClick} componentId="frozenTier"
-      />
-      <TierFleetCard
-        x={620} y={530} w={300} h={130}
-        title="ML Nodes" subtitle={`${s.mlNodeRamGB} GB RAM`} color="cyan"
-        icon="machineLearningApp"
+        badges={['SEARCHABLE']} onClick={onNodeClick} componentId="coldTier" />
+      <TierFleetCard x={496} y={372} w={290} h={130}
+        title="Frozen Tier" subtitle="→ 3 / 12 months (searchable snapshot)"
+        color="purple" icon="logoElasticsearch"
+        nodeCount={frozenCnt} nodePrefix="frozen" instanceType={s.instanceTypes.frozen}
+        badges={['SEARCHABLE']} onClick={onNodeClick} componentId="frozenTier" />
+      <TierFleetCard x={496} y={522} w={290} h={130}
+        title="ML Nodes" subtitle={`${s.mlNodeRamGB} GB RAM · active at L3`}
+        color="cyan" icon="machineLearningApp"
         nodeCount={mlCount} nodePrefix="ml" instanceType={s.instanceTypes.ml}
-        onClick={onNodeClick} componentId="mlNodes"
-      />
+        onClick={onNodeClick} componentId="mlNodes" />
 
-      {/* Elastic Stack — workload sub-col (AI/ML, IOC, Correlator) */}
-      <Node x={980} y={80}  w={200} h={130} title="AI/ML Enrichment" subtitle="Anomaly · UEBA" color="cyan" icon="machineLearningApp" onClick={onNodeClick} componentId="ml" badges={['L3']} />
-      <Node x={980} y={230} w={200} h={130} title="IOC Matching" subtitle="STIX/TAXII · CISA KEV" color="purple" icon="securitySignal" onClick={onNodeClick} componentId="iocMatching" badges={['L3']} />
-      <Node x={980} y={380} w={200} h={130} title="Alert Correlator" subtitle="Risk scoring → SIEM" color="coral" icon="bell" onClick={onNodeClick} componentId="alertCorrelator" badges={['L3']} />
-
-      {/* ILM bar spanning the Elastic Stack */}
-      <Node
-        x={620} y={680} w={560} h={70}
-        title="ILM + SLM Policy" subtitle="Hot → Cold → Frozen → Delete · SLM snapshots"
-        color="green" icon="indexManagementApp"
-        onClick={onNodeClick} componentId="ilm"
-      />
-
-      {/* Control plane lane */}
-      <text x={620} y={774} fontSize="9.5" fontWeight="700" fill="#8B949E" style={{ letterSpacing: '0.16em' }}>
-        CONTROL PLANE (FIXED ACROSS SIZES)
-      </text>
-      <ControlPlaneCard
-        x={620} y={780} w={155} h={100}
+      {/* Control plane */}
+      <text x={486} y={CP_LABEL_Y} fontSize="9.5" fontWeight="700" fill={C.controlLabel}
+        style={{ letterSpacing: '0.16em' }}>CONTROL PLANE (FIXED ACROSS SIZES)</text>
+      <ControlPlaneCard x={486} y={CP_CARD_Y} w={148} h={90}
         title="Master Nodes" ramLabel={`${s.masterNodeRamGB} GB`} instanceType={s.instanceTypes.master}
-        nodeCount={masterCount} nodePrefix="master" color="gray" icon="logoElasticsearch"
-        onClick={onNodeClick} componentId="masterNodes"
-      />
-      <ControlPlaneCard
-        x={785} y={780} w={155} h={100}
+        nodeCount={masterCnt} nodePrefix="master" color="gray" icon="logoElasticsearch"
+        onClick={onNodeClick} componentId="masterNodes" />
+      <ControlPlaneCard x={640} y={CP_CARD_Y} w={148} h={90}
         title="Kibana" ramLabel={`${s.kibanaRamGB} GB`} instanceType={s.instanceTypes.kibana}
-        nodeCount={kibanaInfraCount} nodePrefix="kib" color="pink" icon="logoKibana"
-        onClick={onNodeClick} componentId="kibanaNodes"
-      />
+        nodeCount={kibanaCnt} nodePrefix="kib" color="pink" icon="logoKibana"
+        onClick={onNodeClick} componentId="kibanaNodes" />
 
-      {/* Long-term storage */}
-      <Node x={1240} y={80}  w={240} title="Snapshot Repo 6-mo" subtitle="S3 / Blob — unmounted" color="gray" dashed onClick={onNodeClick} componentId="snapshot6mo" badges={['UNMOUNTED']} />
-      <Node x={1240} y={220} w={240} title="Snapshot Repo 12-mo" subtitle="S3 / Blob — unmounted" color="gray" dashed onClick={onNodeClick} componentId="snapshot12mo" badges={['UNMOUNTED']} />
+      {/* ILM + SLM — below control plane */}
+      <Node x={486} y={ILM_Y} w={306} h={60}
+        title="ILM + SLM Policy" subtitle="Hot → Cold → Frozen → Delete · SLM snapshots"
+        color="green" icon="indexManagementApp" onClick={onNodeClick} componentId="ilm" />
 
-      {/* SOC Access */}
-      <Node x={1520} y={80}  w={220} title="Kibana / SIEM" subtitle="Elastic Security" color="coral" icon="logoSecurity" onClick={onNodeClick} componentId="kibana" />
-      <Node x={1520} y={220} w={220} title="CISA / FBI Export" subtitle="On-request" color="coral" dashed icon="exportAction" onClick={onNodeClick} componentId="cisaExport" />
+      {/* ── CEM — detection stack + SIEM ── */}
+      <Node x={946} y={72}  w={250} h={100}
+        title="AI/ML Enrichment" subtitle="Anomaly · UEBA · lateral mvmt"
+        color="cyan" icon="machineLearningApp" onClick={onNodeClick} componentId="ml" badges={['L3']} />
+      <Node x={946} y={222} w={250} h={100}
+        title="IOC Matching" subtitle="STIX/TAXII · CISA KEV"
+        color="purple" icon="securitySignal" onClick={onNodeClick} componentId="iocMatching" badges={['L3']} />
+      <Node x={946} y={372} w={250} h={100}
+        title="Alert Correlator" subtitle="Risk scoring → SIEM"
+        color="coral" icon="bell" onClick={onNodeClick} componentId="alertCorrelator" badges={['L3']} />
+      <Node x={946} y={522} w={250} h={100}
+        title="Kibana / SIEM" subtitle="Elastic Security · Detect &amp; investigate"
+        color="coral" icon="logoSecurity" onClick={onNodeClick} componentId="kibana" />
 
-      {/* === Arrows === */}
-      {/* Sources → Collection */}
-      <Arrow d={arrowPath(260, 130, 320, 130)} kind="data" />
-      <Arrow d={zpath(260, 270, 320, 410, 290)} kind="data" />
+      {/* ── THIRF ── */}
+      <Node x={1244} y={72} w={250} h={100}
+        title="CISA / FBI Export" subtitle="On-request forensic retrieval"
+        color="coral" dashed icon="exportAction" onClick={onNodeClick} componentId="cisaExport"
+        badges={['OPTIONAL']} />
 
-      <Arrow d={arrowPath(430, 220, 430, 180)} kind="policy" />
+      {/* ── Long-term object storage band ── */}
+      <rect x={468} y={SNAP_BAND_Y} width={410} height={106} rx={10}
+        fill={C.bandFill} stroke={C.bandStroke} strokeWidth={1} />
+      <text x={486} y={892} fontSize="9.5" fontWeight="700" fill={C.textMuted}
+        style={{ letterSpacing: '0.14em' }}>LONG-TERM OBJECT STORAGE (SLM)</text>
+      <Node x={486} y={SNAP_Y} w={280} h={82}
+        title="Snapshot Repo 12-mo" subtitle="S3 / Blob — unmounted"
+        color="gray" dashed onClick={onNodeClick} componentId="snapshot12mo"
+        badges={['UNMOUNTED']} />
 
-      {/* Agent → SDP — enters right edge 8px above mid via lane x=575 */}
-      <Arrow d="M 540 130 L 575 130 L 575 537 L 540 537" kind="data" />
-      {/* Logstash → SDP — short vertical into top edge */}
-      <Arrow d={arrowPath(430, 460, 430, 480)} kind="data" />
-      {/* SDP → Hot — leaves right edge 8px below mid via lane x=595 */}
-      <Arrow d="M 540 553 L 595 553 L 595 145 L 620 145" kind="data" />
+      {/* ── Arrows ── */}
+      <Arrow d={arrowPath(230, 122, 258, 122)} kind="data" />
+      <Arrow d={zpath(230, 262, 258, 402, 244)} kind="data" variant="dashed" />
+      <Arrow d={arrowPath(358, 212, 358, 172)} kind="policy" />
+      {/* Agent → PII Masking (bypasses Fleet via right lane x=460) */}
+      <Arrow d="M 358 172 L 460 172 L 460 462 L 358 462 L 358 492" kind="data" />
+      <Arrow d={arrowPath(358, 452, 358, 492)} kind="data" variant="dashed" />
+      {/* Sensitive Data Protection → Hot (PII card is now h=130, center y=557) */}
+      <Arrow d={zpath(478, 557, 496, 137, 487)} kind="data" />
+      <Arrow d={arrowPath(HOT_CX, 202, HOT_CX, 222)} kind="data" />
+      <Arrow d={arrowPath(HOT_CX, 352, HOT_CX, 372)} kind="data" />
+      {/* ILM → Snapshot 12-mo */}
+      <Arrow d={zpathV(639, ILM_BOTTOM, 626, SNAP_Y, 866)} kind="data" />
+      {/* Cold → AI/ML (CEM) */}
+      <Arrow d={zpath(TIER_RIGHT, 287, 946, 122, 910)} kind="data" />
+      <Arrow d={arrowPath(1071, 172, 1071, 222)} kind="data" />
+      <Arrow d={arrowPath(1071, 322, 1071, 372)} kind="data" />
+      <Arrow d={arrowPath(1071, 472, 1071, 522)} kind="data" />
 
-      {/* Tier ILM chain */}
-      <Arrow d={arrowPath(770, 210, 770, 230)} kind="data" />
-      <Arrow d={arrowPath(770, 360, 770, 380)} kind="data" />
-      <Arrow d={arrowPath(770, 510, 770, 530)} kind="data" />
-
-      {/* Cold → AI/ML workload (lane x=950) */}
-      <Arrow d={zpath(920, 295, 980, 145, 950)} kind="data" />
-
-      {/* ML workload chain */}
-      <Arrow d={arrowPath(1080, 210, 1080, 230)} kind="data" />
-      <Arrow d={arrowPath(1080, 360, 1080, 380)} kind="data" />
-
-      {/* Correlator → Kibana SIEM — duck-under via lane y=215, then approach Kibana
-          horizontally via lane x=1505 so arrowhead points INTO Kibana (not up its edge) */}
-      <Arrow d="M 1180 445 L 1210 445 L 1210 215 L 1505 215 L 1505 130 L 1520 130" kind="data" />
-
-      {/* Frozen → Snap6 — UPPER route: above Correlator via lane y=370,
-          then up the workload/snap gutter via lane x=1200 */}
-      <Arrow d="M 920 435 L 950 435 L 950 370 L 1200 370 L 1200 130 L 1240 130" kind="data" />
-      {/* Frozen → Snap12 — LOWER route: below Correlator via lane y=520,
-          then up the workload/snap gutter via lane x=1230. Separated horizontals
-          (y=370 vs y=520) and verticals (x=1200 vs x=1230) keep these visually distinct. */}
-      <Arrow d="M 920 455 L 960 455 L 960 520 L 1230 520 L 1230 270 L 1240 270" kind="data" />
-
-      {/* CISA exports */}
-      {/* Snap6 → CISA — enters CISA left edge 10px ABOVE mid via lane x=1500 */}
-      <Arrow d={zpath(1480, 130, 1520, 260, 1500)} kind="export" />
-      {/* Snap12 → CISA — enters CISA left edge 10px BELOW mid via lane x=1510 (was direct line ending at convergence point) */}
-      <Arrow d={zpath(1480, 270, 1520, 280, 1510)} kind="export" />
-      <Arrow d={arrowPath(1630, 180, 1630, 220)} kind="export" />
-
-      <Legend x={40} y={950} />
+      <Legend x={30} y={LEG_Y} width={1480} />
     </svg>
   )
 }
