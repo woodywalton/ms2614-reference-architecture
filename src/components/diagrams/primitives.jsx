@@ -158,6 +158,7 @@ export function Node({
   w = 220,
   h = 100,
   title,
+  titleLines, // optional string[] — wrap title across multiple lines when long
   subtitle,
   color = 'teal',
   badges = [],
@@ -175,9 +176,17 @@ export function Node({
   }
   const hasIcon = Boolean(icon)
   const titleX = x + (hasIcon ? 60 : 18)
+  // Render title: if titleLines is provided, render each as its own line.
+  const titleArr = titleLines && titleLines.length > 0 ? titleLines : (title ? [title] : [])
+  const TITLE_LINE_H = 18 // baseline-to-baseline for 16px title font
+  // Y baseline of the LAST title line — drives subtitle / bullet positioning.
+  const lastTitleY = 32 + (titleArr.length - 1) * TITLE_LINE_H
+  const subtitleY = lastTitleY + 20
+  // Bullet group starts a few px below the title (or subtitle if present).
+  const bulletStartY = (subtitle ? subtitleY + 24 : lastTitleY + 28)
   return (
     <g className="diagram-node" onClick={handleClick} onKeyDown={handleKey}
-      tabIndex={0} role="button" aria-label={title}>
+      tabIndex={0} role="button" aria-label={title || (titleLines || []).join(' ')}>
       <rect x={x} y={y} width={w} height={h} rx={10} ry={10}
         fill={C.nodeFill}
         stroke={dashed ? accent : C.nodeStroke}
@@ -186,24 +195,27 @@ export function Node({
       />
       <rect x={x} y={y} width={6} height={h} rx={3} ry={3} fill={accent} />
       {hasIcon && <DiagramIcon type={icon} x={x + 14} y={y + 12} size={36} />}
-      <text className="diagram-label" x={titleX} y={y + 32}
-        fontSize="14" fontWeight="700" fill={C.textPrimary}>
-        {title}
-      </text>
+      {titleArr.map((line, i) => (
+        <text key={`title-${i}`} className="diagram-label" x={titleX}
+          y={y + 32 + i * TITLE_LINE_H}
+          fontSize="15" fontWeight="700" fill={C.textPrimary}>
+          {line}
+        </text>
+      ))}
       {subtitle && (
-        <text className="diagram-label" x={titleX} y={y + 52}
-          fontSize="11" fill={C.textMuted}>
+        <text className="diagram-label" x={titleX} y={y + subtitleY}
+          fontSize="12" fill={C.textMuted}>
           {subtitle}
         </text>
       )}
       {/* bulleted capability list (used for the Sensitive Data Protection card) */}
       {bullets && bullets.length > 0 && (
-        <g transform={`translate(${x + 16}, ${y + (subtitle ? 72 : 56)})`}>
+        <g transform={`translate(${x + 16}, ${y + bulletStartY})`}>
           {bullets.map((b, i) => (
             <text
               key={b}
-              y={i * 15}
-              fontSize="10.5"
+              y={i * 18}
+              fontSize="11"
               fill={C.textPrimary}
               className="diagram-label"
             >
@@ -213,14 +225,22 @@ export function Node({
           ))}
         </g>
       )}
-      {/* badges */}
+      {/* badges — right-aligned */}
       {badges.length > 0 && (
-        <g transform={`translate(${x + 16}, ${y + h - 22})`}>
+        <g transform={`translate(${x + w - badgesGroupWidth(badges) - 16}, ${y + h - 22})`}>
           {badges.map((label, i) => <Badge key={label} label={label} x={i * 82} />)}
         </g>
       )}
     </g>
   )
+}
+
+// Approximate total rendered width of a badge group laid out with the
+// 82 px-per-slot stride. Used for right-alignment.
+function badgesGroupWidth(badges) {
+  if (!badges || badges.length === 0) return 0
+  const lastW = badges[badges.length - 1].length * 6.2 + 14
+  return (badges.length - 1) * 82 + lastW
 }
 
 export function TierFleetCard({
@@ -237,7 +257,13 @@ export function TierFleetCard({
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick() }
   }
 
-  const minis =
+  const miniW = 60, miniH = 22, miniGap = 4, ellipsisW = 16
+  const MAX_COLS = 3
+
+  // Build mini-node items, then ALWAYS wrap into rows of at most 3.
+  // ≤6 nodes: numbered (e.g., hot-1 … hot-6). > 6: abbreviated as
+  // hot-1 / hot-2 / hot-3 / … / hot-N (5 items → 3+2 grid).
+  const items =
     nodeCount <= 6
       ? Array.from({ length: nodeCount }, (_, i) => ({ label: `${nodePrefix}-${i + 1}` }))
       : [
@@ -247,12 +273,14 @@ export function TierFleetCard({
           { ellipsis: true },
           { label: `${nodePrefix}-${nodeCount}` },
         ]
-  const miniW = 44, miniH = 20, miniGap = 4, ellipsisW = 16
-  const stripWidth =
-    minis.reduce((acc, m) => acc + (m.ellipsis ? ellipsisW : miniW), 0) +
-    (minis.length - 1) * miniGap
-  const stripStartX = x + (w - stripWidth) / 2
-  const stripY = y + 64
+  const itemRows = []
+  for (let i = 0; i < items.length; i += MAX_COLS) {
+    itemRows.push(items.slice(i, i + MAX_COLS))
+  }
+  const rowCount = itemRows.length
+  // Shift the strip up when there's more than one row so it stays clear of
+  // the footer area (AZ label / badges at y+h-22).
+  const stripY = y + (rowCount > 1 ? 54 : 66)
 
   return (
     <g className="diagram-node" onClick={handleClick} onKeyDown={handleKey}
@@ -264,50 +292,63 @@ export function TierFleetCard({
       {icon && <DiagramIcon type={icon} x={x + 14} y={y + 10} size={28} />}
 
       <text className="diagram-label" x={x + (icon ? 50 : 18)} y={y + 26}
-        fontSize="14" fontWeight="700" fill={C.textPrimary}>{title}</text>
+        fontSize="15" fontWeight="700" fill={C.textPrimary}>{title}</text>
       {subtitle && (
         <text className="diagram-label" x={x + (icon ? 50 : 18)} y={y + 44}
-          fontSize="11" fill={C.textMuted}>{subtitle}</text>
+          fontSize="12" fill={C.textMuted}>{subtitle}</text>
       )}
 
-      <text x={x + w - 14} y={y + 26} fontSize="11" fontWeight="700"
+      <text x={x + w - 14} y={y + 26} fontSize="12" fontWeight="700"
         fill={C.textAccentTeal} textAnchor="end" style={{ letterSpacing: '0.06em' }}>
         {nodeCount} {nodeCount === 1 ? 'NODE' : 'NODES'}
       </text>
-      <text x={x + w - 14} y={y + 44} fontSize="10.5" fill={C.textMuted}
+      <text x={x + w - 14} y={y + 44} fontSize="11" fill={C.textMuted}
         textAnchor="end" fontFamily="ui-monospace, SFMono-Regular, monospace">
         {instanceType}
       </text>
 
-      {(() => {
-        let cursor = stripStartX
-        return minis.map((m, i) => {
-          const width = m.ellipsis ? ellipsisW : miniW
-          const cx = cursor
-          cursor += width + miniGap
-          if (m.ellipsis) {
-            return (
-              <text key={`e-${i}`} x={cx + width / 2} y={stripY + miniH / 2 + 4}
-                fontSize="16" fontWeight="700" fill={C.textMuted} textAnchor="middle">…</text>
-            )
-          }
-          return (
-            <g key={`n-${i}`}>
-              <rect x={cx} y={stripY} width={miniW} height={miniH} rx={3}
-                fill={C.miniFill} stroke={accent} strokeWidth={1} />
-              <text x={cx + miniW / 2} y={stripY + miniH / 2 + 3.5}
-                fontSize="9" fontWeight="600" fill={C.textPrimary} textAnchor="middle">
-                {m.label}
-              </text>
-            </g>
-          )
-        })
-      })()}
+      {itemRows.map((row, rowIdx) => {
+        // Center each row independently so a partial last row (e.g. 5 = 3+2)
+        // looks balanced rather than left-aligned.
+        const rowWidth =
+          row.reduce((acc, m) => acc + (m.ellipsis ? ellipsisW : miniW), 0) +
+          (row.length - 1) * miniGap
+        const rowStartX = x + (w - rowWidth) / 2
+        const rowY = stripY + rowIdx * (miniH + miniGap)
+        let cursor = rowStartX
+        return (
+          <g key={`row-${rowIdx}`}>
+            {row.map((m, colIdx) => {
+              const width = m.ellipsis ? ellipsisW : miniW
+              const cx = cursor
+              cursor += width + miniGap
+              if (m.ellipsis) {
+                return (
+                  <text key={`e-${rowIdx}-${colIdx}`} x={cx + width / 2}
+                    y={rowY + miniH / 2 + 4}
+                    fontSize="17" fontWeight="700" fill={C.textMuted} textAnchor="middle">…</text>
+                )
+              }
+              return (
+                <g key={`n-${rowIdx}-${colIdx}`}>
+                  <rect x={cx} y={rowY} width={miniW} height={miniH} rx={3}
+                    fill={C.miniFill} stroke={accent} strokeWidth={1} />
+                  <text x={cx + miniW / 2} y={rowY + miniH / 2 + 3.5}
+                    fontSize="10" fontWeight="600" fill={C.textPrimary} textAnchor="middle">
+                    {m.label}
+                  </text>
+                </g>
+              )
+            })}
+          </g>
+        )
+      })}
 
-      <text x={x + 18} y={y + h - 14} fontSize="9.5" fontWeight="700"
+      <text x={x + 18} y={y + h - 14} fontSize="10" fontWeight="700"
         fill={C.textMuted} style={{ letterSpacing: '0.12em' }}>{azsLabel}</text>
+      {/* badges — right-aligned */}
       {badges.length > 0 && (
-        <g transform={`translate(${x + 64}, ${y + h - 26})`}>
+        <g transform={`translate(${x + w - badgesGroupWidth(badges) - 16}, ${y + h - 26})`}>
           {badges.map((label, i) => <Badge key={label} label={label} x={i * 82} />)}
         </g>
       )}
@@ -327,9 +368,17 @@ export function ControlPlaneCard({
   const handleKey = (e) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick() }
   }
-  const miniW = 38, miniH = 18, miniGap = 4
-  const stripWidth = nodeCount * miniW + (nodeCount - 1) * miniGap
-  const stripStartX = x + (w - stripWidth) / 2
+  // Mini-node grid below the title/ram-label, max 2 per row so 3 nodes
+  // wrap into a 2+1 grid (true "stacked horizontally AND vertically"
+  // like the tier cards). Sizing matches TierFleetCard.
+  const miniW = 60, miniH = 22, miniGap = 4
+  const MAX_COLS = 2
+  const items = Array.from({ length: nodeCount }, (_, i) => ({ label: `${nodePrefix}-${i + 1}` }))
+  const itemRows = []
+  for (let i = 0; i < items.length; i += MAX_COLS) {
+    itemRows.push(items.slice(i, i + MAX_COLS))
+  }
+  const stripY = y + 56
 
   return (
     <g className="diagram-node" onClick={handleClick} onKeyDown={handleKey}
@@ -341,30 +390,35 @@ export function ControlPlaneCard({
       {icon && <DiagramIcon type={icon} x={x + 12} y={y + 8} size={24} />}
 
       <text className="diagram-label" x={x + (icon ? 42 : 16)} y={y + 22}
-        fontSize="13" fontWeight="700" fill={C.textPrimary}>{title}</text>
-      <text className="diagram-label" x={x + (icon ? 42 : 16)} y={y + 38}
-        fontSize="10" fill={C.textMuted}>
+        fontSize="14" fontWeight="700" fill={C.textPrimary}>{title}</text>
+      <text className="diagram-label" x={x + (icon ? 42 : 16)} y={y + 40}
+        fontSize="12" fill={C.textMuted}>
         {ramLabel} · <tspan fontFamily="ui-monospace, SFMono-Regular, monospace">{instanceType}</tspan>
       </text>
 
-      {Array.from({ length: nodeCount }).map((_, i) => {
-        const mx = stripStartX + i * (miniW + miniGap)
+      {itemRows.map((row, rowIdx) => {
+        // Center each row independently so the trailing partial row sits balanced.
+        const rowWidth = row.length * miniW + (row.length - 1) * miniGap
+        const rowStartX = x + (w - rowWidth) / 2
+        const rowY = stripY + rowIdx * (miniH + miniGap)
         return (
-          <g key={i}>
-            <rect x={mx} y={y + 52} width={miniW} height={miniH} rx={3}
-              fill={C.miniFill} stroke={accent} strokeWidth={1} />
-            <text x={mx + miniW / 2} y={y + 52 + miniH / 2 + 3.5}
-              fontSize="9" fontWeight="600" fill={C.textPrimary} textAnchor="middle">
-              {nodePrefix}-{i + 1}
-            </text>
+          <g key={`row-${rowIdx}`}>
+            {row.map((m, colIdx) => {
+              const cx = rowStartX + colIdx * (miniW + miniGap)
+              return (
+                <g key={`n-${rowIdx}-${colIdx}`}>
+                  <rect x={cx} y={rowY} width={miniW} height={miniH} rx={3}
+                    fill={C.miniFill} stroke={accent} strokeWidth={1} />
+                  <text x={cx + miniW / 2} y={rowY + miniH / 2 + 3.5}
+                    fontSize="10" fontWeight="600" fill={C.textPrimary} textAnchor="middle">
+                    {m.label}
+                  </text>
+                </g>
+              )
+            })}
           </g>
         )
       })}
-
-      <text x={x + w / 2} y={y + h - 10} fontSize="9" fontWeight="600"
-        fill={C.textMuted} textAnchor="middle" style={{ letterSpacing: '0.08em' }}>
-        FIXED ACROSS SIZES
-      </text>
     </g>
   )
 }
@@ -377,7 +431,7 @@ function Badge({ label, x = 0 }) {
     <g transform={`translate(${x}, 0)`}>
       <rect width={w} height={16} rx={8} ry={8}
         fill={c.fill} stroke={c.stroke} strokeWidth={1} />
-      <text x={w / 2} y={11} textAnchor="middle" fontSize="9" fontWeight="700"
+      <text x={w / 2} y={11} textAnchor="middle" fontSize="10" fontWeight="700"
         fill={c.text} style={{ letterSpacing: '0.05em' }}>{label}</text>
     </g>
   )
@@ -394,7 +448,7 @@ export function Arrow({ d, kind = 'data', variant, label }) {
         markerEnd={`url(#arrow-${kind})`}
       />
       {label && (
-        <text className="diagram-label" fill="#8B949E" fontSize="10">{label}</text>
+        <text className="diagram-label" fill="#8B949E" fontSize="11">{label}</text>
       )}
     </g>
   )
@@ -436,8 +490,8 @@ export function StageHeader({ stages }) {
             <circle cx={s.x + 14} cy={26} r={12}
               fill={C.stageCircleBg} stroke={C.stageCircleStroke} strokeWidth={1.5} />
             <text x={s.x + 14} y={30} textAnchor="middle"
-              fontSize="11" fontWeight="700" fill={C.stageCircleText}>{n}</text>
-            <text x={s.x + 34} y={32} fontSize="13" fontWeight="700"
+              fontSize="12" fontWeight="700" fill={C.stageCircleText}>{n}</text>
+            <text x={s.x + 34} y={32} fontSize="14" fontWeight="700"
               fill={C.stageLabel} style={{ letterSpacing: '0.14em' }}>{s.label}</text>
           </g>
         )
@@ -477,14 +531,14 @@ export function Legend({ x, y, width = 520 }) {
   return (
     <g transform={`translate(${x}, ${y})`}>
       <rect width={width} height={56} rx={8} fill={C.legendFill} stroke={C.legendStroke} />
-      <text x={16} y={20} fontSize="10" fontWeight="700" fill={C.textMuted}
+      <text x={16} y={20} fontSize="11" fontWeight="700" fill={C.textMuted}
         style={{ letterSpacing: '0.16em' }}>LEGEND</text>
       <LegendItem x={64}           y={40} C={C} color={ARROW.data}   label="primary data flow" />
       <LegendItem x={64 + q}       y={40} C={C} color={ARROW.policy} label="control / policy" dashed />
       <LegendItem x={64 + q * 2}   y={40} C={C} color={ARROW.export} label="CISA / FBI export" dashed />
       <g transform={`translate(${64 + q * 3}, 30)`}>
         <rect width={20} height={10} fill={C.nodeFill} stroke={ACCENT.teal} strokeDasharray="4 3" />
-        <text x={28} y={9} fontSize="10.5" fill={C.textPrimary}>
+        <text x={28} y={9} fontSize="11" fill={C.textPrimary}>
           dashed border = optional / unmounted
         </text>
       </g>
@@ -497,7 +551,7 @@ function LegendItem({ x, y, C, color, label, dashed }) {
     <g transform={`translate(${x}, ${y})`}>
       <line x1={0} y1={0} x2={30} y2={0} stroke={color} strokeWidth={2}
         strokeDasharray={dashed ? '6 4' : undefined} strokeLinecap="round" />
-      <text x={40} y={4} fontSize="10.5" fill={C.textPrimary}>{label}</text>
+      <text x={40} y={4} fontSize="11" fill={C.textPrimary}>{label}</text>
     </g>
   )
 }

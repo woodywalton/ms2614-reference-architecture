@@ -39,7 +39,7 @@ export default function Nav() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-ink-900/95 backdrop-blur">
-      <div className="mx-auto max-w-[1500px] px-6 py-4 flex items-center gap-6">
+      <div className="mx-auto max-w-[1800px] px-6 py-4 flex items-center gap-6">
         {/* Logo + title */}
         <div className="flex items-center gap-3 shrink-0">
           <img
