@@ -1,28 +1,29 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
         ink: {
-          900: '#0D1117',
-          800: '#161B22',
-          700: '#1C2333',
-          600: '#22293A',
+          900: 'rgb(var(--ink-900) / <alpha-value>)',
+          800: 'rgb(var(--ink-800) / <alpha-value>)',
+          700: 'rgb(var(--ink-700) / <alpha-value>)',
+          600: 'rgb(var(--ink-600) / <alpha-value>)',
         },
-        line: '#2A3344',
+        line: 'rgb(var(--color-line) / <alpha-value>)',
         text: {
-          primary: '#E6EDF3',
-          muted: '#8B949E',
+          primary: 'rgb(var(--text-primary) / <alpha-value>)',
+          muted: 'rgb(var(--text-muted) / <alpha-value>)',
         },
         accent: {
-          teal: '#00BFB3',
-          blue: '#0077CC',
-          gray: '#6E7681',
-          purple: '#7B5EA7',
-          green: '#2EA043',
-          coral: '#CF4F27',
-          yellow: '#D29922',
+          teal:   'rgb(var(--accent-teal)   / <alpha-value>)',
+          blue:   'rgb(var(--accent-blue)   / <alpha-value>)',
+          gray:   'rgb(var(--accent-gray)   / <alpha-value>)',
+          purple: 'rgb(var(--accent-purple) / <alpha-value>)',
+          green:  'rgb(var(--accent-green)  / <alpha-value>)',
+          coral:  'rgb(var(--accent-coral)  / <alpha-value>)',
+          yellow: 'rgb(var(--accent-yellow) / <alpha-value>)',
         },
       },
       fontFamily: {

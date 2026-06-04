@@ -2,9 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  EUI Borealis design tokens as RGB channel triplets for Tailwind opacity support.
+  Source of truth: elastic-policy-engine/docs/eui-tokens.css (v8.0.0)
+  Mapping:
+    ink-900 → euiPageBackgroundColor      (page body)
+    ink-800 → euiColorEmptyShade          (panel / card bg)
+    ink-700 → euiColorLightestShade       (nested panel / hover bg)
+    ink-600 → euiColorLightShade          (input bg / deep bg)
+    color-line → euiColorBorderBasePlain  (panel borders — prominent variant)
+    text-primary → euiTextColor           (body text)
+    text-muted → euiTextSubduedColor      (secondary text)
+    accent-teal → euiColorAccentSecondary (teal / turquoise)
+    accent-blue → euiColorPrimary         (blue)
+    accent-gray → euiColorMediumShade
+    accent-purple → euiColorAccent        (pink/magenta)
+    accent-green → euiColorSuccess
+    accent-coral → euiColorDanger
+    accent-yellow → euiColorWarning
+*/
+
+/* ── Light mode (Borealis light) ─────────────────────────────────────── */
+:root {
+  --ink-900: 246 249 252;       /* euiPageBackgroundColor  #F6F9FC */
+  --ink-800: 255 255 255;       /* euiColorEmptyShade      #FFFFFF */
+  --ink-700: 236 241 249;       /* euiColorLightestShade   #ECF1F9 */
+  --ink-600: 202 211 226;       /* euiColorLightShade      #CAD3E2 */
+  --color-line: 162 177 201;    /* colorBorderBaseProminent #A2B1C9 */
+  --text-primary: 29 42 62;     /* euiTextColor            #1D2A3E */
+  --text-muted: 81 99 129;      /* euiTextSubduedColor     #516381 */
+  --accent-teal: 0 139 135;     /* euiColorAccentSecondary #008B87 */
+  --accent-blue: 11 100 221;    /* euiColorPrimary         #0B64DD */
+  --accent-gray: 142 159 188;   /* euiColorMediumShade     #8E9FBC */
+  --accent-purple: 188 30 112;  /* euiColorAccent          #BC1E70 */
+  --accent-green: 0 138 94;     /* euiColorSuccess         #008A5E */
+  --accent-coral: 198 30 37;    /* euiColorDanger          #C61E25 */
+  --accent-yellow: 250 203 61;  /* euiColorWarning         #FACB3D */
+}
+
+/* ── Dark mode (Borealis dark) ────────────────────────────────────────── */
+.dark {
+  --ink-900: 7 16 31;           /* euiPageBackgroundColor  #07101F */
+  --ink-800: 11 22 40;          /* euiColorEmptyShade      #0B1628 */
+  --ink-700: 23 35 54;          /* euiColorLightestShade   #172336 */
+  --ink-600: 36 49 71;          /* euiColorLightShade      #243147 */
+  --color-line: 72 89 117;      /* colorBorderBasePlain    #485975 */
+  --text-primary: 202 211 226;  /* euiTextColor            #CAD3E2 */
+  --text-muted: 152 168 195;    /* euiTextSubduedColor     #98A8C3 */
+  --accent-teal: 22 197 192;    /* euiColorAccentSecondary #16C5C0 */
+  --accent-blue: 97 162 255;    /* euiColorPrimary         #61A2FF */
+  --accent-gray: 81 99 129;     /* euiColorMediumShade     #516381 */
+  --accent-purple: 238 114 166; /* euiColorAccent          #EE72A6 */
+  --accent-green: 36 194 146;   /* euiColorSuccess         #24C292 */
+  --accent-coral: 246 114 106;  /* euiColorDanger          #F6726A */
+  --accent-yellow: 250 203 61;  /* euiColorWarning         #FACB3D */
+}
+
 @layer base {
   html, body, #root { height: 100%; }
-  body { font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  body {
+    font-family: 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica', 'Arial', sans-serif;
+    font-size: 16px;
+  }
 }
 
 @layer components {
@@ -13,7 +72,7 @@
     transition: filter 150ms ease, transform 150ms ease;
   }
   .diagram-node:hover {
-    filter: brightness(1.18) drop-shadow(0 4px 10px rgba(0, 191, 179, 0.25));
+    filter: brightness(1.18) drop-shadow(0 4px 10px rgba(22, 197, 192, 0.25));
   }
   .diagram-node:focus-within {
     outline: none;
@@ -21,7 +80,7 @@
   .diagram-label {
     pointer-events: none;
     font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-    fill: #E6EDF3;
+    fill: rgb(var(--text-primary));
   }
   .pill {
     @apply inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide;
@@ -29,6 +88,6 @@
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: #0D1117; }
-::-webkit-scrollbar-thumb { background: #2A3344; border-radius: 6px; }
-::-webkit-scrollbar-thumb:hover { background: #3A4357; }
+::-webkit-scrollbar-track { background: rgb(var(--ink-900)); }
+::-webkit-scrollbar-thumb { background: rgb(var(--color-line)); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--accent-gray)); }
