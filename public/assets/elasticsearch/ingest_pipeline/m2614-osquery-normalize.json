@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "managed": true,
+    "managed_by": "m2614_compliance",
+    "m2614": {
+      "workstream": 3,
+      "description": "Normalize M-26-14 osquery asset inventory results for HWAM/SWAM compliance"
+    }
+  },
+  "description": "Normalize M-26-14 osquery asset inventory results — hardware, software, and network queries",
+  "processors": [
+    {
+      "script": {
+        "description": "Copy Fleet agent context to host.* fields; set m2614 managed/source flags",
+        "lang": "painless",
+        "source": "if (ctx.containsKey('agent') && ctx.agent != null) {\n  if (!ctx.containsKey('host') || ctx.host == null) {\n    ctx['host'] = new HashMap();\n  }\n  Map agent = ctx.agent;\n  Map host = ctx.host;\n  if (agent.containsKey('id') && (!host.containsKey('id') || host['id'] == null)) {\n    host['id'] = agent['id'];\n  }\n  if (!host.containsKey('name') || host['name'] == null) {\n    if (agent.containsKey('name') && agent['name'] != null) {\n      host['name'] = agent['name'];\n    } else if (agent.containsKey('hostname') && agent['hostname'] != null) {\n      host['name'] = agent['hostname'];\n    }\n  }\n}\nif (!ctx.containsKey('m2614') || ctx.m2614 == null) {\n  ctx['m2614'] = new HashMap();\n}\nctx['m2614']['managed'] = true;\nctx['m2614']['hwam_source'] = 'osquery';"
+      }
+    },
+    {
+      "enrich": {
+        "description": "Enrich software docs with authorized software catalog (no-op on hardware/network docs)",
+        "policy_name": "m2614-authorized-software",
+        "field": "package.name",
+        "target_field": "m2614.software",
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "fingerprint": {
+        "description": "Asset identity fingerprint for deduplication across HWAM/SWAM records",
+        "fields": ["host.name", "host.id", "m2614.hardware.serial"],
+        "target_field": "m2614.asset_fingerprint",
+        "method": "SHA-256",
+        "ignore_missing": true
+      }
+    }
+  ]
+}
