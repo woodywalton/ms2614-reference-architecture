@@ -538,7 +538,7 @@ export function Legend({ x, y, width = 520 }) {
       <LegendItem x={64 + q * 2}   y={40} C={C} color={ARROW.export} label="CISA / FBI export" dashed />
       <g transform={`translate(${64 + q * 3}, 30)`}>
         <rect width={20} height={10} fill={C.nodeFill} stroke={ACCENT.teal} strokeDasharray="4 3" />
-        <text x={28} y={9} fontSize="11" fill={C.textPrimary}>
+        <text x={28} y={9} fontSize="12" fill={C.textPrimary}>
           dashed border = optional / unmounted
         </text>
       </g>
@@ -551,7 +551,7 @@ function LegendItem({ x, y, C, color, label, dashed }) {
     <g transform={`translate(${x}, ${y})`}>
       <line x1={0} y1={0} x2={30} y2={0} stroke={color} strokeWidth={2}
         strokeDasharray={dashed ? '6 4' : undefined} strokeLinecap="round" />
-      <text x={40} y={4} fontSize="11" fill={C.textPrimary}>{label}</text>
+      <text x={40} y={4} fontSize="12" fill={C.textPrimary}>{label}</text>
     </g>
   )
 }
