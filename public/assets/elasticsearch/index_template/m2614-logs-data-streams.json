@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "managed": true,
+    "managed_by": "m2614_compliance",
+    "description": "Index template for logs-m2614.* data streams. Applies ECS mappings, M-26-14 log integrity hashing pipeline (Element 5), and compliance-tier ILM policy."
+  },
+  "index_patterns": ["logs-m2614.*"],
+  "data_stream": {},
+  "composed_of": [
+    "logs@mappings",
+    "logs@settings",
+    "ecs@mappings",
+    "m2614-log-integrity-settings"
+  ],
+  "template": {
+    "settings": {
+      "index": {
+        "final_pipeline": "m2614-log-integrity-hash"
+      }
+    },
+    "mappings": {
+      "properties": {
+        "event": {
+          "properties": {
+            "hash": {"type": "keyword"},
+            "integrity": {
+              "properties": {
+                "hashed": {"type": "boolean"},
+                "algorithm": {"type": "keyword"},
+                "ingested_at": {"type": "date"},
+                "failure_reason": {"type": "keyword"}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "priority": 200,
+  "version": 1
+}
