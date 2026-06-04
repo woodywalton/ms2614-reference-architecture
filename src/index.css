@@ -37,7 +37,7 @@
   --accent-purple: 188 30 112;  /* euiColorAccent          #BC1E70 */
   --accent-green: 0 138 94;     /* euiColorSuccess         #008A5E */
   --accent-coral: 198 30 37;    /* euiColorDanger          #C61E25 */
-  --accent-yellow: 250 203 61;  /* euiColorWarning         #FACB3D */
+  --accent-yellow: 234 174 1;   /* euiColorWarning light    #EAAE01 — amber for contrast on white */
 }
 
 /* ── Dark mode (Borealis dark) ────────────────────────────────────────── */

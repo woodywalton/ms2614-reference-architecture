@@ -14,7 +14,7 @@ function MaturitySizeRedirect() {
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-ink-900 text-text-primary">
+    <div className="min-h-screen bg-ink-900 text-text-primary pb-8">
       <Nav />
       <Routes>
         {/* Overview / home */}
@@ -35,8 +35,8 @@ export default function App() {
 
         <Route path="*" element={<Overview />} />
       </Routes>
-      <footer className="mt-12 border-t border-line py-6 text-center text-xs text-text-muted">
-        Reference architecture viewer · Static UI · No data is collected or transmitted.
+      <footer className="fixed bottom-0 inset-x-0 z-10 border-t border-line bg-ink-900/90 backdrop-blur py-1.5 text-center text-[11px] text-text-muted/60">
+        © 2026 Elastic · Reference architecture viewer · Static UI · No data is collected or transmitted.
       </footer>
     </div>
   )

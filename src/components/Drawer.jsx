@@ -119,7 +119,7 @@ export default function Drawer({ componentId, size, onClose }) {
 
 function Section({ label, children }) {
   return (
-    <section>
+    <section className="rounded-lg border border-line bg-ink-700 p-3">
       <h3 className="text-[11px] font-bold uppercase tracking-wider text-text-muted mb-1.5">
         {label}
       </h3>
