@@ -1,0 +1,61 @@
+{
+  "source": {
+    "index": [".alerts-security.*", ".alerts-security.test"],
+    "query": {
+      "term": {
+        "kibana.alert.rule.tags": "M-26-14"
+      }
+    }
+  },
+  "pivot": {
+    "group_by": {
+      "day_bucket": {
+        "date_histogram": {
+          "field": "@timestamp",
+          "calendar_interval": "1d",
+          "time_zone": "UTC"
+        }
+      },
+      "appendix_b_category": {
+        "terms": {
+          "field": "kibana.alert.rule.tags",
+          "missing_bucket": false
+        }
+      }
+    },
+    "aggregations": {
+      "alert_count": {
+        "value_count": {
+          "field": "@timestamp"
+        }
+      },
+      "last_alert_ts": {
+        "max": {
+          "field": "@timestamp"
+        }
+      }
+    }
+  },
+  "dest": {
+    "index": "m2614-metrics-alert-coverage-by-day"
+  },
+  "frequency": "1h",
+  "sync": {
+    "time": {
+      "field": "@timestamp",
+      "delay": "60s"
+    }
+  },
+  "settings": {
+    "max_page_search_size": 500
+  },
+  "description": "M-26-14 Appendix B alert coverage — daily buckets per detection category",
+  "_meta": {
+    "managed": true,
+    "managed_by": "m2614_compliance",
+    "m2614": {
+      "workstream": 6,
+      "description": "Pivot transform: daily alert counts per Appendix B category for closed-loop compliance attestation"
+    }
+  }
+}

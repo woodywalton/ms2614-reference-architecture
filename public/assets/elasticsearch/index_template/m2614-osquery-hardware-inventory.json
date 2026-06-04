@@ -1,0 +1,77 @@
+{
+  "_meta": {
+    "managed": true,
+    "managed_by": "m2614_compliance",
+    "m2614": {
+      "workstream": 3,
+      "description": "Hardware inventory data stream for M-26-14 Element 1 (HWAM)"
+    }
+  },
+  "index_patterns": ["logs-m2614_osquery.hardware_inventory-*"],
+  "data_stream": {},
+  "priority": 300,
+  "template": {
+    "settings": {
+      "index.mode": "logsdb",
+      "index.default_pipeline": "m2614-osquery-normalize",
+      "index.lifecycle.name": "m2614-asset-inventory"
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "@timestamp": { "type": "date" },
+        "agent": {
+          "properties": {
+            "id":       { "type": "keyword" },
+            "name":     { "type": "keyword" },
+            "hostname": { "type": "keyword" },
+            "version":  { "type": "keyword" },
+            "type":     { "type": "keyword" }
+          }
+        },
+        "host": {
+          "properties": {
+            "id":       { "type": "keyword" },
+            "name":     { "type": "keyword" },
+            "hostname": { "type": "keyword" },
+            "os": {
+              "properties": {
+                "name":    { "type": "keyword" },
+                "version": { "type": "keyword" },
+                "family":  { "type": "keyword" },
+                "platform":{ "type": "keyword" }
+              }
+            }
+          }
+        },
+        "osquery": {
+          "properties": {
+            "name":   { "type": "keyword" },
+            "action": { "type": "keyword" }
+          }
+        },
+        "m2614": {
+          "properties": {
+            "managed":           { "type": "boolean" },
+            "hwam_source":       { "type": "keyword" },
+            "asset_type":        { "type": "keyword" },
+            "asset_fingerprint": { "type": "keyword" },
+            "hardware": {
+              "properties": {
+                "model":             { "type": "keyword" },
+                "vendor":            { "type": "keyword" },
+                "serial":            { "type": "keyword" },
+                "cpu_brand":         { "type": "keyword" },
+                "cpu_cores_physical":{ "type": "integer" },
+                "cpu_cores_logical": { "type": "integer" },
+                "memory_bytes":      { "type": "long" },
+                "board_vendor":      { "type": "keyword" },
+                "board_model":       { "type": "keyword" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

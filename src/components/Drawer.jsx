@@ -31,29 +31,40 @@ export default function Drawer({ componentId, size, onClose }) {
 
   return (
     <>
-      {/* backdrop */}
+      {/* backdrop — full viewport, nav sits above (z-50) */}
       <div
         className={`fixed inset-0 z-30 bg-black/40 transition-opacity ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        style={{ marginTop: 0 }}
         onClick={onClose}
         aria-hidden="true"
       />
-      {/* panel */}
+      {/* panel — full viewport height, nav covers the top strip */}
       <aside
-        className={`fixed top-0 right-0 z-40 h-full w-full max-w-md bg-ink-800 border-l border-line shadow-2xl
+        className={`fixed right-0 z-40 w-full max-w-md bg-ink-800 shadow-2xl
+                    flex flex-col
                     transform transition-transform duration-200 ease-out
                     ${open ? 'translate-x-0' : 'translate-x-full'}`}
+        style={{ top: 0, height: '100vh', paddingTop: 'var(--nav-height, 60px)', marginTop: 0, borderLeft: '1px solid rgb(var(--color-line))' }}
         role="dialog"
         aria-modal="true"
         aria-label={data ? `${data.name} details` : 'Component details'}
       >
         {data && (
-          <div className="flex h-full flex-col">
+          <div className="flex flex-col h-full">
             <header
-              className="border-b border-line px-5 py-4 flex items-start gap-3"
-              style={{ borderTopColor: ACCENT[data.color] || ACCENT.teal, borderTopWidth: 3, borderTopStyle: 'solid' }}
+              className="px-5 py-4 flex items-start gap-3 shrink-0"
+              style={{
+                borderTopColor: ACCENT[data.color] || ACCENT.teal,
+                borderTopWidth: 3,
+                borderTopStyle: 'solid',
+                borderBottomWidth: 1,
+                borderBottomStyle: 'solid',
+                borderBottomColor: 'rgb(var(--color-line))',
+              }}
             >
               {data.euiIcon && (
-                <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded bg-ink-700/60 border border-line">
+                <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded bg-ink-700/60"
+                  style={{ border: '1px solid rgb(var(--color-line))' }}>
                   <EuiIcon type={data.euiIcon} size="l" />
                 </div>
               )}
@@ -119,7 +130,7 @@ export default function Drawer({ componentId, size, onClose }) {
 
 function Section({ label, children }) {
   return (
-    <section className="rounded-lg border border-line bg-ink-700 p-3">
+    <section className="rounded-lg bg-ink-700 p-3" style={{ border: '1px solid rgb(var(--color-line))' }}>
       <h3 className="text-[11px] font-bold uppercase tracking-wider text-text-muted mb-1.5">
         {label}
       </h3>
@@ -156,7 +167,7 @@ function TierSizing({ tierKey, sizing }) {
   const ram = ramByKey[tierKey]
 
   return (
-    <div className="rounded border border-line bg-ink-900/60 p-3 space-y-2 text-sm">
+    <div className="rounded bg-ink-900/60 p-3 space-y-2 text-sm" style={{ border: '1px solid rgb(var(--color-line))' }}>
       <div className="grid grid-cols-[120px_1fr] gap-x-3 gap-y-1.5 text-xs">
         <span className="text-text-muted">Node count</span>
         <span className="text-text-primary font-medium">
@@ -172,7 +183,7 @@ function TierSizing({ tierKey, sizing }) {
           </>
         )}
       </div>
-      <p className="text-xs text-text-muted italic leading-snug pt-2 border-t border-line/60">
+      <p className="text-xs text-text-muted italic leading-snug pt-2" style={{ borderTop: '1px solid rgba(var(--color-line), 0.6)' }}>
         {TIER_LABEL[tierKey]}
       </p>
     </div>
