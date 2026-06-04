@@ -1,0 +1,16 @@
+{
+  "datafeed_id": "datafeed-m2614-ml-element2-ingestion-rate",
+  "job_id": "m2614-ml-element2-ingestion-rate",
+  "indices": ["logs-*"],
+  "query": {
+    "match_all": {}
+  },
+  "scroll_size": 1000,
+  "delayed_data_check_config": {
+    "enabled": true,
+    "check_window": "1h"
+  },
+  "chunking_config": {
+    "mode": "auto"
+  }
+}

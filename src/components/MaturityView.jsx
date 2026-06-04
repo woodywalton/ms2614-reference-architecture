@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { LEVELS } from '../data/levels.js'
-import { SIZE_ORDER, sizingTable } from '../data/sizing.js'
+import { SIZE_ORDER, sizingTable, getSizing, getTierNodeCount } from '../data/sizing.js'
 import { COMPONENTS } from '../data/components.js'
+import { ASSET_FILES, ASSET_TYPE_META, ASSET_COLUMNS } from '../data/assets.js'
 import { useTheme } from '../ThemeContext.jsx'
 import Drawer from './Drawer.jsx'
+import AssetViewer from './AssetViewer.jsx'
 import Level1Diagram from './diagrams/Level1Diagram.jsx'
 import Level2Diagram from './diagrams/Level2Diagram.jsx'
 import Level3Diagram from './diagrams/Level3Diagram.jsx'
@@ -23,7 +25,7 @@ const SIZE_LABELS = {
   large:  'Large-sized Organization',
 }
 
-const DETAIL_TABS = ['Maturity Level Requirements', 'Required Components', 'Elastic Assets']
+const DETAIL_TABS = ['Maturity Level Requirements', 'Component Details', 'Elastic Assets']
 
 const LEVEL_COMPONENTS = {
   1: ['sources', 'legacySources', 'elasticAgent', 'fleetServer', 'logstash', 'sensitiveDataProtection', 'hotTier', 'frozenTier', 'ilm', 'snapshot6mo', 'kibana', 'masterNodes', 'kibanaNodes', 'mlNodes'],
@@ -36,35 +38,25 @@ export default function MaturityView() {
   const { size, level } = useParams()
   const levelNum = Number(level)
   const [activeTab, setActiveTab] = useState('Maturity Level Requirements')
-  const [infoPanelOpen, setInfoPanelOpen] = useState(true)
+  const [infoPanelOpen, setInfoPanelOpen] = useState(false)
   const [selectedNode, setSelectedNode] = useState(null)
+  const [viewerAssetId, setViewerAssetId] = useState(null)
   const { theme } = useTheme()
   const diagramRef = useRef(null)
-  const [diagramHeight, setDiagramHeight] = useState(null)
   const [zoom, setZoom] = useState(1)
   const ZOOM_MIN = 0.5
   const ZOOM_MAX = 2
   const ZOOM_STEP = 0.1
 
+  // Compute fit zoom when level/size changes
   useEffect(() => {
-    const el = diagramRef.current
-    if (!el) return
-    const ro = new ResizeObserver(([entry]) => setDiagramHeight(entry.target.getBoundingClientRect().height))
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
-  // Reset height + recompute fit zoom on level/size change
-  useEffect(() => {
-    setDiagramHeight(null)
     const id = requestAnimationFrame(() => {
       const container = diagramRef.current
       if (!container) return
       const svg = container.querySelector('svg')
       if (!svg?.viewBox?.baseVal?.width) return
       const vb = svg.viewBox.baseVal
-      const padding = 16 // p-2
-      // Use container's CSS max-height ceiling (not current height, which depends on zoom)
+      const padding = 16
       const maxContainerH = Math.min(800, window.innerHeight - 300)
       const availW = Math.max(0, container.clientWidth - padding)
       const availH = Math.max(0, maxContainerH - padding)
@@ -169,9 +161,6 @@ export default function MaturityView() {
           className="rounded-lg bg-ink-800 flex flex-col overflow-hidden"
           style={{
             border: '1px solid rgb(var(--color-line))',
-            height: diagramHeight ?? undefined,
-            minHeight: diagramHeight ? undefined : 500,
-            maxHeight: 'min(800px, calc(100vh - 300px))',
           }}
         >
           {infoPanelOpen ? (
@@ -183,8 +172,8 @@ export default function MaturityView() {
               {/* Scrollable content */}
               <div className="p-6 overflow-y-auto flex-1 min-h-0">
                 {activeTab === 'Maturity Level Requirements' && <RequirementsTab meta={meta} onNodeClick={setSelectedNode} />}
-                {activeTab === 'Required Components'       && <ComponentsTab levelNum={levelNum} onNodeClick={setSelectedNode} />}
-                {activeTab === 'Elastic Assets'            && <AssetsTab levelNum={levelNum} />}
+                {activeTab === 'Component Details'         && <ComponentsTab levelNum={levelNum} size={size} onNodeClick={setSelectedNode} />}
+                {activeTab === 'Elastic Assets'            && <AssetsTab levelNum={levelNum} onViewAsset={setViewerAssetId} />}
               </div>
               {/* Footer — collapse button */}
               <div className="shrink-0 flex justify-end px-3 py-2">
@@ -217,7 +206,7 @@ export default function MaturityView() {
           )}
         </div>
 
-        {/* Right: architecture diagram — ResizeObserver source of truth for panel height */}
+        {/* Right: architecture diagram with zoom controls */}
         <div className="relative">
           <div
             ref={diagramRef}
@@ -232,7 +221,6 @@ export default function MaturityView() {
               <Diagram size={size} onNodeClick={setSelectedNode} />
             </div>
           </div>
-          {/* Floating zoom controls — pinned to bottom-right of diagram panel */}
           <div
             className="absolute bottom-3 right-3 z-10 flex items-center rounded-lg border border-line bg-ink-800 shadow-lg overflow-hidden"
             style={{ borderStyle: 'solid' }}
@@ -241,28 +229,19 @@ export default function MaturityView() {
               onClick={() => setZoom(z => Math.max(ZOOM_MIN, +(z - ZOOM_STEP).toFixed(2)))}
               disabled={zoom <= ZOOM_MIN}
               className="px-3 py-1.5 text-text-muted hover:text-text-primary hover:bg-ink-700 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"
-              title="Zoom out"
-              aria-label="Zoom out"
-            >
-              −
-            </button>
+              title="Zoom out" aria-label="Zoom out"
+            >−</button>
             <button
               onClick={() => setZoom(1)}
               className="px-2 py-1.5 text-xs text-text-muted hover:text-text-primary hover:bg-ink-700 transition-colors tabular-nums min-w-[3.25rem] text-center"
-              title="Reset zoom to 100%"
-              aria-label="Reset zoom"
-            >
-              {Math.round(zoom * 100)}%
-            </button>
+              title="Reset zoom" aria-label="Reset zoom"
+            >{Math.round(zoom * 100)}%</button>
             <button
               onClick={() => setZoom(z => Math.min(ZOOM_MAX, +(z + ZOOM_STEP).toFixed(2)))}
               disabled={zoom >= ZOOM_MAX}
               className="px-3 py-1.5 text-text-muted hover:text-text-primary hover:bg-ink-700 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"
-              title="Zoom in"
-              aria-label="Zoom in"
-            >
-              +
-            </button>
+              title="Zoom in" aria-label="Zoom in"
+            >+</button>
           </div>
         </div>
       </div>
@@ -296,6 +275,7 @@ export default function MaturityView() {
       </div>
 
       <Drawer componentId={selectedNode} size={size} onClose={() => setSelectedNode(null)} />
+      <AssetViewer assetId={viewerAssetId} onClose={() => setViewerAssetId(null)} />
     </main>
   )
 }
@@ -313,125 +293,114 @@ function ComponentLink({ componentId, onNodeClick, children }) {
   )
 }
 
-function ReqBadge({ label, value, on, color }) {
-  const onColors = {
-    yellow: 'border-accent-yellow/50 bg-accent-yellow/10',
-    coral:  'border-accent-coral/50  bg-accent-coral/10',
-    teal:   'border-accent-teal/50   bg-accent-teal/10',
-  }
-  const valueColors = {
-    yellow: 'text-accent-yellow',
-    coral:  'text-accent-coral',
-    teal:   'text-accent-teal',
-  }
-  return (
-    <div className={`rounded border px-3 py-2 ${on ? onColors[color] : 'border-line bg-ink-700'}`}>
-      <p className="text-xs uppercase tracking-wider text-text-muted">{label}</p>
-      <p className={`text-base font-semibold mt-0.5 ${on ? valueColors[color] : 'text-text-muted italic'}`}>{value}</p>
-    </div>
-  )
-}
-
-function ReqSection({ title, children }) {
-  return (
-    <div className="rounded-lg border border-line bg-ink-700 p-3 mt-3 first:mt-0">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted mb-2">{title}</h3>
-      <ul className="space-y-2">{children}</ul>
-    </div>
-  )
-}
-
-function ReqItem({ children }) {
-  return (
-    <li className="flex gap-2 text-sm text-text-primary leading-relaxed">
-      <span className="text-accent-teal mt-0.5 shrink-0">›</span>
-      <span>{children}</span>
-    </li>
-  )
-}
-
 // ─── Requirements tab ─────────────────────────────────────────────────────────
+
+function ReqList({ items }) {
+  return (
+    <ul className="space-y-2">
+      {items.map((item, i) => (
+        <li key={i} className="flex gap-2 text-sm text-text-primary leading-relaxed">
+          <span className="text-text-muted shrink-0 select-none mt-0.5">·</span>
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 function RequirementsTab({ meta, onNodeClick }) {
   const L = (id, label) => (
     <ComponentLink componentId={id} onNodeClick={onNodeClick}>{label}</ComponentLink>
   )
 
-  const content = {
-    1: (
-      <>
-        <ReqSection title="Log Collection">
-          <ReqItem>Enumerate and collect logs from all agency systems across all required {L('sources', 'Appendix B event categories')}.</ReqItem>
-          <ReqItem>Deploy {L('elasticAgent', 'Elastic Agent')} as the primary collection mechanism. Route legacy and OT sources through {L('logstash', 'Logstash')} where direct agent deployment is not possible.</ReqItem>
-          <ReqItem>Register all log-producing systems in the Agency Logging Plan via {L('fleetServer', 'Fleet Server')} enrollment.</ReqItem>
-        </ReqSection>
-        <ReqSection title="Retention">
-          <ReqItem>Retain all collected logs in a {L('snapshot6mo', 'retrievable state')} for a minimum of 6 months (THIRF).</ReqItem>
-          <ReqItem><span className="text-text-muted italic">No searchable (CEM) retention requirement at this level.</span></ReqItem>
-        </ReqSection>
-        <ReqSection title="Administrative">
-          <ReqItem>Submit Agency Logging Plan within 90 days of LRA publication, documenting all log sources and coverage gaps.</ReqItem>
-        </ReqSection>
-      </>
-    ),
-    2: (
-      <>
-        <ReqSection title="Log Collection">
-          <ReqItem>Achieve full coverage of all {L('sources', 'Appendix B log categories')} — no gaps in required event categories.</ReqItem>
-          <ReqItem>Maintain a complete asset and system inventory reflected in the logging pipeline via {L('fleetServer', 'Fleet Server')}.</ReqItem>
-        </ReqSection>
-        <ReqSection title="Retention">
-          <ReqItem>Retain logs in a {L('snapshot12mo', 'retrievable state')} for a minimum of 12 months (THIRF).</ReqItem>
-          <ReqItem><span className="text-text-muted italic">No searchable (CEM) retention requirement at this level.</span></ReqItem>
-        </ReqSection>
-        <ReqSection title="Administrative">
-          <ReqItem>Update the Agency Logging Plan to reflect full Appendix B coverage and complete asset inventory.</ReqItem>
-        </ReqSection>
-      </>
-    ),
+  const cemContent = {
+    1: null,
+    2: null,
     3: (
-      <>
-        <ReqSection title="Retention (CEM first applies)">
-          <ReqItem>Maintain ≥ 3 months of immediately searchable log data across {L('hotTier', 'hot')}, {L('coldTier', 'cold')}, and {L('frozenTier', 'frozen')} tiers (CEM requirement first applies at this level).</ReqItem>
-          <ReqItem>Maintain ≥ 12 months of {L('snapshot12mo', 'retrievable log data')} (THIRF).</ReqItem>
-        </ReqSection>
-        <ReqSection title="Threat Detection">
-          <ReqItem>Implement automated threat detection and anomaly detection via {L('ml', 'Elastic ML jobs')} running behavioral baselines.</ReqItem>
-          <ReqItem>Ingest and match known indicators of compromise against live event streams using {L('iocMatching', 'IOC matching')}.</ReqItem>
-          <ReqItem>Prioritize alerts with {L('alertCorrelator', 'risk scoring and alert correlation')} before SOC triage.</ReqItem>
-        </ReqSection>
-        <ReqSection title="Data Protections">
-          <ReqItem>Apply {L('sensitiveDataProtection', 'sensitive data protection controls')} in the ingest pipeline before log data reaches storage.</ReqItem>
-        </ReqSection>
-      </>
+      <ReqList items={[
+        <>Maintain ≥ 3 months of immediately searchable logs across {L('hotTier', 'hot')}, {L('coldTier', 'cold')}, and {L('frozenTier', 'frozen')} tiers.</>,
+        <>Apply {L('sensitiveDataProtection', 'sensitive data protection controls')} in the ingest pipeline before data reaches storage.</>,
+        <>Enable automated anomaly and behavioral detection via {L('ml', 'Elastic ML jobs')} running against 6+ months of baseline data.</>,
+        <>Ingest and match known {L('iocMatching', 'indicators of compromise')} (STIX/TAXII, CISA KEV) against live event streams.</>,
+        <>Prioritize alerts with {L('alertCorrelator', 'risk scoring and correlation')} before SOC triage.</>,
+      ]} />
     ),
     4: (
-      <>
-        <ReqSection title="Retention">
-          <ReqItem>Maintain ≥ 6 months of immediately searchable log data (CEM) across the {L('hotTier', 'hot')}, {L('coldTier', 'cold')}, and {L('frozenTier', 'frozen')} tiers.</ReqItem>
-          <ReqItem>Maintain ≥ 12 months of {L('snapshot12mo', 'retrievable log data')} (THIRF).</ReqItem>
-        </ReqSection>
-        <ReqSection title="Architecture">
-          <ReqItem>Operate a federated, distributed logging architecture enabling the top-level SOC to query all agency log stores via {L('ccs', 'Cross-Cluster Search')}.</ReqItem>
-          <ReqItem>Enforce encryption at rest and in transit using {L('byok', 'agency-controlled key management (BYOK)')}.</ReqItem>
-          <ReqItem>Ensure tamper-evident log integrity and {L('ntp', 'USNO/NIST-traceable NTP timestamps')} across all agents and nodes.</ReqItem>
-        </ReqSection>
-        <ReqSection title="Log Access">
-          <ReqItem>Maintain a documented and tested procedure for {L('cisaExport', 'sharing logs with CISA and the FBI')} upon request. Procedure must be included in the Agency Logging Plan and tested at least annually.</ReqItem>
-        </ReqSection>
-      </>
+      <ReqList items={[
+        <>Maintain ≥ 6 months of immediately searchable logs across {L('hotTier', 'hot')}, {L('coldTier', 'cold')}, and {L('frozenTier', 'frozen')} tiers.</>,
+        <>Enable top-level SOC to query all distributed agency log stores via {L('ccs', 'Cross-Cluster Search')}.</>,
+        <>Enforce encryption at rest and in transit using {L('byok', 'agency-controlled key management (BYOK)')}.</>,
+        <>Maintain {L('ntp', 'USNO/NIST-traceable NTP timestamps')} across all agents and nodes for tamper-evident forensic timelines.</>,
+      ]} />
+    ),
+  }
+
+  const thifrContent = {
+    1: (
+      <ReqList items={[
+        <>Collect logs from all {L('sources', 'Appendix B log categories')} across all agency systems — no gaps.</>,
+        <>Deploy {L('elasticAgent', 'Elastic Agent')} as primary collector; route legacy and OT systems through {L('logstash', 'Logstash')}.</>,
+        <>Register all log-producing systems in the Agency Logging Plan via {L('fleetServer', 'Fleet Server')} enrollment.</>,
+        <>Retain all collected logs in a {L('snapshot6mo', 'retrievable state')} for a minimum of 6 months.</>,
+        <>Submit Agency Logging Plan within 90 days of LRA publication, documenting all sources and coverage gaps.</>,
+      ]} />
+    ),
+    2: (
+      <ReqList items={[
+        <>Achieve full coverage of all {L('sources', 'Appendix B log categories')} — no gaps.</>,
+        <>Maintain a complete asset and system inventory reflected in {L('fleetServer', 'Fleet Server')}.</>,
+        <>Retain logs in a {L('snapshot12mo', 'retrievable state')} for a minimum of 12 months.</>,
+      ]} />
+    ),
+    3: (
+      <ReqList items={[
+        <>Maintain ≥ 12 months of {L('snapshot12mo', 'retrievable log data')} (unmounted snapshot repository).</>,
+      ]} />
+    ),
+    4: (
+      <ReqList items={[
+        <>Maintain ≥ 12 months of {L('snapshot12mo', 'retrievable log data')}.</>,
+        <>Maintain a documented and annually-tested procedure for {L('cisaExport', 'sharing logs with CISA and the FBI')} upon request.</>,
+      ]} />
     ),
   }
 
   return (
-    <div className="space-y-1">
-      <div className="flex flex-col gap-2 mb-4">
-        <ReqBadge label="Searchable (CEM)" value={meta.searchable ?? '— not required'} on={Boolean(meta.searchable)} color="yellow" />
-        <ReqBadge label="Retrievable (THIRF)" value={meta.retrievable} on color="coral" />
+    <div className="space-y-4">
+      <div>
+        <p className="text-xl font-bold text-accent-teal leading-tight">{meta.name}</p>
+        <p className="text-sm text-text-muted mt-1">{meta.deadline}</p>
       </div>
-      <p className="text-xs text-text-muted mb-3">Due: {meta.deadline}</p>
-      <div className="space-y-1 text-sm">
-        {content[meta.id]}
+
+      {/* CEM panel */}
+      <div className="rounded-lg p-3 space-y-2.5 bg-accent-yellow/5"
+        style={{ border: '1px solid rgba(212, 157, 0, 0.35)', borderStyle: 'solid' }}>
+        <div>
+          <h3 className="text-xs font-bold tracking-wider text-accent-yellow">
+            CEM — <span className="font-semibold">Continuous Event Monitoring</span>
+          </h3>
+          {meta.searchable
+            ? <p className="mt-0.5 pl-3 text-sm font-semibold text-accent-yellow/70">{meta.searchable} searchable</p>
+            : <p className="mt-0.5 pl-3 text-xs text-text-muted italic">Not required at this level</p>
+          }
+        </div>
+        {cemContent[meta.id] ?? (
+          <p className="text-sm text-text-muted italic leading-relaxed">
+            No searchable retention requirement at Level {meta.id}. CEM obligations first apply at Level 3.
+          </p>
+        )}
+      </div>
+
+      {/* THIRF panel */}
+      <div className="rounded-lg p-3 space-y-2.5 bg-accent-coral/5"
+        style={{ border: '1px solid rgba(207, 79, 39, 0.35)', borderStyle: 'solid' }}>
+        <div>
+          <h3 className="text-xs font-bold tracking-wider text-accent-coral">
+            THIRF — <span className="font-semibold">Threat Hunting, Investigation, Response &amp; Forensics</span>
+          </h3>
+          <p className="mt-0.5 pl-3 text-sm font-semibold text-accent-coral/70">{meta.retrievable} retrievable</p>
+        </div>
+        {thifrContent[meta.id]}
       </div>
     </div>
   )
@@ -439,27 +408,97 @@ function RequirementsTab({ meta, onNodeClick }) {
 
 // ─── Components tab ───────────────────────────────────────────────────────────
 
-function ComponentsTab({ levelNum, onNodeClick }) {
-  const keys = LEVEL_COMPONENTS[levelNum] || []
+const COLUMN_GROUPS = [
+  {
+    label: 'Sources',
+    keys: ['sources', 'legacySources', 'iotEdge'],
+  },
+  {
+    label: 'Collection',
+    keys: ['elasticAgent', 'fleetServer', 'logstash', 'sensitiveDataProtection', 'ingestPipelines'],
+  },
+  {
+    label: 'Elastic Search AI Platform',
+    keys: ['hotTier', 'coldTier', 'frozenTier', 'ilm', 'mlNodes', 'masterNodes', 'kibanaNodes', 'ccs', 'onPremStore', 'cloudCold', 'cloudObjectStore', 'byok', 'ntp'],
+  },
+  {
+    label: 'CEM',
+    keys: ['ml', 'iocMatching', 'alertCorrelator', 'kibana', 'soc'],
+  },
+  {
+    label: 'THIRF',
+    keys: ['snapshot6mo', 'snapshot12mo', 'cisaExport'],
+  },
+]
+
+function Accordion({ label, children, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className="rounded-lg border border-line bg-ink-700 overflow-hidden">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-ink-600 transition-colors"
+      >
+        <span className="text-xs font-bold uppercase tracking-wider text-text-muted">{label}</span>
+        <svg
+          className={`w-3.5 h-3.5 text-text-muted shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+          viewBox="0 0 12 12" fill="none"
+        >
+          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 pt-1 space-y-px border-t border-line/50">
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ComponentsTab({ levelNum, size, onNodeClick }) {
+  const levelKeys = new Set(LEVEL_COMPONENTS[levelNum] || [])
+  const s = getSizing(size)
+
   return (
     <div className="space-y-2">
       <p className="text-xs text-text-muted mb-3 leading-relaxed">
-        Components present in the Level {levelNum} architecture. Select any component to open detailed configuration, M-26-14 requirements mapping, and reference documentation.
+        Architecture components at Level {levelNum}. Select any item to open full configuration, M-26-14 mapping, and documentation.
       </p>
-      {keys.map((key) => {
-        const comp = COMPONENTS[key]
-        if (!comp) return null
+      {COLUMN_GROUPS.map((group) => {
+        const groupKeys = group.keys.filter(k => levelKeys.has(k))
+        if (!groupKeys.length) return null
         return (
-          <button
-            key={key}
-            onClick={() => onNodeClick(key)}
-            className="w-full text-left rounded-lg border border-line bg-ink-700 p-3 hover:border-accent-teal/40 hover:bg-accent-teal/5 transition-colors"
-          >
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <h4 className="text-sm font-semibold text-text-primary">{comp.name}</h4>
-            </div>
-            <p className="text-xs text-text-muted leading-relaxed">{comp.role}</p>
-          </button>
+          <Accordion key={group.label} label={group.label} defaultOpen={group.label === 'Sources'}>
+            {groupKeys.map((key) => {
+              const comp = COMPONENTS[key]
+              if (!comp) return null
+              const nodeCount = comp.tierKey ? getTierNodeCount(comp.tierKey, size) : null
+              const instanceType = comp.tierKey ? s.instanceTypes[comp.tierKey] : null
+              const roleShort = comp.role.split(/\.\s/)[0] + '.'
+              return (
+                <div key={key} className="py-2 border-b border-line/40 last:border-0">
+                  <div className="flex items-start justify-between gap-2 mb-0.5">
+                    <button
+                      onClick={() => onNodeClick(key)}
+                      className="text-sm font-medium text-accent-teal hover:underline text-left leading-snug"
+                    >
+                      {comp.name}
+                    </button>
+                    {comp.optional && (
+                      <span className="text-[10px] text-text-muted bg-ink-600 border border-line px-1.5 py-0.5 rounded shrink-0">
+                        optional
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-text-muted leading-relaxed">{roleShort}</p>
+                  {nodeCount != null && (
+                    <p className="text-xs text-accent-blue mt-1">{nodeCount} nodes · {instanceType}</p>
+                  )}
+                </div>
+              )
+            })}
+          </Accordion>
         )
       })}
     </div>
@@ -468,79 +507,56 @@ function ComponentsTab({ levelNum, onNodeClick }) {
 
 // ─── Assets tab ───────────────────────────────────────────────────────────────
 
-const ASSET_CATEGORIES = [
-  {
-    label: 'Kibana Dashboards',
-    count: 7,
-    levels: [1, 2, 3, 4],
-    desc: 'Maturity overview, asset coverage, alert coverage, retention compliance, log management, Appendix B coverage, and compliance attestation dashboards.',
-    usage: 'Deploy to a shared Kibana space. Used by SOC analysts and compliance officers to verify log source coverage and monitor retention health in real time.',
-  },
-  {
-    label: 'Detection Rules',
-    count: 27,
-    levels: [3, 4],
-    desc: '13 threshold-based Appendix B rules, 13 ML-based anomaly rules, 1 compliance degradation meta-rule.',
-    usage: 'Import via Kibana Security → Rules → Import. Rules map directly to M-26-14 Appendix B event categories; review rule descriptions for applicable log sources.',
-  },
-  {
-    label: 'ILM Policies',
-    count: 5,
-    levels: [3, 4],
-    desc: 'Hot → Cold → Frozen → Delete lifecycle policies for L3 and L4, plus a dedicated asset inventory retention policy.',
-    usage: 'Apply to all ingest index templates in Fleet. Policy names encode the retention tier (e.g., `m2614-l3-hot-cold-frozen`). Review phase durations before applying to production.',
-  },
-  {
-    label: 'Ingest Pipelines',
-    count: 3,
-    levels: [3, 4],
-    desc: 'Log integrity hash (SHA-256), osquery normalization, and alert category enrichment pipelines.',
-    usage: 'Reference in Fleet integration policies via the `pipeline` field. Integrity hash pipeline must be applied before any redaction step to preserve the tamper-evident chain.',
-  },
-  {
-    label: 'ML Job Definitions',
-    count: 6,
-    levels: [3, 4],
-    desc: 'Anomaly detection jobs and datafeeds for behavioral baselines and UBA/UEBA workloads.',
-    usage: 'Import via Machine Learning → Anomaly Detection → Import job. Run datafeed initialization across ≥ 3 months of historical data before enabling alerting.',
-  },
-  {
-    label: 'Fleet Packs',
-    count: 1,
-    levels: [1, 2, 3, 4],
-    desc: 'Osquery pack for hardware, software, and network asset inventory collection.',
-    usage: 'Add to the Fleet agent policy for all enrolled endpoints. Results index into `logs-osquery_manager.result-*`; the Kibana Asset Coverage dashboard reads from this index.',
-  },
-]
+function AssetsTab({ levelNum, onViewAsset }) {
+  const byColumn = ASSET_COLUMNS.map(col => ({
+    col,
+    files: ASSET_FILES.filter(f => f.column === col && f.levels.includes(levelNum)),
+  })).filter(g => g.files.length)
 
-function AssetsTab({ levelNum }) {
-  const applicable = ASSET_CATEGORIES.filter((a) => a.levels.includes(levelNum))
   return (
-    <div className="space-y-3">
-      <p className="text-xs text-text-muted leading-relaxed mb-3">
-        Elastic-built compliance pack assets for M-26-14 Level {levelNum}. See{' '}
+    <div className="space-y-4">
+      <p className="text-xs text-text-muted leading-relaxed">
+        Compliance pack assets for Level {levelNum}, by architecture layer. Click{' '}
+        <span className="text-accent-blue font-medium">View</span> to inspect the file content. See{' '}
         <Link to="/asset-inventory" className="text-accent-teal hover:underline">
           Asset Inventory
         </Link>{' '}
-        for download and deployment instructions.
+        for deployment instructions.
       </p>
-      <div className="space-y-3">
-        {applicable.map((a) => (
-          <div key={a.label} className="rounded-lg border border-line bg-ink-700 p-3">
-            <div className="flex gap-3 mb-2">
-              <div className="shrink-0 w-7 text-right">
-                <span className="text-lg font-bold text-accent-teal">{a.count}</span>
+      {byColumn.map(({ col, files }) => (
+        <div key={col} className="space-y-1.5">
+          <p className="text-xs font-bold uppercase tracking-wider text-text-muted px-1">{col}</p>
+          {files.map(f => {
+            const typeMeta = ASSET_TYPE_META[f.type] ?? { label: f.type, color: 'text-text-muted', bg: 'bg-ink-700 border-line' }
+            return (
+              <div key={f.id} className="rounded-lg bg-ink-700 p-3" style={{ border: '1px solid rgb(var(--color-line))' }}>
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${typeMeta.bg} ${typeMeta.color}`}
+                        style={{ borderStyle: 'solid' }}>
+                        {typeMeta.label}
+                      </span>
+                      {f.ruleCount && (
+                        <span className="text-[9px] text-text-muted">{f.ruleCount} rules</span>
+                      )}
+                    </div>
+                    <p className="text-xs font-semibold text-text-primary leading-snug">{f.label}</p>
+                    <p className="mt-1 text-xs text-text-muted leading-relaxed">{f.desc}</p>
+                  </div>
+                  <button
+                    onClick={() => onViewAsset(f.id)}
+                    className="shrink-0 text-xs px-2.5 py-1 rounded border border-accent-blue/40 text-accent-blue hover:bg-accent-blue/10 transition-colors mt-0.5"
+                    style={{ borderStyle: 'solid' }}
+                  >
+                    View
+                  </button>
+                </div>
               </div>
-              <h4 className="text-sm font-semibold text-text-primary">{a.label}</h4>
-            </div>
-            <p className="text-xs text-text-muted leading-relaxed mb-2">{a.desc}</p>
-            <p className="text-xs text-text-primary/80 leading-relaxed border-t border-line/60 pt-2">
-              <span className="font-medium text-text-muted uppercase tracking-wider text-[10px]">How to use · </span>
-              {a.usage}
-            </p>
-          </div>
-        ))}
-      </div>
+            )
+          })}
+        </div>
+      ))}
     </div>
   )
 }
