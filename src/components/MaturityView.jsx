@@ -25,7 +25,7 @@ const SIZE_LABELS = {
   large:  'Large-sized Organization',
 }
 
-const DETAIL_TABS = ['Maturity Level Requirements', 'Required Components', 'Elastic Assets']
+const DETAIL_TABS = ['Maturity Level Requirements', 'Component Details', 'Elastic Assets']
 
 const LEVEL_COMPONENTS = {
   1: ['sources', 'legacySources', 'elasticAgent', 'fleetServer', 'logstash', 'hotTier', 'frozenTier', 'ilm', 'snapshot6mo', 'kibana', 'masterNodes', 'kibanaNodes', 'mlNodes'],
@@ -38,7 +38,7 @@ export default function MaturityView() {
   const { size, level } = useParams()
   const levelNum = Number(level)
   const [activeTab, setActiveTab] = useState('Maturity Level Requirements')
-  const [infoPanelOpen, setInfoPanelOpen] = useState(true)
+  const [infoPanelOpen, setInfoPanelOpen] = useState(false)
   const [selectedNode, setSelectedNode] = useState(null)
   const [viewerAssetId, setViewerAssetId] = useState(null)
   const { theme } = useTheme()
@@ -162,7 +162,7 @@ export default function MaturityView() {
               {/* Scrollable content */}
               <div className="p-6 overflow-y-auto flex-1 min-h-0">
                 {activeTab === 'Maturity Level Requirements' && <RequirementsTab meta={meta} onNodeClick={setSelectedNode} />}
-                {activeTab === 'Required Components'       && <ComponentsTab levelNum={levelNum} size={size} onNodeClick={setSelectedNode} />}
+                {activeTab === 'Component Details'         && <ComponentsTab levelNum={levelNum} size={size} onNodeClick={setSelectedNode} />}
                 {activeTab === 'Elastic Assets'            && <AssetsTab levelNum={levelNum} onViewAsset={setViewerAssetId} />}
               </div>
               {/* Footer — collapse button */}
@@ -330,20 +330,22 @@ function RequirementsTab({ meta, onNodeClick }) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div>
-        <p className="text-base font-semibold text-text-primary">{meta.name}</p>
-        <p className="text-xs text-text-muted mt-1">{meta.deadline}</p>
+        <p className="text-xl font-bold text-accent-teal leading-tight">{meta.name}</p>
+        <p className="text-sm text-text-muted mt-1">{meta.deadline}</p>
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-accent-yellow">
-            CEM — Continuous Event Monitoring
+      {/* CEM panel */}
+      <div className="rounded-lg p-3 space-y-2.5 bg-accent-yellow/5"
+        style={{ border: '1px solid rgba(212, 157, 0, 0.35)', borderStyle: 'solid' }}>
+        <div>
+          <h3 className="text-xs font-bold tracking-wider text-accent-yellow">
+            CEM — <span className="font-semibold">Continuous Event Monitoring</span>
           </h3>
           {meta.searchable
-            ? <span className="text-xs font-semibold text-accent-yellow">{meta.searchable} searchable</span>
-            : <span className="text-xs text-text-muted italic">Not required at this level</span>
+            ? <p className="mt-0.5 pl-3 text-xs font-semibold text-accent-yellow/70">{meta.searchable} searchable</p>
+            : <p className="mt-0.5 pl-3 text-xs text-text-muted italic">Not required at this level</p>
           }
         </div>
         {cemContent[meta.id] ?? (
@@ -353,12 +355,14 @@ function RequirementsTab({ meta, onNodeClick }) {
         )}
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-accent-coral">
-            THIRF — Threat Hunting, Investigation, Response &amp; Forensics
+      {/* THIRF panel */}
+      <div className="rounded-lg p-3 space-y-2.5 bg-accent-coral/5"
+        style={{ border: '1px solid rgba(207, 79, 39, 0.35)', borderStyle: 'solid' }}>
+        <div>
+          <h3 className="text-xs font-bold tracking-wider text-accent-coral">
+            THIRF — <span className="font-semibold">Threat Hunting, Investigation, Response &amp; Forensics</span>
           </h3>
-          <span className="text-xs font-semibold text-accent-coral">{meta.retrievable} retrievable</span>
+          <p className="mt-0.5 pl-3 text-xs font-semibold text-accent-coral/70">{meta.retrievable} retrievable</p>
         </div>
         {thifrContent[meta.id]}
       </div>

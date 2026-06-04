@@ -72,10 +72,10 @@ export default function AssetViewer({ assetId, onClose }) {
 
       {/* Panel */}
       <aside
-        className={`fixed top-0 right-0 z-50 h-full w-full max-w-2xl bg-ink-800 shadow-2xl
+        className={`fixed right-0 z-50 w-full max-w-2xl bg-ink-800 shadow-2xl
                     flex flex-col transform transition-transform duration-200 ease-out
                     ${open ? 'translate-x-0' : 'translate-x-full'}`}
-        style={{ borderLeft: '1px solid rgb(var(--color-line))' }}
+        style={{ top: '65px', height: 'calc(100vh - 65px)', borderLeft: '1px solid rgb(var(--color-line))' }}
         role="dialog"
         aria-modal="true"
         aria-label={asset ? `${asset.label} asset viewer` : 'Asset viewer'}
