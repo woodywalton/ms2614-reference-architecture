@@ -39,13 +39,15 @@ export default function AssetInventory() {
         } catch (_) { /* skip failed fetch */ }
       })
     )
-    const blob = await zip.generateAsync({ type: 'blob' })
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/zip' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
     a.download = `m2614-compliance-pack-${label}.zip`
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 500)
     setDownloading(false)
   }
 
@@ -189,8 +191,10 @@ function DownloadButton({ asset }) {
       const a = document.createElement('a')
       a.href = url
       a.download = filename
+      document.body.appendChild(a)
       a.click()
-      URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 500)
     } catch (_) { /* silently fail */ }
     setBusy(false)
   }
