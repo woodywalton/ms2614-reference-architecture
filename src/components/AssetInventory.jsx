@@ -57,7 +57,7 @@ export default function AssetInventory() {
         <h1 className="text-3xl font-semibold text-text-primary">
           M-26-14 Compliance Pack — Asset Inventory
         </h1>
-        <p className="mt-4 text-base text-text-muted leading-relaxed max-w-3xl">
+        <p className="mt-4 text-base text-text-muted leading-relaxed">
           Pre-built Elastic assets for each maturity level, organized by architecture layer.
           Assets are deployed into Kibana, Elasticsearch, and Fleet — each mapped to the
           M-26-14 element it fulfils. Click <span className="text-accent-blue font-medium">View</span> to
@@ -118,9 +118,9 @@ export default function AssetInventory() {
       {byColumn.map(({ col, files }) => (
         <section key={col}>
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted">{col}</h2>
+            <h2 className="text-base font-bold uppercase tracking-widest text-text-primary">{col}</h2>
             <div className="flex-1 h-px bg-line" />
-            <span className="text-xs text-text-muted">{files.length} assets</span>
+            <span className="text-lg font-semibold text-accent-teal">{files.length} assets</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             {files.map(f => <AssetCard key={f.id} asset={f} onView={() => setViewerAssetId(f.id)} />)}

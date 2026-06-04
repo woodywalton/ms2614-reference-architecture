@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../ThemeContext.jsx'
 import logoColor from '../img/logo-elastic-horizontal-color.svg'
@@ -34,11 +34,23 @@ const NAV_ITEMS = [
 export default function Nav() {
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
+  const headerRef = useRef(null)
+
+  // Set --nav-height CSS variable so flyouts/overlays can align perfectly
+  useEffect(() => {
+    const el = headerRef.current
+    if (!el) return
+    const update = () => document.documentElement.style.setProperty('--nav-height', `${el.getBoundingClientRect().height}px`)
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const isHome = location.pathname === '/'
 
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-ink-900/95 backdrop-blur">
+    <header ref={headerRef} className="sticky top-0 z-50 border-b border-line bg-ink-900/95 backdrop-blur">
       <div className="mx-auto max-w-[1500px] px-6 py-4 flex items-center gap-6">
         {/* Logo + title */}
         <div className="flex items-center gap-3 shrink-0">

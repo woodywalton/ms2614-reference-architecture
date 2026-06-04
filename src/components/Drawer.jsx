@@ -31,19 +31,20 @@ export default function Drawer({ componentId, size, onClose }) {
 
   return (
     <>
-      {/* backdrop */}
+      {/* backdrop — full viewport, nav sits above (z-50) */}
       <div
         className={`fixed inset-0 z-30 bg-black/40 transition-opacity ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        style={{ marginTop: 0 }}
         onClick={onClose}
         aria-hidden="true"
       />
-      {/* panel */}
+      {/* panel — full viewport height, nav covers the top strip */}
       <aside
         className={`fixed right-0 z-40 w-full max-w-md bg-ink-800 shadow-2xl
                     flex flex-col
                     transform transition-transform duration-200 ease-out
                     ${open ? 'translate-x-0' : 'translate-x-full'}`}
-        style={{ top: '65px', height: 'calc(100vh - 65px)', borderLeft: '1px solid rgb(var(--color-line))' }}
+        style={{ top: 0, height: '100vh', paddingTop: 'var(--nav-height, 60px)', marginTop: 0, borderLeft: '1px solid rgb(var(--color-line))' }}
         role="dialog"
         aria-modal="true"
         aria-label={data ? `${data.name} details` : 'Component details'}

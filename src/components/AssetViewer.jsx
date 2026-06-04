@@ -2,10 +2,14 @@
 // NDJSON files render as individual expandable JSON blocks.
 // JSON/YAML files render as a single syntax-highlighted block.
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { ASSET_FILE_MAP, ASSET_TYPE_META, classifyNdjsonLine } from '../data/assets.js'
+
+const MIN_WIDTH = 400
+const MAX_WIDTH = 1400
+const DEFAULT_WIDTH = 700
 
 export default function AssetViewer({ assetId, onClose }) {
   const open = Boolean(assetId)
@@ -15,6 +19,27 @@ export default function AssetViewer({ assetId, onClose }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
+
+  // Drag-to-resize state (refs avoid stale closures in mousemove)
+  const dragRef = useRef({ active: false, startX: 0, startWidth: 0 })
+
+  const onResizeStart = useCallback((e) => {
+    e.preventDefault()
+    dragRef.current = { active: true, startX: e.clientX, startWidth: panelWidth }
+    const onMove = (ev) => {
+      if (!dragRef.current.active) return
+      const delta = dragRef.current.startX - ev.clientX
+      setPanelWidth(Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, dragRef.current.startWidth + delta)))
+    }
+    const onUp = () => {
+      dragRef.current.active = false
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }, [panelWidth])
 
   // Fetch file when assetId changes
   useEffect(() => {
@@ -65,23 +90,39 @@ export default function AssetViewer({ assetId, onClose }) {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — full viewport, nav sits above it (z-50) */}
       <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 z-30 bg-black/50 transition-opacity ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        style={{ marginTop: 0 }}
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Panel */}
+      {/* Panel — full viewport height, nav covers the top strip */}
       <aside
-        className={`fixed right-0 z-50 w-full max-w-2xl bg-ink-800 shadow-2xl
+        className={`fixed right-0 z-40 bg-ink-800 shadow-2xl
                     flex flex-col transform transition-transform duration-200 ease-out
                     ${open ? 'translate-x-0' : 'translate-x-full'}`}
-        style={{ top: '65px', height: 'calc(100vh - 65px)', borderLeft: '1px solid rgb(var(--color-line))' }}
+        style={{
+          top: 0,
+          height: '100vh',
+          width: `${panelWidth}px`,
+          paddingTop: 'var(--nav-height, 60px)',
+          marginTop: 0,
+          borderLeft: '1px solid rgb(var(--color-line))',
+        }}
         role="dialog"
         aria-modal="true"
         aria-label={asset ? `${asset.label} asset viewer` : 'Asset viewer'}
       >
+        {/* Drag-to-resize handle on left edge */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize z-10 group"
+          onMouseDown={onResizeStart}
+        >
+          <div className="absolute inset-y-0 left-0 w-0.5 bg-transparent group-hover:bg-accent-blue/50 transition-colors" />
+        </div>
+
         {asset && (
           <>
             {/* Header */}

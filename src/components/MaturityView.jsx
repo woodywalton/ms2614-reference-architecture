@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { LEVELS } from '../data/levels.js'
 import { SIZE_ORDER, sizingTable, getSizing, getTierNodeCount } from '../data/sizing.js'
@@ -42,21 +42,6 @@ export default function MaturityView() {
   const [selectedNode, setSelectedNode] = useState(null)
   const [viewerAssetId, setViewerAssetId] = useState(null)
   const { theme } = useTheme()
-  const diagramRef = useRef(null)
-  const [diagramHeight, setDiagramHeight] = useState(null)
-
-  useEffect(() => {
-    const el = diagramRef.current
-    if (!el) return
-    const ro = new ResizeObserver(([entry]) => setDiagramHeight(entry.target.getBoundingClientRect().height))
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
-  // Reset height on level/size change so stale L4 height doesn't linger on L3
-  useEffect(() => {
-    setDiagramHeight(null)
-  }, [levelNum, size])
 
   if (!SIZE_ORDER.includes(size)) return <Navigate to="/maturity/small/1" replace />
   const meta = LEVELS.find((l) => l.id === levelNum)
@@ -149,8 +134,6 @@ export default function MaturityView() {
           className="rounded-lg bg-ink-800 flex flex-col overflow-hidden"
           style={{
             border: '1px solid rgb(var(--color-line))',
-            height: diagramHeight ?? undefined,
-            minHeight: diagramHeight ? undefined : 500,
           }}
         >
           {infoPanelOpen ? (
@@ -196,9 +179,8 @@ export default function MaturityView() {
           )}
         </div>
 
-        {/* Right: architecture diagram — ResizeObserver source of truth for panel height */}
+        {/* Right: architecture diagram */}
         <div
-          ref={diagramRef}
           className="rounded-lg p-4 overflow-auto"
           style={{
             border: '1px solid rgb(var(--color-line))',
@@ -344,7 +326,7 @@ function RequirementsTab({ meta, onNodeClick }) {
             CEM — <span className="font-semibold">Continuous Event Monitoring</span>
           </h3>
           {meta.searchable
-            ? <p className="mt-0.5 pl-3 text-xs font-semibold text-accent-yellow/70">{meta.searchable} searchable</p>
+            ? <p className="mt-0.5 pl-3 text-sm font-semibold text-accent-yellow/70">{meta.searchable} searchable</p>
             : <p className="mt-0.5 pl-3 text-xs text-text-muted italic">Not required at this level</p>
           }
         </div>
@@ -362,7 +344,7 @@ function RequirementsTab({ meta, onNodeClick }) {
           <h3 className="text-xs font-bold tracking-wider text-accent-coral">
             THIRF — <span className="font-semibold">Threat Hunting, Investigation, Response &amp; Forensics</span>
           </h3>
-          <p className="mt-0.5 pl-3 text-xs font-semibold text-accent-coral/70">{meta.retrievable} retrievable</p>
+          <p className="mt-0.5 pl-3 text-sm font-semibold text-accent-coral/70">{meta.retrievable} retrievable</p>
         </div>
         {thifrContent[meta.id]}
       </div>
