@@ -41,6 +41,10 @@ export default function MaturityView() {
   const { theme } = useTheme()
   const diagramRef = useRef(null)
   const [diagramHeight, setDiagramHeight] = useState(null)
+  const [zoom, setZoom] = useState(1)
+  const ZOOM_MIN = 0.5
+  const ZOOM_MAX = 2
+  const ZOOM_STEP = 0.1
 
   useEffect(() => {
     const el = diagramRef.current
@@ -50,9 +54,28 @@ export default function MaturityView() {
     return () => ro.disconnect()
   }, [])
 
-  // Reset height on level/size change so stale L4 height doesn't linger on L3
+  // Reset height + recompute fit zoom on level/size change
   useEffect(() => {
     setDiagramHeight(null)
+    const id = requestAnimationFrame(() => {
+      const container = diagramRef.current
+      if (!container) return
+      const svg = container.querySelector('svg')
+      if (!svg?.viewBox?.baseVal?.width) return
+      const vb = svg.viewBox.baseVal
+      const padding = 16 // p-2
+      // Use container's CSS max-height ceiling (not current height, which depends on zoom)
+      const maxContainerH = Math.min(800, window.innerHeight - 300)
+      const availW = Math.max(0, container.clientWidth - padding)
+      const availH = Math.max(0, maxContainerH - padding)
+      if (availW === 0 || availH === 0) return
+      const naturalH = availW * (vb.height / vb.width)
+      const fit = naturalH > availH
+        ? Math.max(ZOOM_MIN, +(availH / naturalH).toFixed(2))
+        : 1
+      setZoom(fit)
+    })
+    return () => cancelAnimationFrame(id)
   }, [levelNum, size])
 
   if (!SIZE_ORDER.includes(size)) return <Navigate to="/maturity/small/1" replace />
@@ -148,6 +171,7 @@ export default function MaturityView() {
             border: '1px solid rgb(var(--color-line))',
             height: diagramHeight ?? undefined,
             minHeight: diagramHeight ? undefined : 500,
+            maxHeight: 'min(800px, calc(100vh - 300px))',
           }}
         >
           {infoPanelOpen ? (
@@ -194,16 +218,52 @@ export default function MaturityView() {
         </div>
 
         {/* Right: architecture diagram — ResizeObserver source of truth for panel height */}
-        <div
-          ref={diagramRef}
-          className="rounded-lg p-2 overflow-auto"
-          style={{
-            border: '1px solid rgb(var(--color-line))',
-            backgroundColor: theme === 'dark' ? '#0D1117' : '#FFFFFF',
-            maxHeight: 'min(800px, calc(100vh - 300px))',
-          }}
-        >
-          <Diagram size={size} onNodeClick={setSelectedNode} />
+        <div className="relative">
+          <div
+            ref={diagramRef}
+            className="rounded-lg p-2 overflow-auto"
+            style={{
+              border: '1px solid rgb(var(--color-line))',
+              backgroundColor: theme === 'dark' ? '#0D1117' : '#FFFFFF',
+              maxHeight: 'min(800px, calc(100vh - 300px))',
+            }}
+          >
+            <div style={{ width: `${zoom * 100}%`, margin: '0 auto' }}>
+              <Diagram size={size} onNodeClick={setSelectedNode} />
+            </div>
+          </div>
+          {/* Floating zoom controls — pinned to bottom-right of diagram panel */}
+          <div
+            className="absolute bottom-3 right-3 z-10 flex items-center rounded-lg border border-line bg-ink-800 shadow-lg overflow-hidden"
+            style={{ borderStyle: 'solid' }}
+          >
+            <button
+              onClick={() => setZoom(z => Math.max(ZOOM_MIN, +(z - ZOOM_STEP).toFixed(2)))}
+              disabled={zoom <= ZOOM_MIN}
+              className="px-3 py-1.5 text-text-muted hover:text-text-primary hover:bg-ink-700 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"
+              title="Zoom out"
+              aria-label="Zoom out"
+            >
+              −
+            </button>
+            <button
+              onClick={() => setZoom(1)}
+              className="px-2 py-1.5 text-xs text-text-muted hover:text-text-primary hover:bg-ink-700 transition-colors tabular-nums min-w-[3.25rem] text-center"
+              title="Reset zoom to 100%"
+              aria-label="Reset zoom"
+            >
+              {Math.round(zoom * 100)}%
+            </button>
+            <button
+              onClick={() => setZoom(z => Math.min(ZOOM_MAX, +(z + ZOOM_STEP).toFixed(2)))}
+              disabled={zoom >= ZOOM_MAX}
+              className="px-3 py-1.5 text-text-muted hover:text-text-primary hover:bg-ink-700 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"
+              title="Zoom in"
+              aria-label="Zoom in"
+            >
+              +
+            </button>
+          </div>
         </div>
       </div>
 

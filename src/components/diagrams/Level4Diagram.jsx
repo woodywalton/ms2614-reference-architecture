@@ -181,7 +181,7 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
       <text x={265} y={984} fontSize="10" fontWeight="700" fill={C.textMuted}
         style={{ letterSpacing: '0.14em' }}>LONG-TERM OBJECT STORAGE (SLM)</text>
       <line x1={265} y1={992} x2={1227} y2={992} stroke={C.stageSeparator} strokeWidth={1} />
-      <Node x={520} y={SNAP_Y} w={280} h={82}
+      <Node x={520} y={SNAP_Y} w={280} h={92}
         title="Snapshot Repo 12-mo" subtitle="S3 / Blob — unmounted"
         color="gray" dashed onClick={onNodeClick} componentId="snapshot12mo"
         badges={['RETRIEVABLE']} />
