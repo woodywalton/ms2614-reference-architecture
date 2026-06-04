@@ -19,7 +19,7 @@ export default function Overview() {
           with two core objectives:
         </p>
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-lg border border-accent-yellow/40 bg-ink-800 p-7">
+          <div className="rounded-lg border border-accent-yellow/40 bg-ink-800 p-7" style={{ borderStyle: 'solid' }}>
             <p className="text-lg font-semibold text-accent-yellow mb-2">CEM — Continuous Event Monitoring</p>
             <p className="text-base text-text-primary leading-relaxed mb-3">
               CEM requires agencies to maintain continuous, real-time visibility into network and system
@@ -27,7 +27,7 @@ export default function Overview() {
               alerting, and compliance reporting as events occur.
             </p>
           </div>
-          <div className="rounded-lg border border-accent-coral/40 bg-ink-800 p-7">
+          <div className="rounded-lg border border-accent-coral/40 bg-ink-800 p-7" style={{ borderStyle: 'solid' }}>
             <p className="text-lg font-semibold text-accent-coral mb-2">THIRF — Threat Hunting, Investigation, Response &amp; Forensics</p>
             <p className="text-base text-text-primary leading-relaxed">
               THIRF requires agencies to preserve sufficient log history to support after-the-fact
@@ -39,7 +39,7 @@ export default function Overview() {
       </section>
 
       {/* Maturity Timeline */}
-      <section className="rounded-lg border border-line bg-ink-800 pt-6 px-6 pb-2">
+      <section className="rounded-lg border border-line bg-ink-800 pt-6 px-6 pb-2" style={{ borderStyle: 'solid' }}>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-text-primary mb-4">
           Maturity Timeline
         </h2>
@@ -54,7 +54,7 @@ export default function Overview() {
       </section>
 
       {/* Organization Size Tiers — rows link to /maturity/:size/1 */}
-      <section className="rounded-lg border border-line bg-ink-800 p-6">
+      <section className="rounded-lg border border-line bg-ink-800 p-6" style={{ borderStyle: 'solid' }}>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-text-primary mb-2">
           Organization Size Tiers
         </h2>
@@ -80,6 +80,7 @@ function LevelCard({ level }) {
     <Link
       to={`/maturity/small/${level.id}`}
       className="flex flex-col rounded-lg border border-line bg-ink-800 p-5 hover:border-accent-teal hover:bg-accent-teal/10 hover:ring-2 hover:ring-accent-teal/30 transition-all"
+      style={{ borderStyle: 'solid' }}
     >
       <div className="flex items-baseline justify-between">
         <h3 className="text-lg font-semibold text-text-primary">{level.name}</h3>
