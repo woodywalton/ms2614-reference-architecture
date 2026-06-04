@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { LEVELS } from '../data/levels.js'
 import { SIZE_ORDER, sizingTable, getSizing, getTierNodeCount } from '../data/sizing.js'
@@ -28,10 +28,10 @@ const SIZE_LABELS = {
 const DETAIL_TABS = ['Maturity Level Requirements', 'Component Details', 'Elastic Assets']
 
 const LEVEL_COMPONENTS = {
-  1: ['sources', 'legacySources', 'elasticAgent', 'fleetServer', 'logstash', 'hotTier', 'frozenTier', 'ilm', 'snapshot6mo', 'kibana', 'masterNodes', 'kibanaNodes', 'mlNodes'],
-  2: ['sources', 'legacySources', 'elasticAgent', 'fleetServer', 'logstash', 'hotTier', 'frozenTier', 'ilm', 'snapshot6mo', 'snapshot12mo', 'kibana', 'masterNodes', 'kibanaNodes', 'mlNodes'],
-  3: ['sources', 'legacySources', 'elasticAgent', 'fleetServer', 'logstash', 'piiMasking', 'hotTier', 'coldTier', 'frozenTier', 'ilm', 'snapshot6mo', 'snapshot12mo', 'ml', 'iocMatching', 'alertCorrelator', 'kibana', 'masterNodes', 'kibanaNodes', 'mlNodes'],
-  4: ['sources', 'legacySources', 'elasticAgent', 'fleetServer', 'logstash', 'piiMasking', 'ingestPipelines', 'hotTier', 'coldTier', 'frozenTier', 'ilm', 'snapshot6mo', 'snapshot12mo', 'ml', 'iocMatching', 'alertCorrelator', 'ccs', 'onPremStore', 'cloudCold', 'cloudObjectStore', 'iotEdge', 'byok', 'ntp', 'kibana', 'masterNodes', 'kibanaNodes', 'mlNodes', 'soc'],
+  1: ['sources', 'legacySources', 'elasticAgent', 'fleetServer', 'logstash', 'sensitiveDataProtection', 'hotTier', 'frozenTier', 'ilm', 'snapshot6mo', 'kibana', 'masterNodes', 'kibanaNodes', 'mlNodes'],
+  2: ['sources', 'legacySources', 'elasticAgent', 'fleetServer', 'logstash', 'sensitiveDataProtection', 'hotTier', 'frozenTier', 'ilm', 'snapshot6mo', 'snapshot12mo', 'kibana', 'masterNodes', 'kibanaNodes', 'mlNodes'],
+  3: ['sources', 'legacySources', 'elasticAgent', 'fleetServer', 'logstash', 'sensitiveDataProtection', 'hotTier', 'coldTier', 'frozenTier', 'ilm', 'snapshot6mo', 'snapshot12mo', 'ml', 'iocMatching', 'alertCorrelator', 'kibana', 'masterNodes', 'kibanaNodes', 'mlNodes'],
+  4: ['sources', 'legacySources', 'elasticAgent', 'fleetServer', 'logstash', 'sensitiveDataProtection', 'ingestPipelines', 'hotTier', 'coldTier', 'frozenTier', 'ilm', 'snapshot6mo', 'snapshot12mo', 'ml', 'iocMatching', 'alertCorrelator', 'ccs', 'onPremStore', 'cloudCold', 'cloudObjectStore', 'iotEdge', 'byok', 'ntp', 'kibana', 'masterNodes', 'kibanaNodes', 'mlNodes', 'soc'],
 }
 
 export default function MaturityView() {
@@ -42,6 +42,33 @@ export default function MaturityView() {
   const [selectedNode, setSelectedNode] = useState(null)
   const [viewerAssetId, setViewerAssetId] = useState(null)
   const { theme } = useTheme()
+  const diagramRef = useRef(null)
+  const [zoom, setZoom] = useState(1)
+  const ZOOM_MIN = 0.5
+  const ZOOM_MAX = 2
+  const ZOOM_STEP = 0.1
+
+  // Compute fit zoom when level/size changes
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      const container = diagramRef.current
+      if (!container) return
+      const svg = container.querySelector('svg')
+      if (!svg?.viewBox?.baseVal?.width) return
+      const vb = svg.viewBox.baseVal
+      const padding = 16
+      const maxContainerH = Math.min(800, window.innerHeight - 300)
+      const availW = Math.max(0, container.clientWidth - padding)
+      const availH = Math.max(0, maxContainerH - padding)
+      if (availW === 0 || availH === 0) return
+      const naturalH = availW * (vb.height / vb.width)
+      const fit = naturalH > availH
+        ? Math.max(ZOOM_MIN, +(availH / naturalH).toFixed(2))
+        : 1
+      setZoom(fit)
+    })
+    return () => cancelAnimationFrame(id)
+  }, [levelNum, size])
 
   if (!SIZE_ORDER.includes(size)) return <Navigate to="/maturity/small/1" replace />
   const meta = LEVELS.find((l) => l.id === levelNum)
@@ -50,7 +77,7 @@ export default function MaturityView() {
   const Diagram = DIAGRAMS[levelNum]
 
   return (
-    <main className="mx-auto max-w-[1500px] px-6 py-8 space-y-8">
+    <main className="mx-auto max-w-[1800px] px-6 py-8 space-y-8">
       <header>
         <h1 className="text-3xl font-semibold text-text-primary">
           M-26-14 Maturity Levels by Organizational Size
@@ -123,7 +150,7 @@ export default function MaturityView() {
 
       {/* Main content: push-flyout info panel + fluid diagram */}
       <div
-        className="grid gap-6"
+        className="grid gap-3"
         style={{
           gridTemplateColumns: infoPanelOpen ? '340px minmax(0,1fr)' : '44px minmax(0,1fr)',
           transition: 'grid-template-columns 250ms ease',
@@ -179,16 +206,43 @@ export default function MaturityView() {
           )}
         </div>
 
-        {/* Right: architecture diagram */}
-        <div
-          className="rounded-lg p-4 overflow-auto"
-          style={{
-            border: '1px solid rgb(var(--color-line))',
-            backgroundColor: theme === 'dark' ? '#0D1117' : '#FFFFFF',
-            maxHeight: 'min(800px, calc(100vh - 300px))',
-          }}
-        >
-          <Diagram size={size} onNodeClick={setSelectedNode} />
+        {/* Right: architecture diagram with zoom controls */}
+        <div className="relative">
+          <div
+            ref={diagramRef}
+            className="rounded-lg p-2 overflow-auto"
+            style={{
+              border: '1px solid rgb(var(--color-line))',
+              backgroundColor: theme === 'dark' ? '#0D1117' : '#FFFFFF',
+              maxHeight: 'min(800px, calc(100vh - 300px))',
+            }}
+          >
+            <div style={{ width: `${zoom * 100}%`, margin: '0 auto' }}>
+              <Diagram size={size} onNodeClick={setSelectedNode} />
+            </div>
+          </div>
+          <div
+            className="absolute bottom-3 right-3 z-10 flex items-center rounded-lg border border-line bg-ink-800 shadow-lg overflow-hidden"
+            style={{ borderStyle: 'solid' }}
+          >
+            <button
+              onClick={() => setZoom(z => Math.max(ZOOM_MIN, +(z - ZOOM_STEP).toFixed(2)))}
+              disabled={zoom <= ZOOM_MIN}
+              className="px-3 py-1.5 text-text-muted hover:text-text-primary hover:bg-ink-700 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"
+              title="Zoom out" aria-label="Zoom out"
+            >−</button>
+            <button
+              onClick={() => setZoom(1)}
+              className="px-2 py-1.5 text-xs text-text-muted hover:text-text-primary hover:bg-ink-700 transition-colors tabular-nums min-w-[3.25rem] text-center"
+              title="Reset zoom" aria-label="Reset zoom"
+            >{Math.round(zoom * 100)}%</button>
+            <button
+              onClick={() => setZoom(z => Math.min(ZOOM_MAX, +(z + ZOOM_STEP).toFixed(2)))}
+              disabled={zoom >= ZOOM_MAX}
+              className="px-3 py-1.5 text-text-muted hover:text-text-primary hover:bg-ink-700 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"
+              title="Zoom in" aria-label="Zoom in"
+            >+</button>
+          </div>
         </div>
       </div>
 
@@ -265,7 +319,7 @@ function RequirementsTab({ meta, onNodeClick }) {
     3: (
       <ReqList items={[
         <>Maintain ≥ 3 months of immediately searchable logs across {L('hotTier', 'hot')}, {L('coldTier', 'cold')}, and {L('frozenTier', 'frozen')} tiers.</>,
-        <>Apply {L('piiMasking', 'PII masking and field redaction')} in the ingest pipeline before data reaches storage.</>,
+        <>Apply {L('sensitiveDataProtection', 'sensitive data protection controls')} in the ingest pipeline before data reaches storage.</>,
         <>Enable automated anomaly and behavioral detection via {L('ml', 'Elastic ML jobs')} running against 6+ months of baseline data.</>,
         <>Ingest and match known {L('iocMatching', 'indicators of compromise')} (STIX/TAXII, CISA KEV) against live event streams.</>,
         <>Prioritize alerts with {L('alertCorrelator', 'risk scoring and correlation')} before SOC triage.</>,
@@ -361,7 +415,7 @@ const COLUMN_GROUPS = [
   },
   {
     label: 'Collection',
-    keys: ['elasticAgent', 'fleetServer', 'logstash', 'piiMasking', 'ingestPipelines'],
+    keys: ['elasticAgent', 'fleetServer', 'logstash', 'sensitiveDataProtection', 'ingestPipelines'],
   },
   {
     label: 'Elastic Search AI Platform',
