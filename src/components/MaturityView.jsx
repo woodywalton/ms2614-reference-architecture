@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { LEVELS } from '../data/levels.js'
 import { SIZE_ORDER, sizingTable } from '../data/sizing.js'
@@ -23,7 +23,7 @@ const SIZE_LABELS = {
   large:  'Large-sized Organization',
 }
 
-const DETAIL_TABS = ['Requirements', 'Components', 'Assets']
+const DETAIL_TABS = ['Maturity Level Requirements', 'Required Components', 'Elastic Assets']
 
 const LEVEL_COMPONENTS = {
   1: ['sources', 'legacySources', 'elasticAgent', 'fleetServer', 'logstash', 'hotTier', 'frozenTier', 'ilm', 'snapshot6mo', 'kibana', 'masterNodes', 'kibanaNodes', 'mlNodes'],
@@ -35,9 +35,25 @@ const LEVEL_COMPONENTS = {
 export default function MaturityView() {
   const { size, level } = useParams()
   const levelNum = Number(level)
-  const [activeTab, setActiveTab] = useState('Requirements')
+  const [activeTab, setActiveTab] = useState('Maturity Level Requirements')
+  const [infoPanelOpen, setInfoPanelOpen] = useState(true)
   const [selectedNode, setSelectedNode] = useState(null)
   const { theme } = useTheme()
+  const diagramRef = useRef(null)
+  const [diagramHeight, setDiagramHeight] = useState(null)
+
+  useEffect(() => {
+    const el = diagramRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([entry]) => setDiagramHeight(entry.target.getBoundingClientRect().height))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  // Reset height on level/size change so stale L4 height doesn't linger on L3
+  useEffect(() => {
+    setDiagramHeight(null)
+  }, [levelNum, size])
 
   if (!SIZE_ORDER.includes(size)) return <Navigate to="/maturity/small/1" replace />
   const meta = LEVELS.find((l) => l.id === levelNum)
@@ -46,7 +62,7 @@ export default function MaturityView() {
   const Diagram = DIAGRAMS[levelNum]
 
   return (
-    <main className="mx-auto max-w-[1500px] px-6 py-8 space-y-6">
+    <main className="mx-auto max-w-[1500px] px-6 py-8 space-y-8">
       <header>
         <h1 className="text-3xl font-semibold text-text-primary">
           M-26-14 Maturity Levels by Organizational Size
@@ -57,7 +73,7 @@ export default function MaturityView() {
         </p>
       </header>
 
-      {/* Maturity level tabs */}
+      {/* Maturity level selector row */}
       <div className="flex items-center gap-4">
         <h2 className="text-text-primary text-xl font-semibold w-44 shrink-0 text-right">
           Maturity Level
@@ -84,49 +100,114 @@ export default function MaturityView() {
         </div>
       </div>
 
-      {/* Main content: fixed 340px info panel + fluid diagram */}
-      <div className="grid grid-cols-1 xl:grid-cols-[340px_minmax(0,1fr)] gap-6">
-
-        {/* Left: detail pane */}
-        <div className="rounded-lg border border-line bg-ink-800 overflow-hidden min-h-[500px] flex flex-col">
-          {/* EUI-style tab bar — inline border bypasses EUI global border-style:none reset */}
-          <div className="flex px-2 shrink-0"
-            style={{ borderBottom: '1px solid rgb(var(--color-line))' }}>
-            {DETAIL_TABS.map((tab) => (
+      {/* View Details selector row */}
+      <div className="flex items-center gap-4">
+        <h2 className="text-text-primary text-xl font-semibold w-44 shrink-0 text-right">
+          View Details
+        </h2>
+        <div className="grid grid-cols-3 gap-2 flex-1">
+          {DETAIL_TABS.map((tab) => {
+            const isActive = activeTab === tab && infoPanelOpen
+            return (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => {
+                  if (infoPanelOpen && activeTab === tab) {
+                    setInfoPanelOpen(false)
+                  } else {
+                    setActiveTab(tab)
+                    setInfoPanelOpen(true)
+                  }
+                }}
                 className={
-                  `relative px-4 py-2.5 text-sm transition-colors ` +
-                  (activeTab === tab
-                    ? 'text-accent-blue font-semibold'
-                    : 'text-text-muted hover:text-text-primary')
+                  `rounded-lg border px-4 py-2 text-sm font-medium transition-colors ` +
+                  (isActive
+                    ? 'border-accent-blue/60 bg-accent-blue/15 text-accent-blue'
+                    : 'border-line bg-ink-800 text-text-muted hover:border-accent-blue/30 hover:bg-accent-blue/5 hover:text-text-primary')
                 }
               >
                 {tab}
-                {activeTab === tab && (
-                  <span className="absolute inset-x-0 h-[2px] bg-accent-blue" style={{ bottom: '-1px' }} />
-                )}
               </button>
-            ))}
-          </div>
-          <div className="p-5 overflow-y-auto flex-1">
-            {activeTab === 'Requirements' && <RequirementsTab meta={meta} onNodeClick={setSelectedNode} />}
-            {activeTab === 'Components'   && <ComponentsTab levelNum={levelNum} onNodeClick={setSelectedNode} />}
-            {activeTab === 'Assets'       && <AssetsTab levelNum={levelNum} />}
-          </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Main content: push-flyout info panel + fluid diagram */}
+      <div
+        className="grid gap-6"
+        style={{
+          gridTemplateColumns: infoPanelOpen ? '340px minmax(0,1fr)' : '44px minmax(0,1fr)',
+          transition: 'grid-template-columns 250ms ease',
+        }}
+      >
+        {/* Left: info panel — push flyout */}
+        <div
+          className="rounded-lg bg-ink-800 flex flex-col overflow-hidden"
+          style={{
+            border: '1px solid rgb(var(--color-line))',
+            height: diagramHeight ?? undefined,
+            minHeight: diagramHeight ? undefined : 500,
+          }}
+        >
+          {infoPanelOpen ? (
+            <>
+              {/* Header — active tab label */}
+              <div className="px-4 py-3 shrink-0">
+                <p className="text-sm font-semibold text-accent-blue">{activeTab}</p>
+              </div>
+              {/* Scrollable content */}
+              <div className="p-6 overflow-y-auto flex-1 min-h-0">
+                {activeTab === 'Maturity Level Requirements' && <RequirementsTab meta={meta} onNodeClick={setSelectedNode} />}
+                {activeTab === 'Required Components'       && <ComponentsTab levelNum={levelNum} onNodeClick={setSelectedNode} />}
+                {activeTab === 'Elastic Assets'            && <AssetsTab levelNum={levelNum} />}
+              </div>
+              {/* Footer — collapse button */}
+              <div className="shrink-0 flex justify-end px-3 py-2">
+                <button
+                  onClick={() => setInfoPanelOpen(false)}
+                  className="p-1.5 rounded text-text-muted hover:text-text-primary hover:bg-ink-700 transition-colors"
+                  title="Collapse panel"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" role="presentation" aria-hidden="true">
+                    <path d="M10.854 5.854 9.207 7.5H13v1H9.207l1.646 1.646-.707.707L7.293 8l2.853-2.854.707.708Z"/>
+                    <path fillRule="evenodd" d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12ZM2 13.207V14h.793L5 11.793v-1.586l-3 3ZM4.207 14H5v-.793L4.207 14ZM6 14h8V2H6v12Zm-4-3.793v1.586l3-3V7.207l-3 3Zm0-3v1.586l3-3V4.207l-3 3Zm0-3v1.586l3-3V2h-.793L2 4.207Zm0-1.414L2.793 2H2v.793Z" clipRule="evenodd"/>
+                  </svg>
+                </button>
+              </div>
+            </>
+          ) : (
+            /* Narrow closed bar — expand button at bottom */
+            <div className="flex flex-col items-center justify-end h-full pb-4">
+              <button
+                onClick={() => setInfoPanelOpen(true)}
+                className="p-1.5 rounded text-text-muted hover:text-text-primary hover:bg-ink-700 transition-colors"
+                title="Expand panel"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" role="presentation" aria-hidden="true">
+                  <path d="m12.707 8-2.853 2.854-.708-.707L10.793 8.5H7v-1h3.793L9.146 5.854l.708-.708L12.707 8Z"/>
+                  <path fillRule="evenodd" d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12ZM2 13.207V14h.793L5 11.793v-1.586l-3 3ZM4.207 14H5v-.793L4.207 14ZM6 14h8V2H6v12Zm-4-3.793v1.586l3-3V7.207l-3 3Zm0-3v1.586l3-3V4.207l-3 3Zm0-3v1.586l3-3V2h-.793L2 4.207Zm0-1.414L2.793 2H2v.793Z" clipRule="evenodd"/>
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Right: architecture diagram */}
+        {/* Right: architecture diagram — ResizeObserver source of truth for panel height */}
         <div
-          className="rounded-lg border border-line p-4 overflow-x-auto"
-          style={{ backgroundColor: theme === 'dark' ? '#0D1117' : '#FFFFFF' }}
+          ref={diagramRef}
+          className="rounded-lg p-4 overflow-auto"
+          style={{
+            border: '1px solid rgb(var(--color-line))',
+            backgroundColor: theme === 'dark' ? '#0D1117' : '#FFFFFF',
+            maxHeight: 'min(800px, calc(100vh - 300px))',
+          }}
         >
           <Diagram size={size} onNodeClick={setSelectedNode} />
         </div>
       </div>
 
-      {/* Org size tabs — bottom */}
+      {/* Org size selector row */}
       <div className="flex items-center gap-4">
         <h2 className="text-text-primary text-xl font-semibold w-44 shrink-0 text-right">
           Organization Size
