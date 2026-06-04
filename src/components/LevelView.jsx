@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { LEVELS } from '../data/levels.js'
 import { sizingTable, SIZE_ORDER } from '../data/sizing.js'
+import { useTheme } from '../ThemeContext.jsx'
 import Drawer from './Drawer.jsx'
 import RetentionTimeline from './RetentionTimeline.jsx'
 import SizeTabs from './SizeTabs.jsx'
@@ -30,6 +31,7 @@ export default function LevelView() {
   if (!SIZE_ORDER.includes(size)) return <Navigate to={`/level/${level}/small`} replace />
 
   const activeSize = sizingTable[size]
+  const { theme } = useTheme()
 
   return (
     <main className="mx-auto max-w-[1500px] px-6 py-8 space-y-6">
@@ -60,7 +62,8 @@ export default function LevelView() {
 
       {/* Diagram + sizing panel: side-by-side on wide screens, stacked on narrow */}
       <section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-4">
-        <div className="rounded-lg border border-line bg-ink-800 p-4 overflow-x-auto">
+        <div className="rounded-lg border border-line p-4 overflow-x-auto"
+          style={{ backgroundColor: theme === 'dark' ? '#0D1117' : '#FFFFFF' }}>
           <Diagram size={size} onNodeClick={setSelected} />
         </div>
         <SizingPanel size={size} level={level} />

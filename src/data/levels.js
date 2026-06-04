@@ -3,7 +3,7 @@
 export const LEVELS = [
   {
     id: 1,
-    name: 'Level 1 — Basic',
+    name: 'Level 1 — Initial',
     deadline: '120 days from LRA publication',
     searchable: null,
     retrievable: '≥ 6 months',
