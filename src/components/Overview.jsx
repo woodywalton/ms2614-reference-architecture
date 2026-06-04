@@ -6,7 +6,7 @@ import { sizingTable, SIZE_ORDER } from '../data/sizing.js'
 
 export default function Overview() {
   return (
-    <main className="mx-auto max-w-[1500px] px-6 py-8 space-y-8">
+    <main className="mx-auto max-w-[1800px] px-6 py-8 space-y-8">
 
       {/* Title + program description + CEM/THIRF definitions */}
       <section>

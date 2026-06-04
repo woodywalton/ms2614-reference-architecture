@@ -102,26 +102,34 @@ export const COMPONENTS = {
     ],
   },
 
-  piiMasking: {
-    name: 'PII Masking & Field Redaction',
-    product: 'Ingest pipeline processors',
+  sensitiveDataProtection: {
+    name: 'Sensitive Data Protection',
+    product: 'Elasticsearch ingest + access controls',
     color: 'coral',
     euiIcon: 'lock',
     role:
-      'Field-level redaction applied in the ingest pipeline. Targets PII, credentials, session tokens, and other sensitive values per the Agency Logging Plan classification rules.',
+      'Runs in the ingest pipeline, before data is written to any storage tier. Applies equally to hot, cold, frozen, and snapshot data. Pipeline-level controls prevent sensitive values from ever landing on disk; access-level controls restrict who can see them after the fact. Most agencies use both.',
     requirement:
-      'M-26-14 + Privacy Act: sensitive data controls must protect log contents that may contain regulated PII. Masking happens BEFORE storage, not at query time.',
+      'M-26-14 Appendix A — agencies SHALL implement controls to safeguard potentially sensitive information in logs. This requirement applies across all maturity levels (L1 – L4); it is a constant baseline, not a level-specific feature.',
     config:
-      'Use Elasticsearch ingest pipeline `redact` or `script` processors. Maintain redaction patterns as a versioned artifact reviewed by the privacy office.',
+      'Elastic-native capabilities — combine as needed:\n' +
+      '• Redact processor — pattern-based field redaction at ingest (regex / Grok patterns).\n' +
+      '• NER via ELSER / inference processor — Named Entity Recognition using Elastic\'s built-in ML models to detect names, locations, SSNs, etc.\n' +
+      '• Anonymization processor — hash or replace PII values deterministically (consistent across docs).\n' +
+      '• Field-level security — role-based field visibility in Elasticsearch.\n' +
+      '• Document-level security — query-based access control on documents.\n\n' +
+      'Pipeline-level controls (redact, NER, anonymization) run BEFORE indexing; access-level controls (FLS, DLS) restrict visibility AFTER. Maintain redaction patterns and NER models as versioned artifacts reviewed by the privacy office.',
     docs: [
       { label: 'Redact processor', url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/redact-processor.html' },
+      { label: 'Inference processor (ELSER, NER)', url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/inference-processor.html' },
+      { label: 'Field-level + document-level security', url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/field-and-document-access-control.html' },
     ],
   },
 
   hotTier: {
     name: 'Hot Tier',
     product: 'Elasticsearch — hot data nodes',
-    color: 'blue',
+    color: 'orange',
     tierKey: 'hot',
     euiIcon: 'logoElasticsearch',
     role:
@@ -138,7 +146,7 @@ export const COMPONENTS = {
   coldTier: {
     name: 'Cold Tier',
     product: 'Elasticsearch — cold data nodes',
-    color: 'green',
+    color: 'blue',
     tierKey: 'cold',
     euiIcon: 'logoElasticsearch',
     role:
@@ -155,7 +163,7 @@ export const COMPONENTS = {
   frozenTier: {
     name: 'Frozen Tier',
     product: 'Elasticsearch — frozen data nodes (searchable snapshots)',
-    color: 'gray',
+    color: 'purple',
     tierKey: 'frozen',
     euiIcon: 'logoElasticsearch',
     role:
@@ -189,7 +197,7 @@ export const COMPONENTS = {
   snapshot6mo: {
     name: 'Snapshot Repo — 6 month',
     product: 'AWS S3 / Azure Blob / GCS — unmounted searchable snapshot repo',
-    color: 'purple',
+    color: 'gray',
     dashed: true,
     euiIcon: 'logoCloud',
     role:
@@ -206,7 +214,7 @@ export const COMPONENTS = {
   snapshot12mo: {
     name: 'Snapshot Repo — 12 month',
     product: 'AWS S3 / Azure Blob / GCS — unmounted searchable snapshot repo',
-    color: 'purple',
+    color: 'gray',
     dashed: true,
     euiIcon: 'logoCloud',
     role:
@@ -240,7 +248,7 @@ export const COMPONENTS = {
   mlNodes: {
     name: 'ML Nodes',
     product: 'Elasticsearch — ML node pool',
-    color: 'purple',
+    color: 'cyan',
     tierKey: 'ml',
     euiIcon: 'machineLearningApp',
     role:
@@ -274,7 +282,7 @@ export const COMPONENTS = {
   kibanaNodes: {
     name: 'Kibana Instances',
     product: 'Kibana — frontend instances',
-    color: 'coral',
+    color: 'pink',
     tierKey: 'kibana',
     euiIcon: 'logoKibana',
     role:
@@ -291,7 +299,7 @@ export const COMPONENTS = {
   ml: {
     name: 'AI/ML Enrichment',
     product: 'Elastic Machine Learning',
-    color: 'purple',
+    color: 'cyan',
     euiIcon: 'machineLearningApp',
     role:
       'Elastic ML jobs running behavioral baselines: anomaly detection (single/multi-metric), population analysis (peer-group comparison for UBA/UEBA), rare-term detection (IOC surfacing), and lateral-movement detection. Scores events before they reach the SIEM detection engine.',

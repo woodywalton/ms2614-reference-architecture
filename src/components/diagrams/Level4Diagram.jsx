@@ -7,19 +7,17 @@ import {
 import { getSizing, getTierNodeCount } from '../../data/sizing.js'
 
 const STAGES = [
-  { label: 'SOURCES',                    x: 30,   width: 200 },
-  { label: 'COLLECTION',                 x: 258,  width: 200 },
-  { label: 'ELASTIC SEARCH AI PLATFORM', x: 486,  width: 422 },
-  { label: 'CEM',                        x: 936,  width: 270 },
-  { label: 'THIRF',                      x: 1234, width: 270 },
+  { label: 'SOURCES',                    x: 30,   width: 180, height: 270 },
+  { label: 'COLLECTION',                 x: 265,  width: 200, height: 560 },
+  { label: 'ELASTIC SEARCH AI PLATFORM', x: 520,  width: 422, height: 850 },
+  { label: 'CEM',                        x: 997,  width: 230, height: 580 },
+  { label: 'THIRF',                      x: 1282, width: 230, height: 700 },
 ]
 
 const SWIM_Y      = 60
-const SWIM_H      = 840
-const SNAP_BAND_Y = 916
-const SNAP_Y      = 940
+const SNAP_Y      = 1016
 
-const SOC = { cx: 1010, cy: 1370 }
+const SOC = { cx: 770, cy: 1446 }
 const SPOKE_R = 220
 const SOC_R   = 90
 
@@ -53,11 +51,11 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
 
   const { isDark, C } = useDiagramTheme()
 
-  const HOT_CX      = 641
-  const TIER_RIGHT  = 786
-  const CP_LABEL_Y  = 662
-  const CP_CARD_Y   = 670
-  const ILM_Y       = 772
+  const HOT_CX      = 730
+  const TIER_RIGHT  = 930
+  const CP_LABEL_Y  = 690
+  const CP_CARD_Y   = 700
+  const ILM_Y       = 832
   const ILM_BOTTOM  = ILM_Y + 60
 
   const W = 220, H = 80
@@ -75,7 +73,7 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
   })
 
   return (
-    <svg viewBox="0 0 2020 1712"
+    <svg viewBox="0 0 1540 1830"
       className="w-full h-auto"
       style={{ backgroundColor: isDark ? '#0D1117' : '#FFFFFF' }}
       role="img" aria-label={`Level 4 architecture diagram — ${s.label} size`}>
@@ -83,135 +81,138 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
 
       {/* ===== PIPELINE SECTION ===== */}
       {STAGES.map(stg => (
-        <SwimLane key={stg.label} x={stg.x} y={SWIM_Y} width={stg.width} height={SWIM_H} />
+        <SwimLane key={stg.label} x={stg.x} y={SWIM_Y} width={stg.width} height={stg.height} />
       ))}
       <StageHeader stages={STAGES} />
 
       {/* ── Sources ── */}
-      <Node x={30} y={72}  title="Log Sources" subtitle="Full Appendix B coverage"
+      <Node x={30} y={72} w={180} title="Log Sources" subtitle="Full Appendix B coverage"
         color="gray" onClick={onNodeClick} componentId="sources" />
-      <Node x={30} y={212} title="Legacy / OT" subtitle="Syslog · SNMP · ICS"
+      <Node x={30} y={212} w={180} title="Legacy / OT" subtitle="Syslog · SNMP · ICS"
         color="gray" dashed onClick={onNodeClick} componentId="legacySources" badges={['OPTIONAL']} />
 
-      {/* ── Collection (5 nodes at L4) ── */}
-      <Node x={258} y={72}  title="Elastic Agent"      subtitle="ECS-normalized at edge"
-        color="teal" icon="logoBeats"    onClick={onNodeClick} componentId="elasticAgent" />
-      <Node x={258} y={212} title="Fleet Server"        subtitle="Agent policy plane"
+      {/* ── Collection ── */}
+      <Node x={265} y={72} w={200} title="Elastic Agent" subtitle="ECS-normalized at edge"
+        color="teal" icon="logoBeats" onClick={onNodeClick} componentId="elasticAgent" />
+      <Node x={265} y={212} w={200} title="Fleet Server"        subtitle="Agent policy plane"
         color="teal" icon="gear"         onClick={onNodeClick} componentId="fleetServer" />
-      <Node x={258} y={352} title="Logstash"            subtitle="Legacy / OT pipeline"
+      <Node x={265} y={352} w={200} title="Logstash"            subtitle="Legacy / OT pipeline"
         color="teal" dashed icon="logoLogstash" onClick={onNodeClick} componentId="logstash" badges={['OPTIONAL']} />
-      <Node x={258} y={492} title="Ingest Pipelines"   subtitle="40–60% volume reduction"
+      <Node x={265} y={492} w={200} title="Ingest Pipelines"   subtitle="40–60% volume reduction"
         color="teal" icon="pipelineApp" onClick={onNodeClick} componentId="ingestPipelines" badges={['L4']} />
-      <Node x={258} y={632} title="PII Masking"         subtitle="Pre-storage field redaction"
-        color="coral" icon="lock"        onClick={onNodeClick} componentId="piiMasking" />
 
       {/* ── ES AI Platform — 4 tiers ── */}
-      <TierFleetCard x={496} y={72} w={290} h={130}
-        title="Hot Tier" subtitle="3 days SSD" color="blue" icon="logoElasticsearch"
+      <TierFleetCard x={530} y={72} w={400} h={130}
+        title="Hot Tier" subtitle="3 days SSD" color="orange" icon="logoElasticsearch"
         nodeCount={hotCount} nodePrefix="hot" instanceType={s.instanceTypes.hot}
         badges={['SEARCHABLE']} onClick={onNodeClick} componentId="hotTier" />
-      <TierFleetCard x={496} y={222} w={290} h={130}
-        title="Cold Tier" subtitle="7 days" color="green" icon="logoElasticsearch"
+      <TierFleetCard x={530} y={222} w={400} h={130}
+        title="Cold Tier" subtitle="7 days" color="blue" icon="logoElasticsearch"
         nodeCount={coldCount} nodePrefix="cold" instanceType={s.instanceTypes.cold}
         badges={['SEARCHABLE']} onClick={onNodeClick} componentId="coldTier" />
-      <TierFleetCard x={496} y={372} w={290} h={130}
+      <TierFleetCard x={530} y={372} w={400} h={130}
         title="Frozen Tier" subtitle="→ 6 / 12 months (searchable snapshot)"
-        color="gray" icon="logoElasticsearch"
+        color="purple" icon="logoElasticsearch"
         nodeCount={frozenCnt} nodePrefix="frozen" instanceType={s.instanceTypes.frozen}
         badges={['SEARCHABLE']} onClick={onNodeClick} componentId="frozenTier" />
-      <TierFleetCard x={496} y={522} w={290} h={130}
+      <TierFleetCard x={530} y={522} w={400} h={130}
         title="ML Nodes" subtitle={`${s.mlNodeRamGB} GB RAM`}
-        color="purple" icon="machineLearningApp"
+        color="cyan" icon="machineLearningApp"
         nodeCount={mlCount} nodePrefix="ml" instanceType={s.instanceTypes.ml}
         onClick={onNodeClick} componentId="mlNodes" />
 
       {/* Control plane */}
-      <text x={486} y={CP_LABEL_Y} fontSize="9.5" fontWeight="700" fill={C.controlLabel}
-        style={{ letterSpacing: '0.16em' }}>CONTROL PLANE (FIXED ACROSS SIZES)</text>
-      <ControlPlaneCard x={486} y={CP_CARD_Y} w={148} h={90}
+      <line x1={530} y1={668} x2={930} y2={668} stroke={C.stageSeparator} strokeWidth={1} />
+      <text x={530} y={CP_LABEL_Y} fontSize="10" fontWeight="700" fill={C.controlLabel}
+        style={{ letterSpacing: '0.16em' }}>CONTROL PLANE</text>
+      <text x={740} y={CP_LABEL_Y} fontSize="10" fontWeight="700" fill={C.controlLabel}
+        style={{ letterSpacing: '0.16em' }}>PRESENTATION</text>
+      <ControlPlaneCard x={530} y={CP_CARD_Y} w={200} h={120}
         title="Master Nodes" ramLabel={`${s.masterNodeRamGB} GB`} instanceType={s.instanceTypes.master}
         nodeCount={masterCnt} nodePrefix="master" color="gray" icon="logoElasticsearch"
         onClick={onNodeClick} componentId="masterNodes" />
-      <ControlPlaneCard x={640} y={CP_CARD_Y} w={148} h={90}
+      <ControlPlaneCard x={740} y={CP_CARD_Y} w={200} h={120}
         title="Kibana" ramLabel={`${s.kibanaRamGB} GB`} instanceType={s.instanceTypes.kibana}
-        nodeCount={kibanaCnt} nodePrefix="kib" color="coral" icon="logoKibana"
+        nodeCount={kibanaCnt} nodePrefix="kib" color="pink" icon="logoKibana"
         onClick={onNodeClick} componentId="kibanaNodes" />
 
       {/* ILM + SLM — below control plane */}
-      <Node x={486} y={ILM_Y} w={306} h={60}
+      <Node x={530} y={ILM_Y} w={400} h={60}
         title="ILM + SLM Policy" subtitle="Hot → Cold → Frozen → Delete · SLM snapshots"
         color="green" icon="indexManagementApp" onClick={onNodeClick} componentId="ilm" />
 
       {/* ── CEM — same detection stack as L3 ── */}
-      <Node x={946} y={72}  w={250} h={100}
+      <Node x={1007} y={72}  w={210} h={100}
         title="AI/ML Enrichment" subtitle="Anomaly · UEBA · lateral mvmt"
-        color="purple" icon="machineLearningApp" onClick={onNodeClick} componentId="ml" badges={['L4']} />
-      <Node x={946} y={222} w={250} h={100}
+        color="cyan" icon="machineLearningApp" onClick={onNodeClick} componentId="ml" badges={['L4']} />
+      <Node x={1007} y={222} w={210} h={100}
         title="IOC Matching" subtitle="STIX/TAXII · CISA KEV"
         color="purple" icon="securitySignal" onClick={onNodeClick} componentId="iocMatching" />
-      <Node x={946} y={372} w={250} h={100}
+      <Node x={1007} y={372} w={210} h={100}
         title="Alert Correlator" subtitle="Risk scoring → SIEM"
         color="coral" icon="bell" onClick={onNodeClick} componentId="alertCorrelator" />
-      <Node x={946} y={522} w={250} h={100}
-        title="Kibana / SIEM" subtitle="Elastic Security · Federated SOC"
+      <Node x={1007} y={522} w={210} h={100}
+        title="Kibana / SIEM" subtitle="Elastic Security · SOC"
         color="coral" icon="logoSecurity" onClick={onNodeClick} componentId="kibana" />
 
       {/* ── THIRF ── */}
-      <Node x={1244} y={72} w={250} h={100}
-        title="CISA / FBI Export" subtitle="On-request — documented &amp; tested"
+      <Node x={1292} y={72} w={210} h={100}
+        title="CISA / FBI Export" subtitle="On-request export"
         color="coral" icon="exportAction" onClick={onNodeClick} componentId="cisaExport"
         badges={['L4']} />
-      <Node x={1244} y={222} w={250} h={100}
+      <Node x={1292} y={222} w={210} h={100}
         title="Cross-Cluster Search" subtitle="Federated log retrieval"
         color="teal" icon="crossClusterReplicationApp" onClick={onNodeClick} componentId="ccs"
         badges={['L4']} />
 
-      {/* ── L4 Security Controls ── */}
-      <text x={1524} y={72} fontSize="10" fontWeight="700" fill={C.securityPanelText}
+      {/* ── L4 Security Controls (stacked beneath THIRF nodes) ── */}
+      <line x1={1282} y1={352} x2={1512} y2={352} stroke={C.stageSeparator} strokeWidth={1} />
+      <text x={1282} y={374} fontSize="10" fontWeight="700" fill={C.controlLabel}
         style={{ letterSpacing: '0.16em' }}>L4 SECURITY CONTROLS</text>
-      <line x1={1524} y1={84} x2={1760} y2={84} stroke={C.securityPanelLine} strokeWidth={1} />
-      <Node x={1524} y={96}  w={210} title="BYOK Encryption"   subtitle="AWS KMS · Azure KV · GCP KMS"
+      <Node x={1292} y={390} w={210} title="BYOK Encryption"   subtitle="AWS KMS · Azure KV · GCP KMS"
         color="yellow" dashed icon="lock" onClick={onNodeClick} componentId="byok" badges={['L4']} />
-      <Node x={1524} y={216} w={210} title="NTP Time Sync"     subtitle="USNO / NIST traceable"
+      <Node x={1292} y={510} w={210} title="NTP Time Sync"     subtitle="USNO / NIST traceable"
         color="yellow" dashed icon="clock" onClick={onNodeClick} componentId="ntp" badges={['L4']} />
-      <Node x={1524} y={336} w={210} title="Cross-Cluster Repl" subtitle="Optional resilience"
+      <Node x={1292} y={630} w={210} title="Cross-Cluster Repl" subtitle="Optional resilience"
         color="teal" dashed icon="crossClusterReplicationApp" onClick={onNodeClick} componentId="ccr"
         badges={['OPTIONAL']} />
 
-      {/* ── Long-term object storage band ── */}
-      <rect x={468} y={SNAP_BAND_Y} width={410} height={106} rx={10}
-        fill={C.bandFill} stroke={C.bandStroke} strokeWidth={1} />
-      <text x={486} y={932} fontSize="9.5" fontWeight="700" fill={C.textMuted}
+      {/* ── Long-term object storage section ── */}
+      <text x={265} y={984} fontSize="10" fontWeight="700" fill={C.textMuted}
         style={{ letterSpacing: '0.14em' }}>LONG-TERM OBJECT STORAGE (SLM)</text>
-      <Node x={486} y={SNAP_Y} w={280} h={82}
+      <line x1={265} y1={992} x2={1227} y2={992} stroke={C.stageSeparator} strokeWidth={1} />
+      <Node x={520} y={SNAP_Y} w={280} h={92}
         title="Snapshot Repo 12-mo" subtitle="S3 / Blob — unmounted"
-        color="purple" dashed onClick={onNodeClick} componentId="snapshot12mo"
-        badges={['UNMOUNTED']} />
+        color="gray" dashed onClick={onNodeClick} componentId="snapshot12mo"
+        badges={['RETRIEVABLE']} />
 
       {/* ── Pipeline Arrows ── */}
-      <Arrow d={arrowPath(230, 122, 258, 122)} kind="data" />
-      <Arrow d={zpath(230, 262, 258, 402, 244)} kind="data" variant="dashed" />
-      <Arrow d={arrowPath(358, 212, 358, 172)} kind="policy" />
-      <Arrow d="M 358 172 L 460 172 L 460 462 L 358 462 L 358 492" kind="data" />
-      <Arrow d={arrowPath(358, 452, 358, 492)} kind="data" variant="dashed" />
-      <Arrow d={arrowPath(358, 592, 358, 632)} kind="data" />
-      <Arrow d={zpath(458, 682, 496, 137, 472)} kind="data" />
+      <Arrow d={arrowPath(210, 122, 265, 122)} kind="data" />
+      <Arrow d={zpath(210, 262, 265, 402, 237)} kind="data" variant="dashed" />
+      <Arrow d={arrowPath(365, 212, 365, 172)} kind="policy" />
+      {/* Agent → Ingest Pipelines — elbow out into gutter lane x=478, down, into IP right edge at y=542 */}
+      <Arrow d="M 465 122 L 478 122 L 478 542 L 465 542" kind="data" />
+      {/* Logstash → Ingest Pipelines (dashed) — Logstash bottom-mid to IP top-mid */}
+      <Arrow d={arrowPath(365, 452, 365, 492)} kind="data" variant="dashed" />
+      {/* IP → Hot — exits IP right edge at y=542 via lane x=492; horizontal into Hot */}
+      <Arrow d="M 465 542 L 492 542 L 492 137 L 530 137" kind="data" />
       <Arrow d={arrowPath(HOT_CX, 202, HOT_CX, 222)} kind="data" />
       <Arrow d={arrowPath(HOT_CX, 352, HOT_CX, 372)} kind="data" />
       {/* ILM → Snapshot 12-mo */}
-      <Arrow d={zpathV(639, ILM_BOTTOM, 626, SNAP_Y, 873)} kind="data" />
+      {/* ILM → Snap12 — lane x=750 past title, midY=945 below title (title y=932) */}
+      <Arrow d={zpathV(750, ILM_BOTTOM, 660, SNAP_Y, 1004)} kind="data" />
       {/* Cold → AI/ML (CEM) */}
-      <Arrow d={zpath(TIER_RIGHT, 287, 946, 122, 910)} kind="data" />
-      <Arrow d={arrowPath(1071, 172, 1071, 222)} kind="data" />
-      <Arrow d={arrowPath(1071, 322, 1071, 372)} kind="data" />
-      <Arrow d={arrowPath(1071, 472, 1071, 522)} kind="data" />
-      <Arrow d={zpath(1196, 572, 1244, 122, 1220)} kind="export" />
+      <Arrow d={zpath(TIER_RIGHT, 287, 1007, 122, 970)} kind="data" />
+      <Arrow d={arrowPath(1112, 172, 1112, 222)} kind="data" />
+      <Arrow d={arrowPath(1112, 322, 1112, 372)} kind="data" />
+      <Arrow d={arrowPath(1112, 472, 1112, 522)} kind="data" />
+      <Arrow d={zpath(1217, 572, 1292, 122, 1255)} kind="export" />
 
       {/* ===== DIVIDER + FEDERATION HEADER ===== */}
-      <line x1={30} y1={1046} x2={1980} y2={1046} stroke={C.federationDivider} strokeWidth={1} />
-      <text x={30} y={1076} fontSize="13" fontWeight="700" fill={C.federationLabel}
+      <line x1={30} y1={1122} x2={1510} y2={1122} stroke={C.federationDivider} strokeWidth={1} />
+      <text x={30} y={1152} fontSize="14" fontWeight="700" fill={C.federationLabel}
         style={{ letterSpacing: '0.18em' }}>FEDERATED SOC TOPOLOGY</text>
-      <text x={30} y={1096} fontSize="11" fill={C.federationDesc}>
+      <text x={30} y={1172} fontSize="12" fill={C.federationDesc}>
         Agency SOC at center; spokes reach every distributed log store via Cross-Cluster Search.
         Storage may be decentralized but logs must remain readily available to the top-level agency SOC.
       </text>
@@ -239,7 +240,7 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
               markerEnd={`url(#arrow-${sp.dashed ? 'export' : 'data'})`}
             />
             {!sp.dashed && (
-              <text x={labelX} y={labelY} fontSize="10" fill={C.federationSpoke} fontWeight="700"
+              <text x={labelX} y={labelY} fontSize="11" fill={C.federationSpoke} fontWeight="700"
                 textAnchor="middle" style={{ letterSpacing: '0.12em' }}>CCS</text>
             )}
           </g>
@@ -262,13 +263,13 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
           </div>
         </foreignObject>
         <text x={SOC.cx} y={SOC.cy + 10} textAnchor="middle"
-          fontSize="14" fontWeight="700" fill={C.federationText}>Agency SOC</text>
+          fontSize="15" fontWeight="700" fill={C.federationText}>Agency SOC</text>
         <text x={SOC.cx} y={SOC.cy + 28} textAnchor="middle"
-          fontSize="11" fill={C.federationSub}>Federated hub</text>
+          fontSize="12" fill={C.federationSub}>Federated hub</text>
         <g transform={`translate(${SOC.cx - 22}, ${SOC.cy + 38})`}>
           <rect width={44} height={16} rx={8}
             fill={C.federationBadgeBg} stroke={C.federationBadgeStroke} />
-          <text x={22} y={11} textAnchor="middle" fontSize="9" fontWeight="700"
+          <text x={22} y={11} textAnchor="middle" fontSize="10" fontWeight="700"
             fill={C.federationBadgeText} style={{ letterSpacing: '0.05em' }}>L4</text>
         </g>
       </g>
@@ -280,7 +281,7 @@ export default function Level4Diagram({ size = 'small', onNodeClick }) {
           badges={sp.dashed ? [] : ['L4']} />
       ))}
 
-      <Legend x={30} y={1640} width={1940} />
+      <Legend x={30} y={1720} width={1480} />
     </svg>
   )
 }
