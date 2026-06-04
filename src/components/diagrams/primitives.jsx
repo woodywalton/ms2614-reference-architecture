@@ -38,9 +38,9 @@ export const ACCENT = {
 }
 
 export const ARROW = {
-  data:   '#00BFB3',
-  policy: '#D29922',
-  export: '#CF4F27',
+  data:   '#8B949E',
+  policy: '#8B949E',
+  export: '#8B949E',
   muted:  '#8B949E',
 }
 
@@ -227,7 +227,7 @@ export function Node({
       )}
       {/* badges — right-aligned */}
       {badges.length > 0 && (
-        <g transform={`translate(${x + w - badgesGroupWidth(badges) - 16}, ${y + h - 22})`}>
+        <g transform={`translate(${x + w - badgesGroupWidth(badges) - 16}, ${y + h - 26})`}>
           {badges.map((label, i) => <Badge key={label} label={label} x={i * 82} />)}
         </g>
       )}
