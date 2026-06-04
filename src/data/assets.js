@@ -13,6 +13,10 @@ export const ASSET_FILES = [
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/dashboard/m2614-maturity-overview.ndjson',
     desc: 'Top-level compliance posture: maturity level, coverage percentages, and readiness indicators for each M-26-14 element.',
+    screenshot: '/screenshots/01-maturity-overview.png',
+    docs: [
+      { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
+    ],
   },
   {
     id: 'dash-asset-coverage',
@@ -23,6 +27,10 @@ export const ASSET_FILES = [
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/dashboard/m2614-asset-coverage.ndjson',
     desc: 'Hardware and software inventory coverage by Appendix B asset category, powered by osquery Fleet pack data.',
+    screenshot: '/screenshots/02-asset-coverage.png',
+    docs: [
+      { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
+    ],
   },
   {
     id: 'dash-alert-coverage',
@@ -33,6 +41,10 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/kibana/dashboard/m2614-alert-coverage.ndjson',
     desc: 'Detection rule coverage and alert volume across all 11 Appendix B log categories.',
+    screenshot: '/screenshots/03-alert-coverage.png',
+    docs: [
+      { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
+    ],
   },
   {
     id: 'dash-appendix-b-coverage',
@@ -43,6 +55,10 @@ export const ASSET_FILES = [
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/dashboard/m2614-appendix-b-coverage.ndjson',
     desc: 'Log source coverage by Appendix B event category — which categories are collecting, which have gaps.',
+    screenshot: '/screenshots/06-appendix-b-coverage.png',
+    docs: [
+      { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
+    ],
   },
   {
     id: 'dash-compliance-attestation',
@@ -53,6 +69,10 @@ export const ASSET_FILES = [
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/dashboard/m2614-compliance-attestation-dash.ndjson',
     desc: 'Exportable compliance attestation view — summarises coverage, retention, and detection posture for audit evidence.',
+    screenshot: '/screenshots/07-compliance-attestation.png',
+    docs: [
+      { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
+    ],
   },
   {
     id: 'dash-log-management',
@@ -63,6 +83,10 @@ export const ASSET_FILES = [
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/dashboard/m2614-log-management.ndjson',
     desc: 'Data stream health, ingest rates, and ILM phase distribution — operational visibility into the logging pipeline.',
+    screenshot: '/screenshots/05-log-management.png',
+    docs: [
+      { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
+    ],
   },
   {
     id: 'dash-retention-compliance',
@@ -73,6 +97,10 @@ export const ASSET_FILES = [
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/dashboard/m2614-retention-compliance.ndjson',
     desc: 'Searchable and retrievable retention coverage by data stream and time window — evidence for M-26-14 retention obligations.',
+    screenshot: '/screenshots/04-retention-compliance.png',
+    docs: [
+      { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
+    ],
   },
 
   // ── Detection Rules — Appendix B Threshold ─────────────────────────────────
@@ -86,6 +114,7 @@ export const ASSET_FILES = [
     file: '/assets/kibana/rule/m2614-appendixb-a-identity-events.ndjson',
     desc: '4 rules: Windows credential stuffing, Okta credential stuffing, Azure/Entra ID auth failure chain, Linux SSH brute force.',
     ruleCount: 4,
+    docs: [{ label: 'Rule Guide: Identity Events', file: '/docs/detection-rules/rule-a-identity-events.md' }],
   },
   {
     id: 'rule-appendixb-b',
@@ -97,6 +126,7 @@ export const ASSET_FILES = [
     file: '/assets/kibana/rule/m2614-appendixb-b-c2-beaconing.ndjson',
     desc: '1 rule: periodic outbound connection pattern indicative of C2 beaconing.',
     ruleCount: 1,
+    docs: [{ label: 'Rule Guide: C2 Beaconing', file: '/docs/detection-rules/rule-b-c2-beaconing.md' }],
   },
   {
     id: 'rule-appendixb-c',
@@ -108,6 +138,7 @@ export const ASSET_FILES = [
     file: '/assets/kibana/rule/m2614-appendixb-c-mass-file-access.ndjson',
     desc: '1 rule: high-volume file access events consistent with ransomware staging or bulk exfiltration.',
     ruleCount: 1,
+    docs: [{ label: 'Rule Guide: Mass File Access', file: '/docs/detection-rules/rule-c-mass-file-access.md' }],
   },
   {
     id: 'rule-appendixb-d',
@@ -119,6 +150,7 @@ export const ASSET_FILES = [
     file: '/assets/kibana/rule/m2614-appendixb-d-privilege-escalation.ndjson',
     desc: '1 rule: token manipulation and local privilege escalation sequences.',
     ruleCount: 1,
+    docs: [{ label: 'Rule Guide: Privilege Escalation', file: '/docs/detection-rules/rule-d-privilege-escalation.md' }],
   },
   {
     id: 'rule-appendixb-e-ot',
@@ -141,6 +173,7 @@ export const ASSET_FILES = [
     file: '/assets/kibana/rule/m2614-appendixb-e-rogue-device.ndjson',
     desc: '1 rule: new device appearing on network not matching any enrolled agent in Fleet inventory.',
     ruleCount: 1,
+    docs: [{ label: 'Rule Guide: Rogue Device', file: '/docs/detection-rules/rule-e-rogue-device.md' }],
   },
   {
     id: 'rule-appendixb-f',
@@ -152,6 +185,7 @@ export const ASSET_FILES = [
     file: '/assets/kibana/rule/m2614-appendixb-f-edr-tamper.ndjson',
     desc: '1 rule: Elastic Agent process termination or service disable indicating defense evasion.',
     ruleCount: 1,
+    docs: [{ label: 'Rule Guide: EDR Tamper', file: '/docs/detection-rules/rule-f-edr-tamper.md' }],
   },
   {
     id: 'rule-appendixb-g',
@@ -163,6 +197,7 @@ export const ASSET_FILES = [
     file: '/assets/kibana/rule/m2614-appendixb-g-ioc-monitoring.ndjson',
     desc: '4 rules: STIX/TAXII and CISA KEV indicator matches against network, file, URL, and process events.',
     ruleCount: 4,
+    docs: [{ label: 'Rule Guide: IoC Monitoring', file: '/docs/detection-rules/rule-g-ioc-match.md' }],
   },
   {
     id: 'rule-appendixb-h',
@@ -174,6 +209,7 @@ export const ASSET_FILES = [
     file: '/assets/kibana/rule/m2614-appendixb-h-offhours-execution.ndjson',
     desc: '1 rule: privileged process execution during non-business hours on sensitive hosts.',
     ruleCount: 1,
+    docs: [{ label: 'Rule Guide: Off-Hours Execution', file: '/docs/detection-rules/rule-h-offhours-execution.md' }],
   },
   {
     id: 'rule-appendixb-i',
@@ -185,6 +221,7 @@ export const ASSET_FILES = [
     file: '/assets/kibana/rule/m2614-appendixb-i-exfiltration-volume.ndjson',
     desc: '1 rule: anomalous outbound data volume spike above rolling baseline.',
     ruleCount: 1,
+    docs: [{ label: 'Rule Guide: Exfiltration Volume', file: '/docs/detection-rules/rule-i-exfiltration-volume.md' }],
   },
   {
     id: 'rule-appendixb-j',
@@ -196,6 +233,7 @@ export const ASSET_FILES = [
     file: '/assets/kibana/rule/m2614-appendixb-j-apt-chain.ndjson',
     desc: '2 rules: multi-stage attack sequence correlating recon, initial access, and lateral movement events.',
     ruleCount: 2,
+    docs: [{ label: 'Rule Guide: APT Kill Chain', file: '/docs/detection-rules/rule-j-apt-chain.md' }],
   },
   {
     id: 'rule-appendixb-k',
@@ -207,6 +245,7 @@ export const ASSET_FILES = [
     file: '/assets/kibana/rule/m2614-appendixb-k-coverage-gap.ndjson',
     desc: '2 rules: alert when any required Appendix B log category stops receiving events — compliance degradation early warning.',
     ruleCount: 2,
+    docs: [{ label: 'Rule Guide: Coverage Gap', file: '/docs/detection-rules/rule-k-coverage-gap.md' }],
   },
 
   // ── Detection Rules — ML Anomaly ───────────────────────────────────────────
@@ -510,6 +549,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/m2614-ml-catb-dns-entropy.json',
     desc: 'Anomaly detection job measuring DNS query entropy to detect DGA-generated domains.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'ml-job-element1',
@@ -520,6 +560,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/m2614-ml-element1-asset-coverage.json',
     desc: 'Tracks asset coverage percentage over time; detects anomalous drops indicating coverage gaps.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'ml-job-element2',
@@ -530,6 +571,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/m2614-ml-element2-ingestion-rate.json',
     desc: 'Monitors per-source ingestion rate; anomalies indicate data pipeline failures or log suppression.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'ml-job-element3',
@@ -540,6 +582,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/m2614-ml-element3-rule-silence.json',
     desc: 'Detects when active detection rules stop generating alerts — indicating evasion or data gaps.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'ml-job-element4',
@@ -550,6 +593,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/m2614-ml-element4-ilm-anomaly.json',
     desc: 'Monitors ILM phase transitions; anomalies indicate retention policy drift or storage failures.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'ml-job-element5',
@@ -560,6 +604,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/m2614-ml-element5-hash-coverage.json',
     desc: 'Tracks log integrity hash coverage; drops indicate tamper-evidence gaps in the chain of custody.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
 
   // ── Elasticsearch — ML Datafeeds ───────────────────────────────────────────
@@ -572,6 +617,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-m2614-ml-catb-dns-entropy.json',
     desc: 'Datafeed configuration for the DNS entropy anomaly detection job.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'datafeed-element1',
@@ -582,6 +628,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-m2614-ml-element1-asset-coverage.json',
     desc: 'Datafeed for Element 1 (asset coverage) anomaly detection.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'datafeed-element2',
@@ -592,6 +639,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-m2614-ml-element2-ingestion-rate.json',
     desc: 'Datafeed for Element 2 (ingestion rate) anomaly detection.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'datafeed-element3',
@@ -602,6 +650,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-m2614-ml-element3-rule-silence.json',
     desc: 'Datafeed for Element 3 (rule silence) anomaly detection.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'datafeed-element4',
@@ -612,6 +661,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-m2614-ml-element4-ilm-anomaly.json',
     desc: 'Datafeed for Element 4 (ILM retention) anomaly detection.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'datafeed-element5',
@@ -622,6 +672,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-m2614-ml-element5-hash-coverage.json',
     desc: 'Datafeed for Element 5 (integrity hash coverage) anomaly detection.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'datafeed-auth-high-fails',
@@ -632,6 +683,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-auth_high_count_logon_fails_for_a_user.json',
     desc: 'Datafeed for the high logon failure count per user anomaly job.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'datafeed-suspicious-login',
@@ -642,6 +694,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-suspicious_login_activity.json',
     desc: 'Datafeed for the suspicious login activity (UEBA) anomaly job.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'datafeed-auth-rare-ip',
@@ -652,6 +705,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-auth_rare_source_ip_for_a_user.json',
     desc: 'Datafeed for the rare authentication source IP per-user anomaly job.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'datafeed-rare-country',
@@ -662,6 +716,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-network_traffic_to_rare_country.json',
     desc: 'Datafeed for the rare destination country network traffic anomaly job.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'datafeed-rare-process-linux',
@@ -672,6 +727,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-rare_process_by_host_linux_ecs.json',
     desc: 'Datafeed for the rare process by Linux host anomaly job.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'datafeed-rare-process-windows',
@@ -682,6 +738,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-rare_process_by_host_windows_ecs.json',
     desc: 'Datafeed for the rare process by Windows host anomaly job.',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
     id: 'datafeed-rare-process-v3',
@@ -692,6 +749,7 @@ export const ASSET_FILES = [
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/datafeed-v3_rare_process_by_host.json',
     desc: 'Datafeed for the v3 unified rare process by host anomaly job (cross-platform).',
+    docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
 
   // ── Elasticsearch — Transforms ─────────────────────────────────────────────
