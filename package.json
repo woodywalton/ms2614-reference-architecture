@@ -14,12 +14,15 @@
     "@elastic/eui-theme-borealis": "^8.0.0",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
+    "@tailwindcss/typography": "^0.5.19",
     "jszip": "^3.10.1",
     "moment": "^2.30.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^6.28.0",
-    "react-syntax-highlighter": "^16.1.1"
+    "react-syntax-highlighter": "^16.1.1",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",

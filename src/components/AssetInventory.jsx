@@ -1,18 +1,32 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import JSZip from 'jszip'
 import { ASSET_FILES, ASSET_COLUMNS, ASSET_TYPE_META } from '../data/assets.js'
 import AssetViewer from './AssetViewer.jsx'
 
 const LEVELS = [1, 2, 3, 4]
 
+// Ordered list of types with display labels, derived from ASSET_TYPE_META
+const TYPE_FILTERS = [
+  { type: 'kibana-dashboard', label: 'Dashboard' },
+  { type: 'kibana-rule',      label: 'Detection Rule' },
+  { type: 'ml-job',          label: 'ML Job' },
+  { type: 'ml-datafeed',     label: 'ML Datafeed' },
+  { type: 'ilm-policy',      label: 'ILM Policy' },
+  { type: 'index-template',  label: 'Index Template' },
+  { type: 'ingest-pipeline', label: 'Ingest Pipeline' },
+  { type: 'transform',       label: 'Transform' },
+  { type: 'fleet-pack',      label: 'Fleet Pack' },
+]
+
 export default function AssetInventory() {
   const [filterLevel, setFilterLevel] = useState(null)
+  const [filterType, setFilterType] = useState(null)
   const [viewerAssetId, setViewerAssetId] = useState(null)
   const [downloading, setDownloading] = useState(false)
 
-  const visible = filterLevel
-    ? ASSET_FILES.filter(f => f.levels.includes(filterLevel))
-    : ASSET_FILES
+  const visible = ASSET_FILES
+    .filter(f => !filterLevel || f.levels.includes(filterLevel))
+    .filter(f => !filterType  || f.type === filterType)
 
   const byColumn = ASSET_COLUMNS.map(col => ({
     col,
@@ -65,41 +79,40 @@ export default function AssetInventory() {
         </p>
       </header>
 
-      {/* Filter + download bar */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-text-muted">Filter by level:</span>
+      {/* Filter + download bar — single row */}
+      <div className="flex items-center gap-3 flex-wrap">
+        {/* Level buttons */}
+        <span className="text-xs text-text-muted shrink-0">Level</span>
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => setFilterLevel(null)}
-            className={`text-xs px-3 py-1.5 rounded border transition-colors ${
+            className={`text-xs px-3 py-1 rounded border transition-colors ${
               filterLevel === null
                 ? 'border-accent-teal/60 bg-accent-teal/15 text-accent-teal'
                 : 'border-line bg-ink-800 text-text-muted hover:border-accent-teal/30 hover:text-text-primary'
             }`}
             style={{ borderStyle: 'solid' }}
-          >
-            All levels
-          </button>
+          >All</button>
           {LEVELS.map(l => (
             <button
               key={l}
               onClick={() => setFilterLevel(l === filterLevel ? null : l)}
-              className={`text-xs px-3 py-1.5 rounded border transition-colors ${
+              className={`text-xs px-3 py-1 rounded border transition-colors ${
                 filterLevel === l
                   ? 'border-accent-blue/60 bg-accent-blue/15 text-accent-blue'
                   : 'border-line bg-ink-800 text-text-muted hover:border-accent-blue/30 hover:text-text-primary'
               }`}
               style={{ borderStyle: 'solid' }}
-            >
-              L{l}
-            </button>
+            >L{l}</button>
           ))}
         </div>
 
+        {/* Type popover */}
+        <div className="h-4 w-px bg-line shrink-0" />
+        <TypeFilterPopover value={filterType} onChange={setFilterType} />
+
         <div className="flex-1" />
-
         <span className="text-xs text-text-muted">{total} assets</span>
-
         <button
           onClick={handleDownloadBundle}
           disabled={downloading}
@@ -132,6 +145,98 @@ export default function AssetInventory() {
     </main>
   )
 }
+
+// ─── Type filter popover ──────────────────────────────────────────────────────
+
+function TypeFilterPopover({ value, onChange }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const selectedMeta = value ? ASSET_TYPE_META[value] : null
+
+  const close = useCallback(() => setOpen(false), [])
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) close() }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open, close])
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-2 text-xs px-3 py-1 rounded border transition-colors ${
+          value
+            ? 'border-line bg-ink-800 text-text-primary'
+            : 'border-line bg-ink-800 text-text-muted hover:border-line hover:text-text-primary'
+        }`}
+        style={{ borderStyle: 'solid' }}
+      >
+        {selectedMeta ? (
+          <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${selectedMeta.bg} ${selectedMeta.color}`}
+            style={{ borderStyle: 'solid' }}>
+            {selectedMeta.label}
+          </span>
+        ) : (
+          <span className="text-text-muted">Type</span>
+        )}
+        <svg
+          className={`w-3 h-3 text-text-muted transition-transform shrink-0 ${open ? 'rotate-180' : ''}`}
+          viewBox="0 0 12 12" fill="none"
+        >
+          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          className="absolute left-0 top-full mt-1 z-50 rounded-lg bg-ink-800 shadow-xl py-1 min-w-[180px]"
+          style={{ border: '1px solid rgb(var(--color-line))' }}
+        >
+          {/* All types option */}
+          <button
+            onClick={() => { onChange(null); close() }}
+            className={`w-full flex items-center gap-2 px-3 py-2 text-left text-xs transition-colors hover:bg-ink-700 ${
+              value === null ? 'text-accent-teal' : 'text-text-muted'
+            }`}
+          >
+            {value === null && <CheckIcon />}
+            <span className={value === null ? '' : 'pl-4'}>All types</span>
+          </button>
+          <div className="my-1 h-px bg-line/50" />
+          {TYPE_FILTERS.map(({ type }) => {
+            const meta = ASSET_TYPE_META[type]
+            const active = value === type
+            return (
+              <button
+                key={type}
+                onClick={() => { onChange(active ? null : type); close() }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-ink-700"
+              >
+                {active ? <CheckIcon /> : <span className="w-3.5 shrink-0" />}
+                <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${meta.bg} ${meta.color}`}
+                  style={{ borderStyle: 'solid' }}>
+                  {meta.label}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0 text-accent-teal">
+      <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+// ─── Asset card ───────────────────────────────────────────────────────────────
 
 function AssetCard({ asset, onView }) {
   const typeMeta = ASSET_TYPE_META[asset.type] ?? { label: asset.type, color: 'text-text-muted', bg: 'bg-ink-700 border-line' }
