@@ -37,7 +37,7 @@ export default function Level2Diagram({ size = 'small', onNodeClick }) {
   return (
     <svg viewBox="0 0 1540 1032"
       className="w-full h-auto"
-      style={{ backgroundColor: isDark ? '#0D1117' : '#FFFFFF' }}
+      style={{ backgroundColor: isDark ? '#0B1628' : '#FFFFFF' }}
       role="img" aria-label={`Level 2 architecture diagram — ${s.label} size`}>
       <Defs />
 

@@ -63,7 +63,7 @@ export default function LevelView() {
       {/* Diagram + sizing panel: side-by-side on wide screens, stacked on narrow */}
       <section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-4">
         <div className="rounded-lg border border-line p-4 overflow-x-auto"
-          style={{ backgroundColor: theme === 'dark' ? '#0D1117' : '#FFFFFF' }}>
+          style={{ backgroundColor: theme === 'dark' ? '#0B1628' : '#FFFFFF' }}>
           <Diagram size={size} onNodeClick={setSelected} />
         </div>
         <SizingPanel size={size} level={level} />

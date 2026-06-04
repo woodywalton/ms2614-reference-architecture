@@ -25,8 +25,8 @@ export function DiagramIcon({ type, x, y, size = 36 }) {
 }
 
 export const ACCENT = {
-  teal:   '#00BFB3',
-  blue:   '#0077CC',  // cold tier
+  teal:   '#008B87',
+  blue:   '#0B64DD',  // cold tier
   gray:   '#6E7681',  // snapshots, neutral
   purple: '#7B5EA7',  // frozen tier (and IOC matching)
   green:  '#2EA043',  // ILM/SLM policy, on-prem cluster
@@ -57,10 +57,10 @@ const DARK = {
   textPrimary:        '#E6EDF3',
   textMuted:          '#8B949E',
   textAccentTeal:     '#6FDCD3',
-  legendFill:         '#0D1117',
+  legendFill:         '#0B1628',
   legendStroke:       '#2A3344',
   stageCircleBg:      '#1A2A2E',
-  stageCircleStroke:  '#00BFB3',
+  stageCircleStroke:  '#008B87',
   stageCircleText:    '#6FDCD3',
   stageSeparator:     '#2A3344',
   stageLabel:         '#E6EDF3',
@@ -73,7 +73,7 @@ const DARK = {
   federationText:     '#E6EDF3',
   federationSub:      '#8B949E',
   federationBadgeBg:  '#1A2A2E',
-  federationBadgeStroke: '#00BFB3',
+  federationBadgeStroke: '#008B87',
   federationBadgeText: '#6FDCD3',
   federationDivider:  '#2A3344',
   federationLabel:    '#E6EDF3',
@@ -91,12 +91,12 @@ const LIGHT = {
   bandStroke:         '#CBD5E1',
   textPrimary:        '#1E2532',
   textMuted:          '#576070',
-  textAccentTeal:     '#006B65',
+  textAccentTeal:     '#047471',
   legendFill:         '#F8FAFC',
   legendStroke:       '#CBD5E1',
   stageCircleBg:      '#E0F5F4',
-  stageCircleStroke:  '#008578',
-  stageCircleText:    '#005F56',
+  stageCircleStroke:  '#047471',
+  stageCircleText:    '#047471',
   stageSeparator:     '#CBD5E1',
   stageLabel:         '#1E2532',
   controlLabel:       '#576070',
@@ -108,21 +108,21 @@ const LIGHT = {
   federationText:     '#1E2532',
   federationSub:      '#576070',
   federationBadgeBg:  '#E0F5F4',
-  federationBadgeStroke: '#008578',
-  federationBadgeText: '#005F56',
+  federationBadgeStroke: '#047471',
+  federationBadgeText: '#047471',
   federationDivider:  '#CBD5E1',
   federationLabel:    '#1E2532',
   federationDesc:     '#576070',
-  federationSpoke:    '#006B65',
+  federationSpoke:    '#047471',
 }
 
 const BADGE_DARK = {
   SEARCHABLE: { fill: '#0E3A2A', stroke: '#2EA043', text: '#7EE39A' },
-  RETRIEVABLE: { fill: '#1A2438', stroke: '#0077CC', text: '#7BB7F5' },
+  RETRIEVABLE: { fill: '#1A2438', stroke: '#0B64DD', text: '#7BB7F5' },
   UNMOUNTED:   { fill: '#2A1F38', stroke: '#7B5EA7', text: '#C6A8E8' },
   OPTIONAL:    { fill: '#332518', stroke: '#D29922', text: '#F0C36D' },
   L3:          { fill: '#2A1A28', stroke: '#CF4F27', text: '#F0A088' },
-  L4:          { fill: '#1A2A2E', stroke: '#00BFB3', text: '#6FDCD3' },
+  L4:          { fill: '#1A2A2E', stroke: '#008B87', text: '#6FDCD3' },
 }
 
 const BADGE_LIGHT = {

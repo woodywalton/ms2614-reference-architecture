@@ -6,8 +6,8 @@ import { COMPONENTS } from '../data/components.js'
 import { getSizing } from '../data/sizing.js'
 
 const ACCENT = {
-  teal: '#00BFB3',
-  blue: '#0077CC',
+  teal: '#008B87',
+  blue: '#0B64DD',
   gray: '#6E7681',
   purple: '#7B5EA7',
   green: '#2EA043',

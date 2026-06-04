@@ -8,7 +8,7 @@ const TIMELINES = {
   1: {
     note: 'Level 1 has no searchable requirement. Hot + frozen are intentionally tiny to minimize cost; the 6-month snapshot repo carries the retrievable obligation.',
     segments: [
-      { label: 'Hot ~1 day',            days: 1,   color: '#0077CC', kind: null },
+      { label: 'Hot ~1 day',            days: 1,   color: '#0B64DD', kind: null },
       { label: 'Frozen ~1 day (cache)', days: 1,   color: '#6E7681', kind: 'retrievable' },
       { label: 'Snapshot 6-mo (unmounted)', days: 180, color: '#7B5EA7', kind: 'retrievable' },
     ],
@@ -19,7 +19,7 @@ const TIMELINES = {
   2: {
     note: 'Same shape as Level 1 with both snapshot repos as standard. Still no searchable requirement.',
     segments: [
-      { label: 'Hot ~1 day',            days: 1,   color: '#0077CC', kind: null },
+      { label: 'Hot ~1 day',            days: 1,   color: '#0B64DD', kind: null },
       { label: 'Frozen ~1 day (cache)', days: 1,   color: '#6E7681', kind: 'retrievable' },
       { label: 'Snapshot 6-mo',         days: 180, color: '#7B5EA7', kind: 'retrievable' },
       { label: 'Snapshot 12-mo',        days: 180, color: '#7B5EA7', kind: 'retrievable' },
@@ -31,7 +31,7 @@ const TIMELINES = {
   3: {
     note: 'Hot tier carries the freshest 3 days on SSD; cold extends to 10 days. Frozen via mounted searchable snapshots covers the rest of the searchable window out to 12 months without keeping data on SSD.',
     segments: [
-      { label: 'Hot 3 days',           days: 3,   color: '#0077CC', kind: 'searchable' },
+      { label: 'Hot 3 days',           days: 3,   color: '#0B64DD', kind: 'searchable' },
       { label: 'Cold 7 days',          days: 7,   color: '#2EA043', kind: 'searchable' },
       { label: 'Frozen → 12 months',   days: 355, color: '#6E7681', kind: 'searchable' },
     ],
@@ -43,7 +43,7 @@ const TIMELINES = {
   4: {
     note: 'Same hot 3d / cold 7d / frozen 12mo envelope as Level 3, but distributed across federated clusters and reachable via CCS. Pre-storage ingest pipelines trim volume 40–60% before any of these tiers.',
     segments: [
-      { label: 'Hot 3 days',           days: 3,   color: '#0077CC', kind: 'searchable' },
+      { label: 'Hot 3 days',           days: 3,   color: '#0B64DD', kind: 'searchable' },
       { label: 'Cold 7 days',          days: 7,   color: '#2EA043', kind: 'searchable' },
       { label: 'Frozen → 12 months',   days: 355, color: '#6E7681', kind: 'searchable' },
     ],

@@ -224,7 +224,7 @@ export default function MaturityView() {
             className="rounded-lg p-2 overflow-auto"
             style={{
               border: '1px solid rgb(var(--color-line))',
-              backgroundColor: theme === 'dark' ? '#0D1117' : '#FFFFFF',
+              backgroundColor: theme === 'dark' ? '#0B1628' : '#FFFFFF',
               maxHeight: 'min(800px, calc(100vh - 300px))',
             }}
           >
