@@ -112,9 +112,9 @@ export default function MaturityView() {
       </div>
 
       {/* Main content: 1/4 info panel + 3/4 diagram */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 !mt-12">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 !mt-12">
 
-        {/* Left: tabbed detail pane (1/4) */}
+        {/* Left: tabbed detail pane (1/5) */}
         <div className="xl:col-span-1 rounded-lg border border-line bg-ink-800 flex flex-col">
           {/* Tab bar */}
           <div className="flex border-b border-line shrink-0">
@@ -143,8 +143,8 @@ export default function MaturityView() {
           </div>
         </div>
 
-        {/* Right: architecture diagram (3/4) */}
-        <div className="xl:col-span-3 rounded-lg border border-line bg-ink-800 p-4 overflow-x-auto">
+        {/* Right: architecture diagram (4/5) */}
+        <div className="xl:col-span-4 rounded-lg border border-line bg-ink-800 p-4 overflow-x-auto">
           <Diagram size={size} onNodeClick={setSelectedNode} />
         </div>
       </div>

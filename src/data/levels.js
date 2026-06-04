@@ -8,12 +8,12 @@ export const LEVELS = [
     searchable: null,
     retrievable: '≥ 6 months',
     summary:
-      'Minimal hot footprint (~1 day) plus frozen tier (~1 day local cache) backed by an unmounted 6-month snapshot repo. No searchable-data requirement at this level — every byte costs as little as the architecture allows. Kibana provides SOC access; CISA/FBI export is on-request.',
+      'Establishes the foundational logging baseline. Agencies must collect logs across all required Appendix B event categories and retain them in a retrievable state for a minimum of 6 months. No searchable (CEM) requirement applies at this level. Agencies must also submit their Agency Logging Plan within 90 days of LRA publication.',
     keyPoints: [
-      'Hot tier kept intentionally small — searchable is not yet required.',
-      'Frozen tier caches the snapshot repo for quick mount/thaw.',
-      'Unmounted snapshot repo carries the 6-month retrievable obligation.',
-      'CISA/FBI export procedure must be pre-documented in the Agency Logging Plan.',
+      'Collect all Appendix B event categories from applicable log sources.',
+      'Retain logs in a retrievable state for a minimum of 6 months.',
+      'No searchable (CEM) retention requirement at this level.',
+      'Agency Logging Plan must be submitted within 90 days of LRA publication.',
     ],
   },
   {
@@ -21,29 +21,29 @@ export const LEVELS = [
     name: 'Level 2 — Intermediate',
     deadline: '180 days from LRA publication',
     searchable: null,
-    retrievable: '≥ 6 months',
+    retrievable: '≥ 12 months',
     summary:
-      'Same architecture shape as Level 1, but with substantially expanded log-source coverage and a more complete Fleet system inventory. Both the 6-month and 12-month snapshot repos are shown as standard so THIRF retention can extend without a re-architecture.',
+      'Expands log source coverage and increases the retrievable retention window to 12 months. Agencies must achieve complete Appendix B log coverage and maintain a full asset and system inventory reflected in their logging pipeline. No searchable (CEM) retention requirement applies at this level.',
     keyPoints: [
-      'Expanded integration coverage — fill out the M-26-14 Appendix B event categories.',
-      'Fleet inventory should now reflect every system in the Agency Logging Plan.',
-      'Both 6-month and 12-month snapshot repos in place — no cold tier yet.',
-      'Still no searchable requirement; the cost profile remains close to Level 1.',
+      'Full coverage of all Appendix B log categories with no gaps.',
+      'Complete asset and system inventory must be reflected in collected logs.',
+      'Retain logs in a retrievable state for a minimum of 12 months.',
+      'No searchable (CEM) retention requirement at this level.',
     ],
   },
   {
     id: 3,
     name: 'Level 3 — Advanced',
     deadline: '320 days from LRA publication',
-    searchable: '≥ 6 months (CEM)',
+    searchable: '≥ 3 months (CEM)',
     retrievable: '≥ 12 months (THIRF)',
     summary:
-      'Three-tier searchable architecture: hot (3 days, SSD ingest) → cold (7 days, read-only SSD) → frozen (6 / 12 months, mounted searchable snapshots on object storage). Adds an AI/ML enrichment pipeline (anomaly detection, UEBA, IOC matching via STIX/TAXII including CISA KEV) and risk-scored alert correlation feeding Elastic Security. Sensitive-data controls (PII masking, field redaction) run BEFORE storage.',
+      'Introduces the CEM searchable requirement for the first time. Agencies must maintain at least 3 months of immediately searchable log data covering all Appendix B categories, and at least 12 months of retrievable log data. Agencies must also implement automated threat detection, anomaly detection, and sensitive data protections (e.g., PII masking) prior to log storage.',
     keyPoints: [
-      'Hot 3 days · Cold 7 days · Frozen 6 / 12 months — all queryable in Kibana.',
-      'Frozen tier uses mounted searchable snapshots so the 6-month CEM window is satisfied without keeping it on SSD.',
-      'Full ILM: Hot → Cold → Frozen → Delete; SLM manages snapshot lifecycle.',
-      'AI/ML jobs score events ahead of the SIEM; PII masking happens pre-storage.',
+      'Maintain ≥ 3 months of searchable log data (CEM requirement first applies).',
+      'Maintain ≥ 12 months of retrievable log data (THIRF).',
+      'Implement automated threat detection and anomaly detection capabilities.',
+      'Apply sensitive data protections (PII masking, field redaction) before storage.',
     ],
   },
   {
@@ -53,12 +53,12 @@ export const LEVELS = [
     searchable: '≥ 6 months (CEM)',
     retrievable: '≥ 12 months (THIRF)',
     summary:
-      'Same hot 3d / cold 7d / frozen 12mo retention as Level 3, now distributed across a federated topology with the agency SOC at the hub. Cross-Cluster Search reaches on-prem, cloud, and edge clusters in place. Pre-storage enrichment via Elasticsearch ingest pipelines and Logstash filters cuts volume 40–60%. BYOK encryption (AWS KMS, Azure Key Vault, GCP Cloud KMS) and USNO/NIST-traceable NTP enforced everywhere. CISA/FBI export path runs through the federated SOC.',
+      'Achieves the highest maturity level with 6 months of searchable and 12 months of retrievable log data. Agencies must operate a federated, distributed logging architecture with full encryption at rest and in transit, tamper-evident log integrity, NTP-traceable timestamps, and a documented, tested procedure for sharing logs with CISA and the FBI on demand.',
     keyPoints: [
-      'Hot 3d · Cold 7d · Frozen 12mo, replicated/federated across distributed stores.',
-      'Cross-Cluster Search federates on-prem, cloud, and edge clusters.',
-      'Ingest pipelines (Elasticsearch + Logstash) trim 40–60% of volume before storage.',
-      'BYOK across every cloud-resident tier; NTP traceable to USNO/NIST.',
+      'Maintain ≥ 6 months of searchable log data (CEM) and ≥ 12 months retrievable (THIRF).',
+      'Operate a federated, distributed logging architecture at scale.',
+      'Enforce encryption at rest and in transit with tamper-evident log integrity.',
+      'Documented and tested CISA/FBI log sharing procedure in the Agency Logging Plan.',
     ],
   },
 ]
