@@ -5,43 +5,48 @@ import { ASSET_FILES, ASSET_TYPE_META, ASSET_FILE_MAP } from '../data/assets.js'
 // ─── Tab definitions ──────────────────────────────────────────────────────────
 
 const TABS = [
-  { label: 'Compliance in Days' },
+  { label: 'Achieve Compliance in Days' },
   { label: 'Coverage Matrix' },
   { label: 'Deployment-Ready Assets' },
   { label: "What Elastic Can't Do" },
 ]
 
+// EUI Borealis vis color pairs — [active, light] per tab
+const TAB_COLORS = [
+  { active: '#16C5C0', light: '#A6EDEA' },
+  { active: '#61A2FF', light: '#BFDBFF' },
+  { active: '#EE72A6', light: '#FFC7DB' },
+  { active: '#F6726A', light: '#FFC9C2' },
+]
+
+// Level badge colors
+const LEVEL_BADGE = {
+  L1: 'bg-accent-teal/10 text-accent-teal border-accent-teal/40',
+  L2: 'bg-accent-blue/10 text-accent-blue border-accent-blue/40',
+  L3: 'bg-accent-yellow/10 text-accent-yellow border-accent-yellow/40',
+  L4: 'bg-accent-coral/10 text-accent-coral border-accent-coral/40',
+}
+
 // ─── Capability areas (Tab 0) ─────────────────────────────────────────────────
 
 const CAPABILITIES = {
-  'deploy-elastic': {
-    title: 'Deploy Elastic',
-    subtitle: 'Elasticsearch + Kibana + Fleet Server — the platform foundation',
+  'day1-deploy': {
+    title: 'Deploy Elastic + Configure Storage',
+    subtitle: 'Elasticsearch, Kibana, Fleet Server, and ILM retention — all up on Day 1',
     color: 'teal',
     what: [
-      'Elasticsearch cluster — self-managed, ECE, ECK, or Elastic Cloud with Enterprise license',
-      'Kibana with SIEM app, Fleet Server, and Osquery Manager enabled',
-      'Index templates and ILM policies from this pack loaded at cluster init',
-      'Cluster health verified; all nodes green before agent enrollment begins',
+      'Elasticsearch cluster — self-managed, ECE, ECK, or Elastic Cloud (Enterprise license for ML)',
+      'Kibana with SIEM app, Fleet Server, and Osquery Manager; all compliance pack assets loaded at init',
+      'Hot/warm/cold/frozen ILM policies active from the start — data tiers automatically as it ages',
+      'Snapshot policies to S3/GCS/Azure Blob provide THIRF-compliant retrievable retention at every level',
+      'BYOK integration with agency KMS configurable for L4 encryption-at-rest without cluster changes',
     ],
-    covers: ['Platform foundation required by all compliance levels'],
-  },
-  'tiered-storage': {
-    title: 'Tiered Storage + ILM',
-    subtitle: 'Retention that meets every level without manual lifecycle management',
-    color: 'teal',
-    what: [
-      'Hot/warm/cold/frozen ILM policies automatically tier data as it ages — costs stay predictable at every retention window',
-      'Snapshot policies ship immutable log copies to S3/GCS/Azure Blob for THIRF retrievable compliance at every level',
-      'Ingest pipelines apply PII masking, field redaction, and data normalization before logs reach searchable storage',
-      'BYOK integration with agency KMS satisfies L4 encryption-at-rest without re-architecting the cluster',
-    ],
-    covers: ['L1 — 6-month retrievable (THIRF)', 'L2 — 12-month retrievable (THIRF)', 'L3 — 3-month searchable (CEM) + PII protections', 'L4 — 6-month searchable (CEM) + BYOK'],
+    covers: ['Platform foundation', 'L1 — 6-month retrievable (THIRF)', 'L2 — 12-month retrievable', 'L3 — 3-month searchable + PII protections', 'L4 — 6-month searchable + BYOK'],
   },
   'agent-fleet': {
     title: 'Elastic Agent + Fleet',
-    subtitle: 'Universal log collection and asset inventory — Appendix B complete',
-    color: 'teal',
+    subtitle: 'Universal log collection and asset inventory — Appendix B complete from day one',
+    color: 'blue',
     what: [
       'Agent integrations cover all 11 Appendix B event categories — identity, network, endpoint, DNS, cloud — without custom parser work',
       'Fleet Server enrollment auto-builds the Agency Logging Plan asset inventory and keeps it current as systems change',
@@ -51,7 +56,7 @@ const CAPABILITIES = {
     covers: ['L1 — Complete Appendix B log collection', 'L2 — Full agency asset inventory in Fleet'],
   },
   'kibana-siem': {
-    title: 'Kibana SIEM + Detection Rules',
+    title: 'Elastic Security (SIEM + Detection Rules)',
     subtitle: 'Active monitoring, evidence dashboards, and ATO attestation — deployed in days',
     color: 'blue',
     what: [
@@ -89,10 +94,10 @@ const CAPABILITIES = {
 }
 
 const PHASES = [
-  { label: 'Day 1',      color: 'teal',   capIds: ['deploy-elastic', 'tiered-storage', 'agent-fleet'] },
-  { label: 'Days 2–7',   color: 'blue',   capIds: ['kibana-siem'] },
-  { label: 'Days 7–30',  color: 'yellow', capIds: ['elastic-ml'] },
-  { label: 'Ongoing',    color: 'coral',  capIds: ['cross-cluster'] },
+  { label: 'Day 1',      capIds: ['day1-deploy'] },
+  { label: 'Days 2–7',   capIds: ['agent-fleet', 'kibana-siem'] },
+  { label: 'Days 7–30',  capIds: ['elastic-ml'] },
+  { label: 'Ongoing',    capIds: ['cross-cluster'] },
 ]
 
 const COLOR = {
@@ -379,20 +384,29 @@ export default function CompliancePage() {
       </section>
 
       {/* ── Tab bar ───────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-1 border-b border-line">
-        {TABS.map((tab, i) => (
-          <button
-            key={i}
-            onClick={() => setActiveTab(i)}
-            className={`px-5 py-3 text-base font-medium transition-colors border-b-2 -mb-px ${
-              activeTab === i
-                ? 'border-accent-blue text-accent-blue font-semibold'
-                : 'border-transparent text-text-muted hover:text-text-primary hover:border-line'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="grid grid-cols-4 gap-3">
+        {TABS.map((tab, i) => {
+          const tc = TAB_COLORS[i]
+          const isActive = activeTab === i
+          return (
+            <button
+              key={i}
+              onClick={() => setActiveTab(i)}
+              className="rounded-lg border-2 px-4 py-4 text-center font-bold text-xl transition-all"
+              style={isActive ? {
+                backgroundColor: tc.active,
+                borderColor: tc.active,
+                color: '#0B1628',
+              } : {
+                backgroundColor: `${tc.active}12`,
+                borderColor: tc.active,
+                color: tc.active,
+              }}
+            >
+              {tab.label}
+            </button>
+          )
+        })}
       </div>
 
       {/* ── Tab content (shared scroll container) ────────────────────────── */}
@@ -430,56 +444,62 @@ export default function CompliancePage() {
 
 function ComplianceInDaysTab() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-full items-start">
-      {PHASES.map((phase) => {
-        const pc = COLOR[phase.color]
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4" style={{ minHeight: 'calc(100vh - 420px)' }}>
+      {PHASES.map((phase, pi) => {
+        const tc = TAB_COLORS[pi]
         const caps = phase.capIds.map(id => CAPABILITIES[id]).filter(Boolean)
         return (
-          <div key={phase.label} className="flex flex-col gap-3">
+          <div key={phase.label} className="flex flex-col gap-3 h-full">
             {/* Phase header */}
             <div className="flex items-center gap-2">
-              <span className={`text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border ${pc.badge}`}
-                style={{ borderStyle: 'solid' }}>
+              <span className="text-sm font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border-2"
+                style={{ borderColor: tc.active, color: tc.active, borderStyle: 'solid' }}>
                 {phase.label}
               </span>
-              <div className={`flex-1 h-px ${pc.bar} opacity-30`} />
+              <div className="flex-1 h-px opacity-30" style={{ backgroundColor: tc.active }} />
             </div>
 
-            {/* Capability cards stacked in this phase */}
-            {caps.map((cap) => {
-              const c = COLOR[cap.color]
-              return (
-                <div key={cap.title}
-                  className={`rounded-lg bg-ink-800 border ${c.border} flex flex-col overflow-hidden`}
-                  style={{ borderStyle: 'solid' }}
-                >
-                  <div className={`h-0.5 w-full ${c.bar}`} />
-                  <div className="p-4 flex flex-col gap-3 flex-1">
-                    <div>
-                      <p className={`text-sm font-semibold ${c.text}`}>{cap.title}</p>
-                      <p className="text-xs text-text-muted mt-0.5 leading-snug">{cap.subtitle}</p>
-                    </div>
-                    <ul className="space-y-1.5">
-                      {cap.what.map((w, i) => (
-                        <li key={i} className="flex gap-2 text-xs text-text-primary leading-relaxed">
-                          <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
-                          {w}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="flex gap-1.5 flex-wrap mt-auto pt-1">
-                      {cap.covers.map((cv, i) => (
-                        <span key={i}
-                          className="text-[10px] px-2 py-0.5 rounded bg-accent-green/10 text-accent-green border border-accent-green/30 font-medium"
-                          style={{ borderStyle: 'solid' }}>
-                          ✓ {cv}
-                        </span>
-                      ))}
+            {/* Cards fill column height equally */}
+            <div className="flex flex-col gap-3 flex-1">
+              {caps.map((cap) => {
+                const c = COLOR[cap.color]
+                return (
+                  <div key={cap.title}
+                    className={`rounded-lg bg-ink-800 border ${c.border} flex flex-col overflow-hidden flex-1`}
+                    style={{ borderStyle: 'solid' }}
+                  >
+                    <div className={`h-1 w-full ${c.bar}`} />
+                    <div className="p-5 flex flex-col gap-4 flex-1">
+                      <div>
+                        <p className={`text-base font-bold ${c.text}`}>{cap.title}</p>
+                        <p className="text-sm text-text-muted mt-1 leading-snug">{cap.subtitle}</p>
+                      </div>
+                      <ul className="space-y-2 flex-1">
+                        {cap.what.map((w, i) => (
+                          <li key={i} className="flex gap-2.5 text-sm text-text-primary leading-relaxed">
+                            <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
+                            {w}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="flex gap-1.5 flex-wrap pt-1">
+                        {cap.covers.map((cv, i) => {
+                          const lvl = cv.substring(0, 2)
+                          const lc = LEVEL_BADGE[lvl] ?? 'bg-ink-700 text-text-muted border-line'
+                          return (
+                            <span key={i}
+                              className={`text-xs px-2 py-0.5 rounded border font-medium ${lc}`}
+                              style={{ borderStyle: 'solid' }}>
+                              ✓ {cv}
+                            </span>
+                          )
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         )
       })}
