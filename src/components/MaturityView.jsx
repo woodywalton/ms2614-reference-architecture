@@ -77,7 +77,7 @@ export default function MaturityView() {
   const Diagram = DIAGRAMS[levelNum]
 
   return (
-    <main className="mx-auto max-w-[1800px] px-6 py-8 space-y-8">
+    <main className="mx-auto max-w-[1800px] px-8 py-10 space-y-8">
       <header>
         <h1 className="text-3xl font-semibold text-text-primary">
           M-26-14 Maturity Levels by Organizational Size

@@ -4,7 +4,7 @@ import { sizingTable, SIZE_ORDER } from '../data/sizing.js'
 
 export default function DeploymentOptions() {
   return (
-    <main className="mx-auto max-w-[1500px] px-6 py-8 space-y-8">
+    <main className="mx-auto max-w-[1800px] px-8 py-10 space-y-8">
       <header>
         <h1 className="text-3xl font-semibold text-text-primary">Deployment Options</h1>
         <p className="mt-3 text-base text-text-muted leading-relaxed">
