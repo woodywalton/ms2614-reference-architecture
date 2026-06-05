@@ -531,11 +531,12 @@ function CoverageMatrixTab() {
   })
 
   return (
-    <div className="rounded-lg border border-line bg-ink-800 overflow-hidden flex flex-col h-full" style={{ borderStyle: 'solid' }}>
+    <div className="rounded-lg border border-line bg-ink-800 overflow-hidden flex flex-col"
+         style={{ height: 'calc(100vh - 380px)', minHeight: 440, borderStyle: 'solid' }}>
       {/* Panel header */}
-      <div className="px-5 py-4 border-b border-line shrink-0">
-        <h2 className="text-base font-semibold text-text-primary">Compliance Coverage Matrix</h2>
-        <p className="text-sm text-text-muted mt-1 leading-relaxed">
+      <div className="px-5 py-5 border-b border-line shrink-0">
+        <h2 className="text-xl font-semibold text-text-primary">Compliance Coverage Matrix</h2>
+        <p className="text-base text-text-muted mt-1.5 leading-relaxed">
           Each row is an M-26-14 technical requirement. ✓ = Elastic capability satisfies it when the asset is deployed.
           Rows with a <span className="inline-flex items-center align-middle mx-0.5"><Chevron open={false} /></span> expand to show sub-items.
         </p>
@@ -545,12 +546,12 @@ function CoverageMatrixTab() {
       <div className="overflow-auto flex-1">
         <table className="w-full border-collapse">
           <thead className="sticky top-0 z-10">
-            <tr className="text-xs text-text-muted bg-ink-700 border-b border-line">
+            <tr className="text-sm text-text-muted bg-ink-700 border-b border-line">
               <th className="py-3 pl-5 pr-4 text-left font-semibold w-10" />
-              <th className="py-3 pr-4 text-left font-semibold tracking-wide">Requirement</th>
-              <th className="py-3 pr-4 text-left font-semibold tracking-wide">Elastic Capability</th>
+              <th className="py-3 pr-4 text-left font-semibold">Requirement</th>
+              <th className="py-3 pr-4 text-left font-semibold">Elastic Capability</th>
               {['L1','L2','L3','L4'].map((l, i) => (
-                <th key={l} className={`py-3 px-4 text-center font-bold text-sm ${LEVEL_HEAD_COLORS[i]}`}>{l}</th>
+                <th key={l} className={`py-3 px-4 text-center font-bold text-base ${LEVEL_HEAD_COLORS[i]}`}>{l}</th>
               ))}
             </tr>
           </thead>
@@ -562,10 +563,10 @@ function CoverageMatrixTab() {
               return (
                 <React.Fragment key={i}>
                   <tr
-                    className={`border-b border-line/40 transition-colors ${stripe ? 'bg-ink-700/20' : ''} ${
+                    className={`border-b border-line/40 transition-colors ${stripe ? 'bg-ink-900/50' : ''} ${
                       hasExpand
-                        ? 'cursor-pointer hover:bg-white/[0.06]'
-                        : 'hover:bg-white/[0.04]'
+                        ? 'cursor-pointer hover:bg-accent-blue/[0.10]'
+                        : 'hover:bg-accent-blue/[0.07]'
                     }`}
                     onClick={hasExpand ? () => toggle(i) : undefined}
                   >
@@ -575,12 +576,12 @@ function CoverageMatrixTab() {
                     </td>
                     {/* Requirement */}
                     <td className="py-4 pr-4 align-top">
-                      <p className="text-sm font-semibold text-text-primary leading-snug">{row.req}</p>
+                      <p className="text-base font-semibold text-text-primary leading-snug">{row.req}</p>
                       <p className="text-sm text-text-muted mt-1 leading-relaxed">{row.reqDesc}</p>
                     </td>
                     {/* Capability */}
                     <td className="py-4 pr-4 align-top">
-                      <p className="text-sm font-mono font-semibold text-text-primary leading-snug">{row.cap}</p>
+                      <p className="text-base font-mono font-semibold text-text-primary leading-snug">{row.cap}</p>
                       <p className="text-sm text-text-muted mt-1 leading-relaxed">{row.capDesc}</p>
                     </td>
                     {/* Level checkmarks */}
