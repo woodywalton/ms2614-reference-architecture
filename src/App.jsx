@@ -18,8 +18,14 @@ export default function App() {
     <div className="min-h-screen bg-ink-900 text-text-primary pb-8">
       <Nav />
       <Routes>
-        {/* Overview / home */}
-        <Route path="/" element={<Overview />} />
+        {/* Compliance — home */}
+        <Route path="/" element={<CompliancePage />} />
+
+        {/* Requirements (former Overview) */}
+        <Route path="/requirements" element={<Overview />} />
+
+        {/* Legacy redirect */}
+        <Route path="/compliance" element={<Navigate to="/" replace />} />
 
         {/* Maturity × org-size view */}
         <Route path="/maturity" element={<Navigate to="/maturity/small/1" replace />} />
@@ -29,9 +35,6 @@ export default function App() {
         {/* Per-level detail view (existing) */}
         <Route path="/level/:id" element={<Navigate to="small" replace />} />
         <Route path="/level/:id/:size" element={<LevelView />} />
-
-        {/* Compliance story page */}
-        <Route path="/compliance" element={<CompliancePage />} />
 
         {/* Browse nav stub pages */}
         <Route path="/asset-inventory" element={<AssetInventory />} />

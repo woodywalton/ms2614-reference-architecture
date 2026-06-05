@@ -11,6 +11,13 @@ const HomeIcon = () => (
   </svg>
 )
 
+const DocumentsIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+    <path fillRule="evenodd" d="M4 1a1 1 0 0 1 1-1h4.707L14 4.293V13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V1Zm5 0H5v12h8V5h-3a1 1 0 0 1-1-1V1Zm1 .707L12.293 4H10V1.707Z" clipRule="evenodd"/>
+    <path d="M3 15V2H2v13a1 1 0 0 0 1 1h9v-1H3Z"/>
+  </svg>
+)
+
 const MoonIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
     <path d="M4.05 12.95A6.982 6.982 0 0 1 2 8c0-1.79.684-3.583 2.05-4.95A6.982 6.982 0 0 1 9 1a1 1 0 0 1 .708 1.707 4.982 4.982 0 0 0-1.465 3.536 4.98 4.98 0 0 0 1.465 3.535 4.98 4.98 0 0 0 3.535 1.465 1 1 0 0 1 .707 1.707A6.981 6.981 0 0 1 9 15a6.983 6.983 0 0 1-4.95-2.05Zm.708-.707A5.983 5.983 0 0 0 9 14c1.535 0 3.07-.586 4.242-1.757a5.98 5.98 0 0 1-4.018-1.545L9 10.485a5.982 5.982 0 0 1-1.758-4.242A5.986 5.986 0 0 1 9 2a5.983 5.983 0 0 0-4.243 1.757A5.98 5.98 0 0 0 3 8l.006.288a5.978 5.978 0 0 0 1.75 3.955Z"/>
@@ -26,9 +33,9 @@ const SunIcon = () => (
 )
 
 const NAV_ITEMS = [
-  { label: 'Compliance',         to: '/compliance',        matchPrefix: '/compliance' },
-  { label: 'Maturity Levels',    to: '/maturity/small/1',  matchPrefix: '/maturity' },
-  { label: 'Asset Inventory',    to: '/asset-inventory',   matchPrefix: '/asset-inventory' },
+  { label: 'Requirements',       to: '/requirements',       matchPrefix: '/requirements' },
+  { label: 'Maturity Levels',    to: '/maturity/small/1',   matchPrefix: '/maturity' },
+  { label: 'Asset Inventory',    to: '/asset-inventory',    matchPrefix: '/asset-inventory' },
   { label: 'Deployment Options', to: '/deployment-options', matchPrefix: '/deployment-options' },
 ]
 
@@ -37,7 +44,6 @@ export default function Nav() {
   const location = useLocation()
   const headerRef = useRef(null)
 
-  // Set --nav-height CSS variable so flyouts/overlays can align perfectly
   useEffect(() => {
     const el = headerRef.current
     if (!el) return
@@ -66,9 +72,9 @@ export default function Nav() {
           </h1>
         </div>
 
-        {/* Nav + theme toggle */}
+        {/* Nav + controls */}
         <div className="ml-auto flex items-center gap-1">
-          {/* Home / Overview */}
+          {/* Home — Compliance */}
           <Link
             to="/"
             className={
@@ -79,7 +85,7 @@ export default function Nav() {
             }
           >
             <HomeIcon />
-            <span>M-26-14 Overview</span>
+            <span>M-26-14 Compliance</span>
           </Link>
 
           {NAV_ITEMS.map((item) => (
@@ -99,6 +105,7 @@ export default function Nav() {
             </React.Fragment>
           ))}
 
+          {/* Theme toggle */}
           <button
             onClick={toggleTheme}
             className="ml-2 p-2 rounded hover:bg-ink-700 text-text-muted hover:text-text-primary transition-colors"
@@ -106,6 +113,21 @@ export default function Nav() {
           >
             {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
           </button>
+
+          {/* Printables */}
+          <span className="px-1 text-text-muted/40 text-xs select-none">|</span>
+          <Link
+            to="/printables"
+            className={
+              `flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium transition-colors ` +
+              (location.pathname.startsWith('/printables')
+                ? 'bg-accent-teal/15 text-accent-teal'
+                : 'text-text-muted hover:text-text-primary hover:bg-ink-700')
+            }
+          >
+            <span>Printables</span>
+            <DocumentsIcon />
+          </Link>
         </div>
       </div>
     </header>
