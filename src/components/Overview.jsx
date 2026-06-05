@@ -5,7 +5,7 @@ import { LEVELS } from '../data/levels.js'
 
 export default function Overview() {
   return (
-    <main className="mx-auto max-w-[1800px] px-6 py-8 space-y-8">
+    <main className="mx-auto max-w-[1800px] px-8 py-10 space-y-8">
 
       {/* Title + program description + CEM/THIRF definitions */}
       <section>
@@ -54,43 +54,47 @@ export default function Overview() {
 
       {/* Requirements summary cards */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-lg border border-line bg-ink-800 p-6 flex flex-col gap-3" style={{ borderStyle: 'solid' }}>
+        <div className="rounded-lg border border-line bg-ink-800 p-6 flex flex-col gap-4" style={{ borderStyle: 'solid' }}>
           <p className="text-base font-semibold text-text-primary">Data Collection &amp; Retention</p>
           <p className="text-sm text-text-muted leading-relaxed">
-            Agencies must collect all 11 Appendix B log categories (DNS, network flows, endpoint telemetry, auth events,
-            vulnerability scans, and more). Retention windows escalate by level:
+            Agencies must collect logs from all 11 Appendix B event categories — identity, network sessions, object access,
+            privilege changes, infrastructure changes, security tool alerts, IoC events, automated alerts, anomalous activity,
+            error/crash events, and DNS. Every applicable system must be enrolled; coverage gaps are a compliance deficiency.
+            Retention windows escalate with each level:
           </p>
-          <ul className="text-sm text-text-primary space-y-1.5">
-            <li><span className="font-semibold text-accent-teal">L1:</span> 12 months total — hot (searchable) window required</li>
-            <li><span className="font-semibold text-accent-blue">L2:</span> 18 months — add cold-tier frozen storage</li>
-            <li><span className="font-semibold text-accent-purple">L3:</span> 30 months — full tiered lifecycle (hot/warm/cold/frozen)</li>
-            <li><span className="font-semibold text-accent-coral">L4:</span> 36+ months — cross-cluster federated archival</li>
+          <ul className="text-sm text-text-primary space-y-2">
+            <li className="flex gap-2"><span className="font-semibold text-accent-teal shrink-0">L1:</span><span>6 months retrievable (THIRF). All Appendix B sources enrolled via Fleet. Agency Logging Plan submitted within 90 days of LRA.</span></li>
+            <li className="flex gap-2"><span className="font-semibold text-accent-blue shrink-0">L2:</span><span>12 months retrievable. Cold-tier frozen storage active. Full asset inventory maintained in Fleet enrollment records.</span></li>
+            <li className="flex gap-2"><span className="font-semibold text-accent-purple shrink-0">L3:</span><span>≥ 3 months searchable (CEM) + ≥ 12 months retrievable (THIRF). PII redaction enforced at ingest. Full tiered ILM lifecycle (hot/warm/cold/frozen).</span></li>
+            <li className="flex gap-2"><span className="font-semibold text-accent-coral shrink-0">L4:</span><span>≥ 6 months searchable (CEM) + ≥ 12 months retrievable (THIRF). BYOK encryption at rest. Federated cross-cluster archival. Tamper-evident SHA-256 fingerprints with USNO-traceable timestamps.</span></li>
           </ul>
         </div>
-        <div className="rounded-lg border border-line bg-ink-800 p-6 flex flex-col gap-3" style={{ borderStyle: 'solid' }}>
+        <div className="rounded-lg border border-line bg-ink-800 p-6 flex flex-col gap-4" style={{ borderStyle: 'solid' }}>
           <p className="text-base font-semibold text-text-primary">Analytics &amp; Detection</p>
           <p className="text-sm text-text-muted leading-relaxed">
-            Real-time detection and anomaly identification requirements increase with each maturity level,
-            demanding progressively deeper SIEM and ML capability:
+            M-26-14 requires active, automated detection — not just log collection. Each level adds a new detection
+            capability tier, culminating in ML-driven behavioral analysis and real-time IoC matching at L3. Agencies
+            must demonstrate detection coverage across every Appendix B category to achieve ATO attestation.
           </p>
-          <ul className="text-sm text-text-primary space-y-1.5">
-            <li><span className="font-semibold text-accent-teal">L1:</span> Basic SIEM correlation rules across Appendix B sources</li>
-            <li><span className="font-semibold text-accent-blue">L2:</span> Behavioral detection + IoC matching (threat intel feeds)</li>
-            <li><span className="font-semibold text-accent-purple">L3:</span> ML anomaly detection, UEBA, automated alert triage</li>
-            <li><span className="font-semibold text-accent-coral">L4:</span> Predictive analytics, cross-agency threat sharing (ISAC)</li>
+          <ul className="text-sm text-text-primary space-y-2">
+            <li className="flex gap-2"><span className="font-semibold text-accent-teal shrink-0">L1:</span><span>Baseline SIEM rules across all 11 Appendix B categories (A–K). Detection rule deployment documented in the Agency Logging Plan.</span></li>
+            <li className="flex gap-2"><span className="font-semibold text-accent-blue shrink-0">L2:</span><span>Behavioral correlation rules added. IoC matching against STIX/TAXII and CISA KEV feeds. Alert deduplication and suppression tuning required.</span></li>
+            <li className="flex gap-2"><span className="font-semibold text-accent-purple shrink-0">L3:</span><span>ML anomaly detection running against 6-month behavioral baselines. UEBA for user and host risk scoring. Automated triage via risk-score transforms. ATO evidence dashboard active.</span></li>
+            <li className="flex gap-2"><span className="font-semibold text-accent-coral shrink-0">L4:</span><span>Predictive threat analytics. Cross-agency indicator sharing via ISAC feeds. Annually tested CISA/FBI log sharing drill with documented runbook.</span></li>
           </ul>
         </div>
-        <div className="rounded-lg border border-line bg-ink-800 p-6 flex flex-col gap-3" style={{ borderStyle: 'solid' }}>
+        <div className="rounded-lg border border-line bg-ink-800 p-6 flex flex-col gap-4" style={{ borderStyle: 'solid' }}>
           <p className="text-base font-semibold text-text-primary">Searchability, Retrievability &amp; Shareability</p>
           <p className="text-sm text-text-muted leading-relaxed">
-            M-26-14 mandates that log data be discoverable and shareable across security operations functions (CEM)
-            and forensic timelines (THIRF):
+            M-26-14 distinguishes between two access modes: CEM (Continuous Event Monitoring) requires logs to be
+            immediately searchable with no retrieval step. THIRF (Threat Hunting, Investigation, Response &amp; Forensics)
+            allows retrieval from cold/frozen storage within a defined SLA window. Both must be evidenced for ATO.
           </p>
-          <ul className="text-sm text-text-primary space-y-1.5">
-            <li><span className="font-semibold text-accent-purple">CEM:</span> Hot-tier logs searchable within seconds, no retrieval step</li>
-            <li><span className="font-semibold text-accent-coral">THIRF:</span> Cold/frozen logs retrievable within defined SLA windows</li>
-            <li><span className="font-semibold text-accent-purple">L3+:</span> Cross-Cluster Search across agency boundaries</li>
-            <li><span className="font-semibold text-accent-coral">L4:</span> Federated architecture, shareable dashboards &amp; reports</li>
+          <ul className="text-sm text-text-primary space-y-2">
+            <li className="flex gap-2"><span className="font-semibold text-accent-purple shrink-0">CEM:</span><span>Hot-tier logs queryable within seconds from Kibana. No retrieval step, no SLA delay. Required for real-time SOC operations and alert correlation.</span></li>
+            <li className="flex gap-2"><span className="font-semibold text-accent-coral shrink-0">THIRF:</span><span>Cold/frozen logs retrievable from S3-compatible object storage. SLA window defined by level (hours at L3, tighter at L4). Supports forensic timelines and incident investigations.</span></li>
+            <li className="flex gap-2"><span className="font-semibold text-accent-purple shrink-0">L3+:</span><span>Cross-Cluster Search enables a single Kibana to query across distributed agency log stores without data replication. Required for multi-enclave environments.</span></li>
+            <li className="flex gap-2"><span className="font-semibold text-accent-coral shrink-0">L4:</span><span>Federated architecture with exportable dashboards, PDF-ready ATO evidence reports, and a documented on-demand log production procedure for CISA and FBI requests.</span></li>
           </ul>
         </div>
       </section>
@@ -197,7 +201,7 @@ function Timeline() {
 
       {/* Coral urgency bar starts at L3 position */}
       <div
-        className="absolute top-0 h-1 rounded-r-full bg-gradient-to-r from-accent-coral/60 to-accent-coral/20"
+        className="absolute top-0 h-1 rounded-r-full bg-gradient-to-r from-accent-coral/15 to-accent-coral/70"
         style={{ left: '76%', right: 0 }}
       />
 
