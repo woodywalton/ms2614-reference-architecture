@@ -13,72 +13,86 @@ const TABS = [
 
 // ─── Capability areas (Tab 0) ─────────────────────────────────────────────────
 
-const CAPABILITIES = [
-  {
-    title: 'Elastic Agent + Fleet',
-    subtitle: 'Universal log collection and asset inventory — from day one',
+const CAPABILITIES = {
+  'deploy-elastic': {
+    title: 'Deploy Elastic',
+    subtitle: 'Elasticsearch + Kibana + Fleet Server — the platform foundation',
     color: 'teal',
-    time: 'Day 1',
     what: [
-      'Agent integrations cover all 11 Appendix B event categories — identity, network, endpoint, DNS, cloud, and more — without custom parser work',
-      'Fleet Server enrollment maintains a continuously updated agency asset inventory, satisfying the L2 inventory mandate automatically',
+      'Elasticsearch cluster — self-managed, ECE, ECK, or Elastic Cloud with Enterprise license',
+      'Kibana with SIEM app, Fleet Server, and Osquery Manager enabled',
+      'Index templates and ILM policies from this pack loaded at cluster init',
+      'Cluster health verified; all nodes green before agent enrollment begins',
+    ],
+    covers: ['Platform foundation required by all compliance levels'],
+  },
+  'tiered-storage': {
+    title: 'Tiered Storage + ILM',
+    subtitle: 'Retention that meets every level without manual lifecycle management',
+    color: 'teal',
+    what: [
+      'Hot/warm/cold/frozen ILM policies automatically tier data as it ages — costs stay predictable at every retention window',
+      'Snapshot policies ship immutable log copies to S3/GCS/Azure Blob for THIRF retrievable compliance at every level',
+      'Ingest pipelines apply PII masking, field redaction, and data normalization before logs reach searchable storage',
+      'BYOK integration with agency KMS satisfies L4 encryption-at-rest without re-architecting the cluster',
+    ],
+    covers: ['L1 — 6-month retrievable (THIRF)', 'L2 — 12-month retrievable (THIRF)', 'L3 — 3-month searchable (CEM) + PII protections', 'L4 — 6-month searchable (CEM) + BYOK'],
+  },
+  'agent-fleet': {
+    title: 'Elastic Agent + Fleet',
+    subtitle: 'Universal log collection and asset inventory — Appendix B complete',
+    color: 'teal',
+    what: [
+      'Agent integrations cover all 11 Appendix B event categories — identity, network, endpoint, DNS, cloud — without custom parser work',
+      'Fleet Server enrollment auto-builds the Agency Logging Plan asset inventory and keeps it current as systems change',
       'Logstash bridges legacy syslog, Windows Event Forwarding, and OT/ICS sources that can\'t run native agents',
-      'Osquery pack captures hardware, software, and network state across every enrolled endpoint at enrollment time',
+      'Osquery pack captures hardware (HWAM), software (SWAM), network interface, and user account inventory on every endpoint',
     ],
     covers: ['L1 — Complete Appendix B log collection', 'L2 — Full agency asset inventory in Fleet'],
   },
-  {
-    title: 'Tiered Storage + ILM',
-    subtitle: 'Retention that meets every level without manual lifecycle management',
-    color: 'blue',
-    time: 'Day 1',
-    what: [
-      'Hot/warm/cold/frozen ILM policies automatically tier data as it ages, keeping costs predictable while meeting every retention window',
-      'Snapshot policies ship immutable log copies to S3/GCS/Azure Blob, satisfying the THIRF retrievable requirement at every level',
-      'Ingest pipelines apply PII masking, field redaction, and data normalization before logs reach storage — meeting L3 sensitive data requirements',
-      'BYOK integration with agency KMS satisfies L4 encryption-at-rest requirements without re-architecting the cluster',
-    ],
-    covers: ['L1 — 6-month retrievable retention (THIRF)', 'L2 — 12-month retrievable retention (THIRF)', 'L3 — 3-month searchable (CEM) + sensitive data protections', 'L4 — 6-month searchable (CEM) + BYOK encryption'],
-  },
-  {
+  'kibana-siem': {
     title: 'Kibana SIEM + Detection Rules',
-    subtitle: 'Active monitoring, evidence dashboards, and attestation — ready on deploy',
-    color: 'yellow',
-    time: 'Days 1–7',
+    subtitle: 'Active monitoring, evidence dashboards, and ATO attestation — deployed in days',
+    color: 'blue',
     what: [
-      '11 detection rule sets (A–K) map one-to-one to every Appendix B required event category, ensuring no category goes undetected',
-      'Elasticsearch Transform aggregates alert activity into per-category coverage metrics updated every hour',
+      '11 detection rule sets (A–K) map one-to-one to every required Appendix B event category — no category goes undetected',
+      'Elasticsearch Transform aggregates alert coverage into per-category compliance metrics, refreshed every hour',
       'Compliance Attestation Dashboard answers the AO\'s question in real time: "Is your detection layer working, and can you prove it?"',
-      'Asset Coverage, Alert Coverage, Retention Compliance, and Log Management dashboards form a complete M-26-14 evidence package',
+      'Asset Coverage, Alert Coverage, Appendix B Log Coverage, Retention Compliance, and Log Management dashboards form a complete ATO evidence package',
     ],
     covers: ['L3 — Automated threat detection across all Appendix B categories', 'L3 — Real-time compliance evidence for ATO submissions'],
   },
-  {
-    title: 'Elastic ML + Threat Intelligence',
+  'elastic-ml': {
+    title: 'Elastic ML + Enrichment',
     subtitle: 'Behavioral detection and IoC matching — the L3 differentiators',
-    color: 'purple',
-    time: 'Days 7–30',
+    color: 'yellow',
     what: [
       'ML anomaly detection jobs run continuously against a 6-month baseline, surfacing behavioral outliers that rule-based detection misses',
       'IoC matching checks live event streams against STIX/TAXII threat feeds and the CISA Known Exploited Vulnerabilities catalog in real time',
       'Risk-score transforms aggregate ML signals and rule alerts into prioritized, correlated findings before SOC triage',
       'Datafeed jobs refresh model state continuously so the anomaly baseline adapts to seasonal and organizational changes automatically',
     ],
-    covers: ['L3 — Automated anomaly and behavioral detection (CEM)', 'L3 — Real-time IoC matching (STIX/TAXII/CISA KEV)', 'L4 — Risk-scored, correlated alert feed'],
+    covers: ['L3 — Automated anomaly and behavioral detection (CEM)', 'L3 — Real-time IoC matching (STIX/TAXII/CISA KEV)', 'L4 — Risk-scored correlated alert feed'],
   },
-  {
+  'cross-cluster': {
     title: 'Cross-Cluster Search + Federated Architecture',
     subtitle: 'Enterprise-scale and multi-agency logging for Level 4',
     color: 'coral',
-    time: 'Scale phase',
     what: [
-      'Cross-Cluster Search lets a top-level SOC query all distributed agency log stores from a single Kibana instance — no data movement required',
+      'Cross-Cluster Search lets a top-level SOC query all distributed agency log stores from a single Kibana — no data movement required',
       'USNO/NIST-traceable NTP timestamps enforced across all agents and nodes produce tamper-evident forensic timelines',
-      'On-prem, cloud cold, and cloud object storage tiers compose into hybrid L4 architectures without re-deploying existing clusters',
+      'On-prem, cloud cold, and object storage tiers compose into hybrid L4 architectures without re-deploying existing clusters',
       'Documented log-sharing configuration satisfies the annual CISA/FBI drill requirement with a tested, reproducible runbook',
     ],
-    covers: ['L4 — Federated, distributed logging architecture', 'L4 — Tamper-evident log integrity (NTP-synchronized timestamps)', 'L4 — Documented CISA/FBI log sharing procedure'],
+    covers: ['L4 — Federated distributed logging architecture', 'L4 — Tamper-evident log integrity (NTP-synchronized timestamps)', 'L4 — Documented CISA/FBI log sharing procedure'],
   },
+}
+
+const PHASES = [
+  { label: 'Day 1',      color: 'teal',   capIds: ['deploy-elastic', 'tiered-storage', 'agent-fleet'] },
+  { label: 'Days 2–7',   color: 'blue',   capIds: ['kibana-siem'] },
+  { label: 'Days 7–30',  color: 'yellow', capIds: ['elastic-ml'] },
+  { label: 'Ongoing',    color: 'coral',  capIds: ['cross-cluster'] },
 ]
 
 const COLOR = {
@@ -357,8 +371,9 @@ export default function CompliancePage() {
           <p className="mt-4 text-lg text-text-muted leading-relaxed">
             Most agencies treat M-26-14 compliance as a multi-year integration project. It doesn't have to be.
             Elastic's core platform — log collection, tiered storage, SIEM detection, and ML anomaly detection — maps
-            directly to every technical requirement across Levels 1 through 3. Deploy once, activate the compliance pack,
-            and your technical posture is compliance-ready from day one.
+            directly to every technical requirement across Levels 1 through 3.{' '}
+            <span className="text-text-primary font-semibold">Deploy once, activate the compliance pack,
+            and your technical posture is compliance-ready from day one.</span>
           </p>
         </div>
       </section>
@@ -369,9 +384,9 @@ export default function CompliancePage() {
           <button
             key={i}
             onClick={() => setActiveTab(i)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`px-5 py-3 text-base font-medium transition-colors border-b-2 -mb-px ${
               activeTab === i
-                ? 'border-accent-teal text-accent-teal'
+                ? 'border-accent-blue text-accent-blue font-semibold'
                 : 'border-transparent text-text-muted hover:text-text-primary hover:border-line'
             }`}
           >
@@ -387,7 +402,7 @@ export default function CompliancePage() {
         style={{ height: 'calc(100vh - 300px)', minHeight: 500 }}
       >
         {/* Tab 0 — Compliance in Days */}
-        <div className={activeTab === 0 ? 'p-1 space-y-3' : 'hidden'}>
+        <div className={activeTab === 0 ? 'p-1' : 'hidden'}>
           <ComplianceInDaysTab />
         </div>
 
@@ -414,46 +429,62 @@ export default function CompliancePage() {
 // ─── Tab 0: Compliance in Days ─────────────────────────────────────────────────
 
 function ComplianceInDaysTab() {
-  return CAPABILITIES.map((cap) => {
-    const c = COLOR[cap.color]
-    return (
-      <div key={cap.title}
-        className={`rounded-lg bg-ink-800 border ${c.border} flex gap-0 overflow-hidden`}
-        style={{ borderStyle: 'solid' }}
-      >
-        <div className={`w-1 shrink-0 ${c.bar}`} />
-        <div className="flex flex-1 gap-5 p-5 items-start flex-wrap md:flex-nowrap">
-          <div className="shrink-0 w-28 pt-0.5">
-            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${c.badge}`}
-              style={{ borderStyle: 'solid' }}>
-              {cap.time}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className={`text-base font-semibold ${c.text}`}>{cap.title}</p>
-            <p className="text-sm text-text-muted mb-3 mt-0.5">{cap.subtitle}</p>
-            <ul className="space-y-1.5 mb-4">
-              {cap.what.map((w, i) => (
-                <li key={i} className="flex gap-2.5 text-sm text-text-primary leading-relaxed">
-                  <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
-                  {w}
-                </li>
-              ))}
-            </ul>
-            <div className="flex gap-2 flex-wrap">
-              {cap.covers.map((cv, i) => (
-                <span key={i}
-                  className="text-xs px-2.5 py-1 rounded bg-accent-green/10 text-accent-green border border-accent-green/30 font-medium"
-                  style={{ borderStyle: 'solid' }}>
-                  ✓ {cv}
-                </span>
-              ))}
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-full items-start">
+      {PHASES.map((phase) => {
+        const pc = COLOR[phase.color]
+        const caps = phase.capIds.map(id => CAPABILITIES[id]).filter(Boolean)
+        return (
+          <div key={phase.label} className="flex flex-col gap-3">
+            {/* Phase header */}
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border ${pc.badge}`}
+                style={{ borderStyle: 'solid' }}>
+                {phase.label}
+              </span>
+              <div className={`flex-1 h-px ${pc.bar} opacity-30`} />
             </div>
+
+            {/* Capability cards stacked in this phase */}
+            {caps.map((cap) => {
+              const c = COLOR[cap.color]
+              return (
+                <div key={cap.title}
+                  className={`rounded-lg bg-ink-800 border ${c.border} flex flex-col overflow-hidden`}
+                  style={{ borderStyle: 'solid' }}
+                >
+                  <div className={`h-0.5 w-full ${c.bar}`} />
+                  <div className="p-4 flex flex-col gap-3 flex-1">
+                    <div>
+                      <p className={`text-sm font-semibold ${c.text}`}>{cap.title}</p>
+                      <p className="text-xs text-text-muted mt-0.5 leading-snug">{cap.subtitle}</p>
+                    </div>
+                    <ul className="space-y-1.5">
+                      {cap.what.map((w, i) => (
+                        <li key={i} className="flex gap-2 text-xs text-text-primary leading-relaxed">
+                          <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
+                          {w}
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="flex gap-1.5 flex-wrap mt-auto pt-1">
+                      {cap.covers.map((cv, i) => (
+                        <span key={i}
+                          className="text-[10px] px-2 py-0.5 rounded bg-accent-green/10 text-accent-green border border-accent-green/30 font-medium"
+                          style={{ borderStyle: 'solid' }}>
+                          ✓ {cv}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        </div>
-      </div>
-    )
-  })
+        )
+      })}
+    </div>
+  )
 }
 
 // ─── Tab 1: Coverage Matrix ────────────────────────────────────────────────────
