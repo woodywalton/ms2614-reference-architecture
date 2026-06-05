@@ -6,6 +6,7 @@ import LevelView from './components/LevelView.jsx'
 import MaturityView from './components/MaturityView.jsx'
 import AssetInventory from './components/AssetInventory.jsx'
 import DeploymentOptions from './components/DeploymentOptions.jsx'
+import CompliancePage from './components/CompliancePage.jsx'
 
 function MaturitySizeRedirect() {
   const { size } = useParams()
@@ -17,8 +18,14 @@ export default function App() {
     <div className="min-h-screen bg-ink-900 text-text-primary pb-8">
       <Nav />
       <Routes>
-        {/* Overview / home */}
-        <Route path="/" element={<Overview />} />
+        {/* Compliance — home */}
+        <Route path="/" element={<CompliancePage />} />
+
+        {/* Requirements (former Overview) */}
+        <Route path="/requirements" element={<Overview />} />
+
+        {/* Legacy redirect */}
+        <Route path="/compliance" element={<Navigate to="/" replace />} />
 
         {/* Maturity × org-size view */}
         <Route path="/maturity" element={<Navigate to="/maturity/small/1" replace />} />
