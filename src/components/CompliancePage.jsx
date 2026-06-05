@@ -390,13 +390,15 @@ export default function CompliancePage() {
           const tc = TAB_COLORS[i]
           const isActive = activeTab === i
           const isHovered = hoveredTab === i
-          let bgColor, textColor
+          let bgColor, textColor, border
           if (isActive) {
             bgColor = isHovered ? `${tc.active}dd` : tc.active
             textColor = '#FFFFFF'
+            border = 'none'
           } else {
-            bgColor = isHovered ? `${tc.active}25` : `${tc.active}12`
+            bgColor = isHovered ? `${tc.active}18` : 'transparent'
             textColor = tc.active
+            border = 'none'
           }
           return (
             <button
@@ -404,8 +406,8 @@ export default function CompliancePage() {
               onClick={() => setActiveTab(i)}
               onMouseEnter={() => setHoveredTab(i)}
               onMouseLeave={() => setHoveredTab(-1)}
-              className="rounded-lg border-2 px-4 py-3 text-center font-medium text-lg transition-all"
-              style={{ backgroundColor: bgColor, borderColor: tc.active, color: textColor, borderStyle: 'solid' }}
+              className="rounded-lg px-4 py-3 text-center font-medium text-lg transition-all"
+              style={{ backgroundColor: bgColor, color: textColor, border }}
             >
               {tab.label}
             </button>
