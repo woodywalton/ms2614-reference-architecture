@@ -34,7 +34,7 @@ export default function LevelView() {
   const { theme } = useTheme()
 
   return (
-    <main className="mx-auto max-w-[1800px] px-6 py-8 space-y-6">
+    <main className="mx-auto max-w-[1800px] px-8 py-10 space-y-6">
       <header className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-text-primary">{meta.name}</h1>
