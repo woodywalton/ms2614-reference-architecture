@@ -8,7 +8,7 @@ const TABS = [
   { label: 'Achieve Compliance in Days' },
   { label: 'Coverage Matrix' },
   { label: 'Deployment-Ready Assets' },
-  { label: "What Can't Elastic Do?" },
+  { label: "What's Not Covered?" },
 ]
 
 // EUI Borealis vis color pairs — [active, light] per tab
@@ -23,7 +23,7 @@ const TAB_COLORS = [
 const LEVEL_BADGE = {
   L1: 'bg-accent-teal/10 text-accent-teal border-accent-teal/40',
   L2: 'bg-accent-blue/10 text-accent-blue border-accent-blue/40',
-  L3: 'bg-accent-yellow/10 text-accent-yellow border-accent-yellow/40',
+  L3: 'bg-accent-purple/10 text-accent-purple border-accent-purple/40',
   L4: 'bg-accent-coral/10 text-accent-coral border-accent-coral/40',
 }
 
@@ -70,7 +70,7 @@ const CAPABILITIES = {
   'elastic-ml': {
     title: 'Elastic ML + Enrichment',
     subtitle: 'Behavioral detection and IoC matching — the L3 differentiators',
-    color: 'yellow',
+    color: 'pink',
     what: [
       'ML anomaly detection jobs run continuously against a 6-month baseline, surfacing behavioral outliers that rule-based detection misses',
       'IoC matching checks live event streams against STIX/TAXII threat feeds and the CISA Known Exploited Vulnerabilities catalog in real time',
@@ -108,6 +108,7 @@ const COLOR = {
   coral:  { text: 'text-accent-coral',  border: 'border-accent-coral/40',  badge: 'bg-accent-coral/15 text-accent-coral border-accent-coral/40',   dot: 'bg-accent-coral',  bar: 'bg-accent-coral'  },
   gray:   { text: 'text-text-muted',    border: 'border-line',             badge: 'bg-ink-700 text-text-muted border-line',                        dot: 'bg-text-muted',    bar: 'bg-line'          },
   green:  { text: 'text-accent-green',  border: 'border-accent-green/40',  badge: 'bg-accent-green/15 text-accent-green border-accent-green/40',   dot: 'bg-accent-green',  bar: 'bg-accent-green'  },
+  pink:   { text: 'text-accent-purple',     border: 'border-accent-purple/40',     badge: 'bg-accent-purple/15 text-accent-purple border-accent-purple/40',            dot: 'bg-accent-purple',     bar: 'bg-accent-purple'     },
 }
 
 // ─── Coverage matrix data (Tab 1) ─────────────────────────────────────────────
@@ -255,8 +256,6 @@ const ARCH_LAYERS = [
     color: 'gray',
     desc: 'Log-producing systems — endpoints, servers, network devices, cloud workloads, SaaS. Enrolled via Fleet; legacy and OT sources bridged via Logstash.',
     assetIds: [],
-    emptyNote: 'Enrolled via Fleet integrations — no deployable file assets in this pack for this layer',
-    scrollTo: 'collection',
   },
   {
     id: 'collection',
@@ -287,7 +286,7 @@ const ARCH_LAYERS = [
   {
     id: 'cem',
     label: 'CEM',
-    color: 'yellow',
+    color: 'purple',
     desc: 'Continuous Event Monitoring — compliance dashboards, Appendix B detection rules, ML anomaly detection jobs, and datafeeds providing real-time threat visibility.',
     assetIds: [
       'dash-maturity-overview', 'dash-asset-coverage', 'dash-alert-coverage', 'dash-appendix-b-coverage', 'dash-compliance-attestation',
@@ -312,34 +311,105 @@ const ARCH_LAYERS = [
   },
 ]
 
+// ─── Source integration references (Sources layer) ────────────────────────────
+
+const SOURCE_REFS = [
+  {
+    group: 'Elastic Agent Integrations',
+    groupHref: 'https://www.elastic.co/integrations',
+    items: [
+      { name: 'Elastic Defend',                   cats: 'A–K',     desc: 'Native EDR — endpoint process, file, network, and registry telemetry covering all Appendix B categories', href: 'https://docs.elastic.co/integrations/endpoint' },
+      { name: 'Okta',                              cats: 'A',       desc: 'Identity events, SSO federation, MFA events, account lifecycle', href: 'https://docs.elastic.co/integrations/okta' },
+      { name: 'Microsoft Entra ID (Azure AD)',      cats: 'A',       desc: 'Azure AD auth events, conditional access logs, identity lifecycle', href: 'https://docs.elastic.co/integrations/azure' },
+      { name: 'Windows Event Log',                 cats: 'A, D',    desc: 'Auth success/failure, privilege escalation, process creation (Event ID 4688)', href: 'https://docs.elastic.co/integrations/windows' },
+      { name: 'Linux auditd',                      cats: 'C, D',    desc: 'System call auditing, file access events, privilege changes', href: 'https://docs.elastic.co/integrations/auditd' },
+      { name: 'Osquery Manager',                   cats: 'E, Plan', desc: 'HWAM/SWAM asset inventory, network interface state, local user accounts — populates Agency Logging Plan', href: 'https://docs.elastic.co/integrations/osquery_manager' },
+      { name: 'Zeek',                              cats: 'B, K',    desc: 'Full network session metadata, DNS query/response logs, protocol analysis', href: 'https://docs.elastic.co/integrations/zeek' },
+      { name: 'Suricata',                          cats: 'F, G',    desc: 'IDS/IPS alerts, network-based IoC detection, protocol anomalies', href: 'https://docs.elastic.co/integrations/suricata' },
+      { name: 'AWS (CloudTrail, VPC Flow, S3)',     cats: 'C, E',    desc: 'Cloud resource access, infrastructure change events, VPC network flow logs', href: 'https://docs.elastic.co/integrations/aws' },
+      { name: 'Microsoft Azure (Activity, Monitor)', cats: 'C, E',  desc: 'Azure management plane events, resource changes, activity audit trail', href: 'https://docs.elastic.co/integrations/azure' },
+      { name: 'Google Cloud (Audit, VPC)',          cats: 'C, E',    desc: 'GCP audit logs, VPC flow logs, cloud infrastructure access events', href: 'https://docs.elastic.co/integrations/gcp' },
+      { name: 'CrowdStrike Falcon',                cats: 'F',       desc: 'EDR process behavioral detections, threat intelligence, device events', href: 'https://docs.elastic.co/integrations/crowdstrike' },
+      { name: 'SentinelOne',                       cats: 'F',       desc: 'Endpoint protection alerts, behavioral detections, response actions', href: 'https://docs.elastic.co/integrations/sentinel_one' },
+      { name: 'Microsoft Defender',                cats: 'F',       desc: 'M365 Defender endpoint and identity protection alerts', href: 'https://docs.elastic.co/integrations/microsoft_defender_endpoint' },
+      { name: 'Threat Intel (MISP / STIX / TAXII)', cats: 'G',      desc: 'IoC indicator feeds — IP, domain, hash, URL for real-time matching against event streams', href: 'https://docs.elastic.co/integrations/ti_misp' },
+    ],
+  },
+  {
+    group: 'Beats Modules',
+    groupHref: 'https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-modules.html',
+    items: [
+      { name: 'Filebeat — System',           cats: 'A, J',    desc: 'Linux syslog, auth.log, application error and crash events', href: 'https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-module-system.html' },
+      { name: 'Filebeat — Cisco ASA / FTD',  cats: 'B',       desc: 'Firewall session logs, VPN events from Cisco ASA and Firepower appliances', href: 'https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-module-cisco.html' },
+      { name: 'Filebeat — Palo Alto Networks', cats: 'B, F',  desc: 'NGFW traffic, threat, and URL filtering event logs', href: 'https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-module-panw.html' },
+      { name: 'Winlogbeat',                  cats: 'A, D, H', desc: 'Windows Security, System, and Application event channels; supports WEF-forwarded events', href: 'https://www.elastic.co/guide/en/beats/winlogbeat/current/index.html' },
+      { name: 'Packetbeat',                  cats: 'B, K',    desc: 'Wire-level DNS, HTTP, TLS, and database protocol analysis', href: 'https://www.elastic.co/guide/en/beats/packetbeat/current/index.html' },
+      { name: 'Auditbeat',                   cats: 'C, D',    desc: 'Linux auditd kernel events, file integrity monitoring, process and user tracking', href: 'https://www.elastic.co/guide/en/beats/auditbeat/current/index.html' },
+    ],
+  },
+  {
+    group: 'Logstash Input Plugins',
+    groupHref: 'https://www.elastic.co/guide/en/logstash/current/input-plugins.html',
+    items: [
+      { name: 'logstash-input-syslog', cats: 'A–K', desc: 'RFC 5424/3164 receiver — bridges legacy network devices, OT/ICS sources, and mainframes that cannot run native agents', href: 'https://www.elastic.co/guide/en/logstash/current/plugins-inputs-syslog.html' },
+      { name: 'logstash-input-beats',  cats: 'A–K', desc: 'Receives events from any Beats shipper; enables WEF-forwarded Winlogbeat and legacy pipeline migration', href: 'https://www.elastic.co/guide/en/logstash/current/plugins-inputs-beats.html' },
+      { name: 'logstash-input-kafka',  cats: 'A–K', desc: 'High-throughput ingest from existing Kafka-based log pipelines (SIEM migrations, multi-tenant environments)', href: 'https://www.elastic.co/guide/en/logstash/current/plugins-inputs-kafka.html' },
+      { name: 'logstash-input-jdbc',   cats: 'C',   desc: 'Polls SQL databases for object/resource access audit events (Category C)', href: 'https://www.elastic.co/guide/en/logstash/current/plugins-inputs-jdbc.html' },
+      { name: 'logstash-input-s3',     cats: 'C, E', desc: 'Pulls CloudTrail, VPC flow, and S3 access logs from S3-compatible object storage', href: 'https://www.elastic.co/guide/en/logstash/current/plugins-inputs-s3.html' },
+    ],
+  },
+]
+
 // ─── Agency obligations (Tab 3) ───────────────────────────────────────────────
 
 const OBLIGATIONS = [
   {
     title: 'Agency Logging Plan',
     when: 'Within 90 days of LRA',
-    desc: 'A documented plan identifying every log source in scope, current coverage gaps, and your inventory methodology. Fleet enrollment data and this asset pack populate the evidence — but writing and submitting the plan is your agency\'s obligation.',
+    desc: 'A documented plan identifying every log source in scope, current coverage gaps, and your inventory methodology. Writing and submitting the plan is your agency\'s obligation — no platform can do it for you.',
+    assist: 'Fleet enrollment auto-builds and continuously maintains the asset inventory that populates your Logging Plan. The Asset Coverage dashboard exports a ready-to-attach evidence report with per-source coverage status, enrollment gaps, and Appendix B category mapping.',
   },
   {
     title: 'Data Classification Policy',
     when: 'Before L3 deployment',
-    desc: 'Ingest pipelines apply PII masking when configured — but you must define which fields are sensitive under your agency\'s data classification schema and which redaction rules apply to each data type.',
+    desc: 'You must define which fields are sensitive under your agency\'s data classification schema, which redaction rules apply to each data type, and how PII is handled before it reaches searchable storage.',
+    assist: 'Elastic\'s ingest pipelines include configurable redact, hash, and drop processors ready to apply your policy the moment it\'s defined. Field-level security in Elasticsearch restricts access to sensitive fields per role, and the Sensitive Data Protection dashboard tracks masking coverage across all log sources.',
   },
   {
     title: 'Log Source Gap Remediation',
     when: 'Ongoing',
-    desc: 'Elastic Agent covers every major Appendix B category, but you must ensure every applicable system is enrolled. Edge-case sources — legacy mainframes, custom OT systems, air-gapped networks — require agency-specific integration work.',
+    desc: 'Elastic Agent covers every major Appendix B category, but you must ensure every applicable system in your environment is enrolled. Edge-case sources — legacy mainframes, custom OT systems, air-gapped enclaves — require agency-specific integration work.',
+    assist: 'The Log Coverage Gap dashboard surfaces every Appendix B category that has stopped receiving events, the Asset Coverage report shows un-enrolled hosts, and the compliance pack includes Logstash pipeline templates for syslog, WEF, and OT/ICS bridging to minimize custom integration work.',
   },
   {
     title: 'CISA / FBI Log Sharing Procedure',
     when: 'Before L4 attestation',
-    desc: 'Level 4 requires a documented, annually-tested procedure for producing logs on request to CISA and the FBI. This is a governance runbook, not a technical configuration — your ISSO and General Counsel own it.',
+    desc: 'Level 4 requires a documented, annually-tested procedure for producing logs on request to CISA and the FBI. This is a governance runbook — your ISSO, General Counsel, and mission owner own it, not your logging platform.',
+    assist: 'The Cross-Cluster Search configuration and CISA/FBI Export dashboard provide the technical mechanism for on-demand log export. The compliance pack includes a runbook template with the required data elements, test-drill checklist, and evidence capture steps — ready to be adapted to your agency\'s governance process.',
+  },
+  {
+    title: 'Authority to Operate (ATO)',
+    when: 'Per FISMA cycle',
+    desc: 'The ATO is your agency\'s formal authorization to operate the logging system under FISMA. Elastic provides the technical evidence — but the risk acceptance decision, system security plan, and authorization package belong to your Authorizing Official.',
+    assist: 'The Compliance Attestation Dashboard, Alert Coverage report, Retention Compliance view, and Appendix B Log Coverage dashboard together form a pre-structured ATO evidence package. All are exportable as PDF-ready Kibana reports and map directly to the control families auditors check.',
+  },
+  {
+    title: 'Incident Response Procedures',
+    when: 'Ongoing',
+    desc: 'Elastic detects and triages threats — but declaring an incident, activating your IR team, notifying stakeholders, and coordinating with CISA under CIRCIA requires organizational procedures and trained personnel that no logging platform can substitute for.',
+    assist: 'Elastic Security\'s case management, alert escalation workflows, and timeline investigation view accelerate response once an incident is declared. Detection rules can be mapped to your IR playbooks so analysts have the relevant runbook steps surfaced alongside each alert.',
+  },
+  {
+    title: 'Privacy Impact Assessment (PIA)',
+    when: 'Before L3 deployment',
+    desc: 'Systems that collect or process PII require a PIA under the Privacy Act and OMB A-130. Your agency\'s privacy officer must assess the logging system before L3 deployment — Elastic can\'t complete this assessment on your behalf.',
+    assist: 'Elastic\'s data inventory and field-level security features provide the artifact inputs a PIA requires: a documented list of PII fields collected, the masking and access controls applied, and which roles can query sensitive data. The ingest pipeline configuration serves as the technical evidence annex.',
   },
 ]
 
 // ─── Shared level colors ───────────────────────────────────────────────────────
 
-const LEVEL_HEAD_COLORS = ['text-accent-teal', 'text-accent-teal', 'text-accent-yellow', 'text-accent-coral']
+const LEVEL_HEAD_COLORS = ['text-accent-teal', 'text-accent-blue', 'text-accent-purple', 'text-accent-coral']
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -356,43 +426,51 @@ export default function CompliancePage() {
     <main className="mx-auto max-w-[1800px] px-6 py-8 flex flex-col gap-6">
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section className="flex items-start justify-between gap-8 flex-wrap">
-        <div className="w-full">
-          <span className="inline-block text-xs font-bold uppercase tracking-widest text-accent-teal px-3 py-1 rounded-full bg-accent-teal/10 border border-accent-teal/30 mb-5"
-            style={{ borderStyle: 'solid' }}>
-            M-26-14 Compliance Accelerator
-          </span>
-          <div className="flex items-end justify-between gap-6 flex-wrap">
+      <section>
+        <span className="inline-block text-xs font-bold uppercase tracking-widest text-accent-teal px-3 py-1 rounded-full bg-accent-teal/10 border border-accent-teal/30 mb-5"
+          style={{ borderStyle: 'solid' }}>
+          M-26-14 Compliance Accelerator
+        </span>
+        <div className="flex items-start justify-between gap-8 flex-wrap">
+          <div className="flex flex-col gap-4 flex-1 min-w-0">
             <h1 className="text-4xl font-bold text-text-primary leading-tight">
               Deploy Elastic,&nbsp;<span className="text-accent-teal">Leapfrog to Level 3.</span>
             </h1>
+            <p className="text-lg text-text-muted leading-relaxed">
+              Most agencies treat M-26-14 compliance as a multi-year integration project. It doesn't have to be.
+              Elastic's core platform — log collection, tiered storage, SIEM detection, and ML anomaly detection — maps
+              directly to every technical requirement across Levels 1 through 3.{' '}
+              <span className="text-text-primary font-semibold">Deploy once, activate the compliance pack,
+              and your technical posture is compliance-ready from day one.</span>
+            </p>
+          </div>
+          <div className="shrink-0 flex flex-col gap-2 items-end">
+            <Link
+              to="/maturity/small/1"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-accent-teal/50 bg-accent-teal/10 text-accent-teal font-semibold hover:bg-accent-teal/20 transition-colors text-sm whitespace-nowrap"
+              style={{ borderStyle: 'solid' }}
+            >
+              View reference architecture diagrams →
+            </Link>
             <Link
               to="/asset-inventory"
-              className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-lg border border-accent-blue/50 bg-accent-blue/10 text-accent-blue font-semibold hover:bg-accent-blue/20 transition-colors text-sm mb-1"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-accent-blue/50 bg-accent-blue/10 text-accent-blue font-semibold hover:bg-accent-blue/20 transition-colors text-sm whitespace-nowrap"
               style={{ borderStyle: 'solid' }}
             >
               Browse deployment-ready assets →
             </Link>
           </div>
-          <p className="mt-4 text-lg text-text-muted leading-relaxed">
-            Most agencies treat M-26-14 compliance as a multi-year integration project. It doesn't have to be.
-            Elastic's core platform — log collection, tiered storage, SIEM detection, and ML anomaly detection — maps
-            directly to every technical requirement across Levels 1 through 3.{' '}
-            <span className="text-text-primary font-semibold">Deploy once, activate the compliance pack,
-            and your technical posture is compliance-ready from day one.</span>
-          </p>
         </div>
       </section>
 
       {/* ── Tab bar ───────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-4 gap-3">
         {TABS.map((tab, i) => {
-          const tc = TAB_COLORS[i]
           const isActive = activeTab === i
           const isHovered = hoveredTab === i
           const bgColor = isActive
-            ? (isHovered ? `${tc.active}dd` : tc.active)
-            : (isHovered ? `${tc.active}18` : 'transparent')
+            ? (isHovered ? 'rgb(var(--accent-blue) / 0.82)' : 'rgb(var(--accent-blue) / 1)')
+            : (isHovered ? 'rgb(var(--accent-blue) / 0.10)' : 'transparent')
           return (
             <button
               key={i}
@@ -415,7 +493,7 @@ export default function CompliancePage() {
         style={{ height: 'calc(100vh - 300px)', minHeight: 500 }}
       >
         {/* Tab 0 — Compliance in Days */}
-        <div className={activeTab === 0 ? 'p-1' : 'hidden'}>
+        <div className={activeTab === 0 ? 'p-1 pb-10' : 'hidden'}>
           <ComplianceInDaysTab />
         </div>
 
@@ -430,7 +508,7 @@ export default function CompliancePage() {
         </div>
 
         {/* Tab 3 — Obligations */}
-        <div className={activeTab === 3 ? 'p-1' : 'hidden'}>
+        <div className={activeTab === 3 ? 'p-1 pb-10' : 'hidden'}>
           <ObligationsTab />
         </div>
       </div>
@@ -460,44 +538,87 @@ function ComplianceInDaysTab() {
 
             {/* Cards fill column height equally */}
             <div className="flex flex-col gap-3 flex-1">
-              {caps.map((cap) => {
-                const c = COLOR[cap.color]
-                return (
-                  <div key={cap.title}
-                    className={`rounded-lg bg-ink-800 border ${c.border} flex flex-col overflow-hidden flex-1`}
-                    style={{ borderStyle: 'solid' }}
-                  >
-                    <div className={`h-1 w-full ${c.bar}`} />
-                    <div className="p-5 flex flex-col gap-4 flex-1">
-                      <div>
-                        <p className={`text-base font-bold ${c.text}`}>{cap.title}</p>
-                        <p className="text-sm text-text-muted mt-1 leading-snug">{cap.subtitle}</p>
-                      </div>
-                      <ul className="space-y-2 flex-1">
-                        {cap.what.map((w, i) => (
-                          <li key={i} className="flex gap-2.5 text-sm text-text-primary leading-relaxed">
-                            <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
-                            {w}
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="flex gap-1.5 flex-wrap pt-1">
-                        {cap.covers.map((cv, i) => {
-                          const lvl = cv.substring(0, 2)
-                          const lc = LEVEL_BADGE[lvl] ?? 'bg-ink-700 text-text-muted border-line'
-                          return (
-                            <span key={i}
-                              className={`text-xs px-2 py-0.5 rounded border font-medium ${lc}`}
-                              style={{ borderStyle: 'solid' }}>
-                              ✓ {cv}
-                            </span>
-                          )
-                        })}
+              {caps.length === 1 ? (
+                (() => {
+                  const cap = caps[0]
+                  const c = COLOR[cap.color]
+                  return (
+                    <div className={`rounded-lg bg-ink-800 border ${c.border} flex flex-col overflow-hidden flex-1`}
+                      style={{ borderStyle: 'solid' }}>
+                      <div className={`h-1 w-full ${c.bar}`} />
+                      <div className="p-5 flex flex-col gap-4 flex-1">
+                        <div>
+                          <p className={`text-base font-bold ${c.text}`}>{cap.title}</p>
+                          <p className="text-sm text-text-muted mt-1 leading-snug">{cap.subtitle}</p>
+                        </div>
+                        <ul className="space-y-2 flex-1">
+                          {cap.what.map((w, i) => (
+                            <li key={i} className="flex gap-2.5 text-sm text-text-primary leading-relaxed">
+                              <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
+                              {w}
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="flex gap-1.5 flex-wrap pt-1">
+                          {cap.covers.map((cv, i) => {
+                            const lvl = cv.substring(0, 2)
+                            const lc = LEVEL_BADGE[lvl] ?? 'bg-ink-700 text-text-muted border-line'
+                            return (
+                              <span key={i}
+                                className={`text-xs px-2 py-0.5 rounded border font-medium ${lc}`}
+                                style={{ borderStyle: 'solid' }}>
+                                ✓ {cv}
+                              </span>
+                            )
+                          })}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })()
+              ) : (
+                (() => {
+                  const c = COLOR[caps[0].color]
+                  return (
+                    <div className={`rounded-lg bg-ink-800 border ${c.border} flex flex-col overflow-hidden flex-1`}
+                      style={{ borderStyle: 'solid' }}>
+                      <div className={`h-1 w-full ${c.bar}`} />
+                      {caps.map((cap, ci) => (
+                        <React.Fragment key={cap.title}>
+                          {ci > 0 && <div className="border-t border-line/40 mx-5" />}
+                          <div className="p-5 flex flex-col gap-4 flex-1">
+                            <div>
+                              <p className={`text-base font-bold ${c.text}`}>{cap.title}</p>
+                              <p className="text-sm text-text-muted mt-1 leading-snug">{cap.subtitle}</p>
+                            </div>
+                            <ul className="space-y-2 flex-1">
+                              {cap.what.map((w, i) => (
+                                <li key={i} className="flex gap-2.5 text-sm text-text-primary leading-relaxed">
+                                  <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} />
+                                  {w}
+                                </li>
+                              ))}
+                            </ul>
+                            <div className="flex gap-1.5 flex-wrap pt-1">
+                              {cap.covers.map((cv, i) => {
+                                const lvl = cv.substring(0, 2)
+                                const lc = LEVEL_BADGE[lvl] ?? 'bg-ink-700 text-text-muted border-line'
+                                return (
+                                  <span key={i}
+                                    className={`text-xs px-2 py-0.5 rounded border font-medium ${lc}`}
+                                    style={{ borderStyle: 'solid' }}>
+                                    ✓ {cv}
+                                  </span>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  )
+                })()
+              )}
             </div>
           </div>
         )
@@ -627,16 +748,20 @@ function CoverageMatrixTab() {
 
 function AssetsTab({ scrollRef, active }) {
   const [activeLayer, setActiveLayer] = useState('collection')
+  const [openSections, setOpenSections] = useState(() =>
+    Object.fromEntries(ARCH_LAYERS.map(l => [l.id, true]))
+  )
   const sectionRefs = useRef({})
 
-  // IntersectionObserver on the scroll container
+  const toggleSection = useCallback((id) => {
+    setOpenSections(prev => ({ ...prev, [id]: !prev[id] }))
+  }, [])
+
   useEffect(() => {
     if (!active || !scrollRef.current) return
     const root = scrollRef.current
     const observers = []
-
     ARCH_LAYERS.forEach(layer => {
-      if (!layer.assetIds.length) return
       const el = sectionRefs.current[layer.id]
       if (!el) return
       const obs = new IntersectionObserver(
@@ -646,13 +771,11 @@ function AssetsTab({ scrollRef, active }) {
       obs.observe(el)
       observers.push(obs)
     })
-
     return () => observers.forEach(obs => obs.disconnect())
   }, [active, scrollRef])
 
   const scrollToLayer = useCallback((layer) => {
-    const targetId = layer.scrollTo ?? layer.id
-    const el = sectionRefs.current[targetId]
+    const el = sectionRefs.current[layer.id]
     if (el && scrollRef.current) {
       const containerTop = scrollRef.current.getBoundingClientRect().top
       const elTop = el.getBoundingClientRect().top
@@ -662,88 +785,112 @@ function AssetsTab({ scrollRef, active }) {
 
   return (
     <div>
-      {/* Sticky arch layer cards */}
+      {/* Sticky arch layer nav */}
       <div className="sticky top-0 z-10 bg-ink-900 pt-1 pb-3 px-1 border-b border-line">
         <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
           {ARCH_LAYERS.map(layer => {
             const c = COLOR[layer.color]
-            const isActive = activeLayer === layer.id || (layer.scrollTo === activeLayer)
-            const hasAssets = layer.assetIds.length > 0
+            const isActive = activeLayer === layer.id
+            const itemCount = layer.id === 'sources'
+              ? SOURCE_REFS.reduce((n, g) => n + g.items.length, 0)
+              : layer.assetIds.length
             return (
               <button
                 key={layer.id}
                 onClick={() => scrollToLayer(layer)}
-                className={`rounded-lg border px-3 py-2.5 text-left transition-all ${
+                className={`rounded-lg border px-4 py-4 text-left transition-all ${
                   isActive
                     ? `${c.border} ${c.badge} shadow-sm`
                     : 'border-line bg-ink-800 text-text-muted hover:border-line hover:bg-ink-700'
                 }`}
                 style={{ borderStyle: 'solid' }}
               >
-                <div className="flex items-center justify-between gap-1 mb-0.5">
-                  <span className={`text-xs font-bold ${isActive ? c.text : 'text-text-primary'}`}>{layer.label}</span>
-                  {hasAssets && (
-                    <span className={`text-[10px] font-mono ${isActive ? c.text : 'text-text-muted'}`}>
-                      {layer.assetIds.length}
-                    </span>
+                <div className="flex items-center justify-between gap-1 mb-1.5">
+                  <span className={`text-sm font-bold ${isActive ? c.text : 'text-text-primary'}`}>{layer.label}</span>
+                  {itemCount > 0 && (
+                    <span className={`text-xs font-mono ${isActive ? c.text : 'text-text-muted'}`}>{itemCount}</span>
                   )}
                 </div>
-                <p className="text-[10px] text-text-muted leading-tight line-clamp-2">{layer.desc.split(' — ')[0]}</p>
+                <p className="text-xs text-text-muted leading-snug line-clamp-2">{layer.desc.split(' — ')[0]}</p>
               </button>
             )
           })}
         </div>
       </div>
 
-      {/* Asset sections */}
-      <div className="px-1 pt-4 pb-6 space-y-8">
+      {/* Accordion sections */}
+      <div className="px-1 pt-4 pb-12 space-y-1">
         {ARCH_LAYERS.map(layer => {
-          const c = COLOR[layer.color]
-          const assets = layer.assetIds.map(id => ASSET_FILE_MAP[id]).filter(Boolean)
+          const assets = layer.id === 'sources' ? [] : layer.assetIds.map(id => ASSET_FILE_MAP[id]).filter(Boolean)
+          const itemCount = layer.id === 'sources'
+            ? SOURCE_REFS.reduce((n, g) => n + g.items.length, 0)
+            : assets.length
+          const isOpen = openSections[layer.id]
 
           return (
             <section key={layer.id} ref={el => sectionRefs.current[layer.id] = el}>
-              {/* Section header */}
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`w-2 h-2 rounded-full ${c.dot}`} />
-                <h3 className={`text-sm font-bold ${c.text}`}>{layer.label}</h3>
-                <div className="flex-1 h-px bg-line/50" />
-                <span className="text-xs text-text-muted">{assets.length || 'no'} assets</span>
-              </div>
-              <p className="text-sm text-text-muted leading-relaxed mb-3 pl-5">{layer.desc}</p>
+              {/* Accordion header */}
+              <button
+                onClick={() => toggleSection(layer.id)}
+                className="w-full flex items-center gap-2 py-3 text-left"
+              >
+                <svg
+                  className={`w-4 h-4 text-text-muted transition-transform duration-150 shrink-0 ${isOpen ? 'rotate-90' : ''}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+                <h3 className="text-base font-semibold text-text-primary">{layer.label}</h3>
+                <div className="flex-1 h-px bg-line/50 mx-1" />
+                <span className="text-xs text-text-muted">
+                  {layer.id === 'sources' ? `${itemCount} integrations` : `${itemCount || 'no'} assets`}
+                </span>
+              </button>
 
-              {assets.length === 0 ? (
-                <div className="ml-5 rounded-lg border border-dashed border-line px-4 py-3">
-                  <p className="text-xs text-text-muted italic">{layer.emptyNote}</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 pl-5">
-                  {assets.map(asset => {
-                    const typeMeta = ASSET_TYPE_META[asset.type] ?? { label: asset.type, color: 'text-text-muted', bg: 'bg-ink-700 border-line' }
-                    return (
-                      <div key={asset.id}
-                        className="rounded-lg bg-ink-800 border border-line px-3 py-2.5 flex flex-col gap-1.5"
-                        style={{ borderStyle: 'solid' }}
-                      >
-                        <div className="flex items-start gap-2">
-                          <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0 ${typeMeta.bg} ${typeMeta.color}`}
-                            style={{ borderStyle: 'solid' }}>
-                            {typeMeta.label}
-                          </span>
-                          <div className="flex gap-1 flex-wrap shrink-0">
-                            {asset.levels.map(l => (
-                              <span key={l} className="text-[9px] px-1 py-0.5 rounded bg-ink-700 text-text-muted border border-line/50"
-                                style={{ borderStyle: 'solid' }}>
-                                L{l}
-                              </span>
-                            ))}
+              {isOpen && (
+                <div className="pb-4">
+                  <p className="text-sm text-text-muted leading-relaxed mb-4 ml-6">{layer.desc}</p>
+
+                  {layer.id === 'sources' ? (
+                    <div className="ml-6 space-y-6">
+                      {SOURCE_REFS.map(group => (
+                        <div key={group.group}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-semibold text-text-primary">{group.group}</span>
+                            <a href={group.groupHref} target="_blank" rel="noopener noreferrer"
+                              className="text-[10px] text-accent-blue hover:underline">
+                              docs ↗
+                            </a>
                           </div>
+                          {group.items.map((item, ii) => (
+                            <div key={item.name}
+                              className={`flex items-start gap-3 py-2.5 ${ii < group.items.length - 1 ? 'border-b border-line/30' : ''}`}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <a href={item.href} target="_blank" rel="noopener noreferrer"
+                                    className="text-sm font-semibold text-text-primary hover:text-accent-blue transition-colors">
+                                    {item.name}
+                                  </a>
+                                  <span className="text-[10px] font-mono text-text-muted bg-ink-700 border border-line/50 px-1.5 py-0.5 rounded"
+                                    style={{ borderStyle: 'solid' }}>
+                                    App B: {item.cats}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-text-muted leading-relaxed mt-0.5">{item.desc}</p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <p className="text-xs font-semibold text-text-primary leading-snug">{asset.label}</p>
-                        <p className="text-xs text-text-muted leading-relaxed">{asset.desc}</p>
-                      </div>
-                    )
-                  })}
+                      ))}
+                    </div>
+                  ) : assets.length === 0 ? (
+                    <div className="ml-6 rounded-lg border border-dashed border-line px-4 py-3">
+                      <p className="text-xs text-text-muted italic">No assets in this layer.</p>
+                    </div>
+                  ) : (
+                    <AssetTypeGroups assets={assets} />
+                  )}
                 </div>
               )}
             </section>
@@ -754,29 +901,88 @@ function AssetsTab({ scrollRef, active }) {
   )
 }
 
+const ASSET_LEVEL_COLORS = {
+  1: 'bg-accent-teal/10 text-accent-teal border-accent-teal/30',
+  2: 'bg-accent-blue/10 text-accent-blue border-accent-blue/30',
+  3: 'bg-accent-purple/10 text-accent-purple border-accent-purple/30',
+  4: 'bg-accent-coral/10 text-accent-coral border-accent-coral/30',
+}
+
+function AssetTypeGroups({ assets }) {
+  const order = []
+  const map = {}
+  assets.forEach(a => {
+    if (!map[a.type]) { map[a.type] = []; order.push(a.type) }
+    map[a.type].push(a)
+  })
+
+  return (
+    <div className="ml-6 space-y-5">
+      {order.map(type => {
+        const typeMeta = ASSET_TYPE_META[type] ?? { label: type, color: 'text-text-muted', bg: 'bg-ink-700 border-line' }
+        const typeAssets = map[type]
+        return (
+          <div key={type}>
+            <div className="mb-2">
+              <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${typeMeta.bg} ${typeMeta.color}`}
+                style={{ borderStyle: 'solid' }}>
+                {typeMeta.label}
+              </span>
+            </div>
+            {typeAssets.map((asset, ai) => (
+              <div key={asset.id}
+                className={`py-2.5 ${ai < typeAssets.length - 1 ? 'border-b border-line/30' : ''}`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <p className="text-sm font-semibold text-text-primary leading-snug flex-1">{asset.label}</p>
+                  <div className="flex gap-1 shrink-0">
+                    {asset.levels.map(l => (
+                      <span key={l}
+                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded border whitespace-nowrap ${ASSET_LEVEL_COLORS[l] ?? 'bg-ink-700 text-text-muted border-line'}`}
+                        style={{ borderStyle: 'solid' }}>
+                        L{l}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-xs text-text-muted leading-relaxed mt-0.5">{asset.desc}</p>
+              </div>
+            ))}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ─── Tab 3: Obligations ────────────────────────────────────────────────────────
 
 function ObligationsTab() {
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border border-accent-yellow/30 bg-accent-yellow/5 px-5 py-4" style={{ borderStyle: 'solid' }}>
-        <h2 className="text-base font-semibold text-accent-yellow mb-1">What Can't Elastic Do?</h2>
+    <div className="space-y-5">
+      <div className="px-1 pb-2">
+        <h2 className="text-2xl font-bold text-text-primary mb-2">What Can't Elastic Do?</h2>
         <p className="text-base text-text-muted leading-relaxed">
           Elastic satisfies the technical requirements. M-26-14 also imposes operational and documentation
-          obligations that stay with your agency regardless of platform choice.
+          obligations that stay with your agency regardless of platform choice. Below is what your agency
+          owns — and where Elastic can help reduce the burden.
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {OBLIGATIONS.map((o) => (
-          <div key={o.title} className="rounded-lg bg-ink-800 border border-line p-5" style={{ borderStyle: 'solid' }}>
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <p className="text-base font-semibold text-accent-yellow leading-snug">{o.title}</p>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/30 shrink-0 whitespace-nowrap"
+          <div key={o.title} className="rounded-lg bg-ink-800 border border-line p-5 flex flex-col gap-3" style={{ borderStyle: 'solid' }}>
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-base font-semibold text-text-primary leading-snug">{o.title}</p>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-ink-700 text-text-muted border border-line shrink-0 whitespace-nowrap"
                 style={{ borderStyle: 'solid' }}>
                 {o.when}
               </span>
             </div>
             <p className="text-sm text-text-muted leading-relaxed">{o.desc}</p>
+            <div className="border-t border-line/40 pt-3">
+              <p className="text-xs font-semibold text-accent-teal uppercase tracking-wider mb-1.5">How Elastic helps</p>
+              <p className="text-sm text-text-primary leading-relaxed">{o.assist}</p>
+            </div>
           </div>
         ))}
       </div>

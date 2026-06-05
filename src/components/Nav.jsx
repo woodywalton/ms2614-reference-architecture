@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../ThemeContext.jsx'
 import logoColor from '../img/logo-elastic-horizontal-color.svg'
@@ -43,6 +43,7 @@ export default function Nav() {
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
   const headerRef = useRef(null)
+  const [printablesOpen, setPrintablesOpen] = useState(false)
 
   useEffect(() => {
     const el = headerRef.current
@@ -57,6 +58,7 @@ export default function Nav() {
   const isHome = location.pathname === '/'
 
   return (
+    <>
     <header ref={headerRef} className="sticky top-0 z-50 border-b border-line bg-ink-900/95 backdrop-blur">
       <div className="mx-auto max-w-[1800px] px-6 py-4 flex items-center gap-6">
         {/* Logo + title */}
@@ -115,21 +117,116 @@ export default function Nav() {
           </button>
 
           {/* Printables */}
-          <span className="px-1 text-text-muted/40 text-xs select-none">|</span>
-          <Link
-            to="/printables"
-            className={
-              `flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium transition-colors ` +
-              (location.pathname.startsWith('/printables')
-                ? 'bg-accent-teal/15 text-accent-teal'
-                : 'text-text-muted hover:text-text-primary hover:bg-ink-700')
-            }
+          <button
+            onClick={() => setPrintablesOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium transition-colors text-text-muted hover:text-text-primary hover:bg-ink-700"
           >
             <span>Printables</span>
             <DocumentsIcon />
-          </Link>
+          </button>
         </div>
       </div>
     </header>
+
+    {printablesOpen && (
+      <PrintablesFlyout onClose={() => setPrintablesOpen(false)} />
+    )}
+    </>
+  )
+}
+
+const PRINTABLE_PERSONAS = [
+  {
+    title: 'CISO / Executive',
+    description: 'High-level compliance posture summary, maturity roadmap, and budget-impact overview for leadership briefings.',
+    detail: 'L1–L4 overview · timeline · cost model',
+    href: 'https://www.whitehouse.gov/wp-content/uploads/2026/05/m-26-14.pdf',
+  },
+  {
+    title: 'ISSO / Compliance Officer',
+    description: 'Full technical requirements by level — Appendix B log categories, retention windows, and control mappings.',
+    detail: 'Appendix B · retention tables · control matrix',
+    href: 'https://www.whitehouse.gov/wp-content/uploads/2026/05/m-26-14.pdf',
+  },
+  {
+    title: 'System / Platform Administrator',
+    description: 'Deployment checklists, sizing tables, and step-by-step Elastic configuration guidance for each maturity level.',
+    detail: 'Sizing · deploy steps · Fleet config',
+    href: 'https://www.whitehouse.gov/wp-content/uploads/2026/05/m-26-14.pdf',
+  },
+  {
+    title: 'Auditor / Authorizing Official',
+    description: 'Evidence collection guide, audit trail requirements, and THIRF retrieval SLA reference for ATO review.',
+    detail: 'Evidence mapping · THIRF SLAs · ATO checklist',
+    href: 'https://www.whitehouse.gov/wp-content/uploads/2026/05/m-26-14.pdf',
+  },
+]
+
+function PrintablesFlyout({ onClose }) {
+  const overlayRef = useRef(null)
+
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-[100] flex justify-end"
+      onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
+    >
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+
+      {/* Panel */}
+      <div className="relative w-full max-w-md h-full bg-ink-900 border-l border-line shadow-2xl flex flex-col overflow-y-auto"
+        style={{ borderStyle: 'solid' }}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-line/40">
+          <div className="flex items-center gap-2 text-text-primary font-semibold text-lg">
+            <DocumentsIcon />
+            <span>Printable Reference Guides</span>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded hover:bg-ink-700 text-text-muted hover:text-text-primary transition-colors"
+            aria-label="Close"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M2.293 2.293a1 1 0 0 1 1.414 0L8 6.586l4.293-4.293a1 1 0 1 1 1.414 1.414L9.414 8l4.293 4.293a1 1 0 0 1-1.414 1.414L8 9.414l-4.293 4.293a1 1 0 0 1-1.414-1.414L6.586 8 2.293 3.707a1 1 0 0 1 0-1.414Z"/>
+            </svg>
+          </button>
+        </div>
+
+        <p className="px-6 pt-4 pb-2 text-sm text-text-muted leading-relaxed">
+          Persona-tailored printable guides for M-26-14 — each tuned to the level of technical
+          detail appropriate for the audience.
+        </p>
+
+        {/* Persona cards */}
+        <div className="flex flex-col gap-3 px-6 py-4">
+          {PRINTABLE_PERSONAS.map((p) => (
+            <a
+              key={p.title}
+              href={p.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-ink-800 p-5 flex flex-col gap-2 hover:bg-ink-700 transition-colors group"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-semibold text-text-primary">{p.title}</span>
+                <svg className="w-4 h-4 text-text-muted group-hover:text-text-primary transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </div>
+              <p className="text-sm text-text-muted leading-relaxed">{p.description}</p>
+              <p className="text-xs text-text-muted/60 italic">{p.detail}</p>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }
