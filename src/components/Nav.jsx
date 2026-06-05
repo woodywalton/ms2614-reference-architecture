@@ -26,8 +26,9 @@ const SunIcon = () => (
 )
 
 const NAV_ITEMS = [
-  { label: 'Maturity Levels',    to: '/maturity/small/1', matchPrefix: '/maturity' },
-  { label: 'Asset Inventory',    to: '/asset-inventory',  matchPrefix: '/asset-inventory' },
+  { label: 'Compliance',         to: '/compliance',        matchPrefix: '/compliance' },
+  { label: 'Maturity Levels',    to: '/maturity/small/1',  matchPrefix: '/maturity' },
+  { label: 'Asset Inventory',    to: '/asset-inventory',   matchPrefix: '/asset-inventory' },
   { label: 'Deployment Options', to: '/deployment-options', matchPrefix: '/deployment-options' },
 ]
 

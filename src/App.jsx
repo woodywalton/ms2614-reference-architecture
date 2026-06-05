@@ -6,6 +6,7 @@ import LevelView from './components/LevelView.jsx'
 import MaturityView from './components/MaturityView.jsx'
 import AssetInventory from './components/AssetInventory.jsx'
 import DeploymentOptions from './components/DeploymentOptions.jsx'
+import CompliancePage from './components/CompliancePage.jsx'
 
 function MaturitySizeRedirect() {
   const { size } = useParams()
@@ -28,6 +29,9 @@ export default function App() {
         {/* Per-level detail view (existing) */}
         <Route path="/level/:id" element={<Navigate to="small" replace />} />
         <Route path="/level/:id/:size" element={<LevelView />} />
+
+        {/* Compliance story page */}
+        <Route path="/compliance" element={<CompliancePage />} />
 
         {/* Browse nav stub pages */}
         <Route path="/asset-inventory" element={<AssetInventory />} />
