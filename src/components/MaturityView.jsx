@@ -96,6 +96,12 @@ export default function MaturityView() {
         <div className="grid grid-cols-4 gap-2 flex-1">
           {LEVELS.map((lvl) => {
             const isActive = lvl.id === levelNum
+            const LC = {
+              1: { active: 'border-accent-teal/60   bg-accent-teal/15   text-accent-teal',   hover: 'hover:border-accent-teal/30   hover:bg-accent-teal/5'   },
+              2: { active: 'border-accent-blue/60   bg-accent-blue/15   text-accent-blue',   hover: 'hover:border-accent-blue/30   hover:bg-accent-blue/5'   },
+              3: { active: 'border-accent-purple/60 bg-accent-purple/15 text-accent-purple', hover: 'hover:border-accent-purple/30 hover:bg-accent-purple/5' },
+              4: { active: 'border-accent-coral/60  bg-accent-coral/15  text-accent-coral',  hover: 'hover:border-accent-coral/30  hover:bg-accent-coral/5'  },
+            }[lvl.id]
             return (
               <Link
                 key={lvl.id}
@@ -104,8 +110,8 @@ export default function MaturityView() {
                 className={
                   `block rounded-lg border px-4 py-3 text-center text-base font-semibold transition-colors ` +
                   (isActive
-                    ? 'border-accent-teal/60 bg-accent-teal/15 text-accent-teal'
-                    : 'border-line bg-ink-800 text-text-muted hover:border-accent-teal/30 hover:bg-accent-teal/5 hover:text-text-primary')
+                    ? LC.active
+                    : `border-line bg-ink-800 text-text-muted ${LC.hover} hover:text-text-primary`)
                 }
               >
                 {lvl.name}
@@ -268,14 +274,14 @@ export default function MaturityView() {
                 to={`/maturity/${s}/${level}`}
                 replace
                 className={
-                  `block rounded-lg border px-6 py-4 text-center transition-colors ` +
+                  `block rounded-lg border px-4 py-2.5 text-center transition-colors ` +
                   (isActive
                     ? 'border-accent-blue/60 bg-accent-blue/15 text-accent-blue'
                     : 'border-line bg-ink-800 text-text-muted hover:border-accent-blue/30 hover:bg-accent-blue/5 hover:text-text-primary')
                 }
               >
-                <p className="text-base font-semibold">{SIZE_LABELS[s]}</p>
-                <p className="text-sm text-text-muted mt-0.5">{sizingTable[s].ingestRange} / day</p>
+                <p className="text-sm font-semibold">{SIZE_LABELS[s]}</p>
+                <p className="text-xs text-text-muted mt-0.5">{sizingTable[s].ingestRange} / day</p>
               </Link>
             )
           })}
@@ -381,14 +387,14 @@ function RequirementsTab({ meta, onNodeClick }) {
       </div>
 
       {/* CEM panel */}
-      <div className="rounded-lg p-3 space-y-2.5 bg-accent-yellow/5"
-        style={{ border: '1px solid rgba(212, 157, 0, 0.35)', borderStyle: 'solid' }}>
+      <div className="rounded-lg p-3 space-y-2.5 bg-accent-purple/5"
+        style={{ border: '1px solid rgba(238, 114, 166, 0.35)', borderStyle: 'solid' }}>
         <div>
-          <h3 className="text-xs font-bold tracking-wider text-accent-yellow">
+          <h3 className="text-sm font-bold tracking-wide text-accent-purple">
             CEM — <span className="font-semibold">Continuous Event Monitoring</span>
           </h3>
           {meta.searchable
-            ? <p className="mt-0.5 pl-3 text-sm font-semibold text-accent-yellow/70">{meta.searchable} searchable</p>
+            ? <p className="mt-0.5 pl-3 text-sm font-semibold text-text-primary">{meta.searchable} searchable</p>
             : <p className="mt-0.5 pl-3 text-xs text-text-muted italic">Not required at this level</p>
           }
         </div>
@@ -403,10 +409,10 @@ function RequirementsTab({ meta, onNodeClick }) {
       <div className="rounded-lg p-3 space-y-2.5 bg-accent-coral/5"
         style={{ border: '1px solid rgba(207, 79, 39, 0.35)', borderStyle: 'solid' }}>
         <div>
-          <h3 className="text-xs font-bold tracking-wider text-accent-coral">
+          <h3 className="text-sm font-bold tracking-wide text-accent-coral">
             THIRF — <span className="font-semibold">Threat Hunting, Investigation, Response &amp; Forensics</span>
           </h3>
-          <p className="mt-0.5 pl-3 text-sm font-semibold text-accent-coral/70">{meta.retrievable} retrievable</p>
+          <p className="mt-0.5 pl-3 text-sm font-semibold text-text-primary">{meta.retrievable} retrievable</p>
         </div>
         {thifrContent[meta.id]}
       </div>

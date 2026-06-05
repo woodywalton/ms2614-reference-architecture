@@ -1,8 +1,7 @@
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { EuiToolTip } from '@elastic/eui'
 import { LEVELS } from '../data/levels.js'
-import { sizingTable, SIZE_ORDER } from '../data/sizing.js'
 
 export default function Overview() {
   return (
@@ -19,8 +18,8 @@ export default function Overview() {
           with two core objectives:
         </p>
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-lg border border-accent-yellow/40 bg-ink-800 p-7" style={{ borderStyle: 'solid' }}>
-            <p className="text-lg font-semibold text-accent-yellow mb-2">CEM — Continuous Event Monitoring</p>
+          <div className="rounded-lg border border-accent-purple/40 bg-ink-800 p-7" style={{ borderStyle: 'solid' }}>
+            <p className="text-lg font-semibold text-accent-purple mb-2">CEM — Continuous Event Monitoring</p>
             <p className="text-base text-text-primary leading-relaxed mb-3">
               CEM requires agencies to maintain continuous, real-time visibility into network and system
               activity across all Appendix B log categories — enabling active threat detection, timely
@@ -53,38 +52,71 @@ export default function Overview() {
         ))}
       </section>
 
-      {/* Organization Size Tiers — rows link to /maturity/:size/1 */}
-      <section className="rounded-lg border border-line bg-ink-800 p-6" style={{ borderStyle: 'solid' }}>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-text-primary mb-2">
-          Organization Size Tiers
-        </h2>
-        <p className="text-sm text-text-muted mb-4 leading-relaxed">
-          Each maturity level scales across three size tiers — Small, Medium, and Large — keyed
-          to daily ingest volume. The hot/cold/frozen node counts and S3 footprint below come
-          from Elastic's reference deployment sizing table. Select a tier to explore the full
-          architecture by level.
-        </p>
-        <SizingTable />
-        <p className="mt-3 text-sm text-text-muted italic">
-          Organizations ingesting &gt; 25 TB/day (e.g., CISA, VA) should treat the Large tier as a
-          starting point and engage Elastic Professional Services for custom sizing.
-        </p>
+      {/* Requirements summary cards */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="rounded-lg border border-line bg-ink-800 p-6 flex flex-col gap-3" style={{ borderStyle: 'solid' }}>
+          <p className="text-base font-semibold text-text-primary">Data Collection &amp; Retention</p>
+          <p className="text-sm text-text-muted leading-relaxed">
+            Agencies must collect all 11 Appendix B log categories (DNS, network flows, endpoint telemetry, auth events,
+            vulnerability scans, and more). Retention windows escalate by level:
+          </p>
+          <ul className="text-sm text-text-primary space-y-1.5">
+            <li><span className="font-semibold text-accent-teal">L1:</span> 12 months total — hot (searchable) window required</li>
+            <li><span className="font-semibold text-accent-blue">L2:</span> 18 months — add cold-tier frozen storage</li>
+            <li><span className="font-semibold text-accent-purple">L3:</span> 30 months — full tiered lifecycle (hot/warm/cold/frozen)</li>
+            <li><span className="font-semibold text-accent-coral">L4:</span> 36+ months — cross-cluster federated archival</li>
+          </ul>
+        </div>
+        <div className="rounded-lg border border-line bg-ink-800 p-6 flex flex-col gap-3" style={{ borderStyle: 'solid' }}>
+          <p className="text-base font-semibold text-text-primary">Analytics &amp; Detection</p>
+          <p className="text-sm text-text-muted leading-relaxed">
+            Real-time detection and anomaly identification requirements increase with each maturity level,
+            demanding progressively deeper SIEM and ML capability:
+          </p>
+          <ul className="text-sm text-text-primary space-y-1.5">
+            <li><span className="font-semibold text-accent-teal">L1:</span> Basic SIEM correlation rules across Appendix B sources</li>
+            <li><span className="font-semibold text-accent-blue">L2:</span> Behavioral detection + IoC matching (threat intel feeds)</li>
+            <li><span className="font-semibold text-accent-purple">L3:</span> ML anomaly detection, UEBA, automated alert triage</li>
+            <li><span className="font-semibold text-accent-coral">L4:</span> Predictive analytics, cross-agency threat sharing (ISAC)</li>
+          </ul>
+        </div>
+        <div className="rounded-lg border border-line bg-ink-800 p-6 flex flex-col gap-3" style={{ borderStyle: 'solid' }}>
+          <p className="text-base font-semibold text-text-primary">Searchability, Retrievability &amp; Shareability</p>
+          <p className="text-sm text-text-muted leading-relaxed">
+            M-26-14 mandates that log data be discoverable and shareable across security operations functions (CEM)
+            and forensic timelines (THIRF):
+          </p>
+          <ul className="text-sm text-text-primary space-y-1.5">
+            <li><span className="font-semibold text-accent-purple">CEM:</span> Hot-tier logs searchable within seconds, no retrieval step</li>
+            <li><span className="font-semibold text-accent-coral">THIRF:</span> Cold/frozen logs retrievable within defined SLA windows</li>
+            <li><span className="font-semibold text-accent-purple">L3+:</span> Cross-Cluster Search across agency boundaries</li>
+            <li><span className="font-semibold text-accent-coral">L4:</span> Federated architecture, shareable dashboards &amp; reports</li>
+          </ul>
+        </div>
       </section>
 
     </main>
   )
 }
 
+const LEVEL_BADGE_COLOR = {
+  1: { badge: 'text-accent-teal',  hover: 'hover:border-accent-teal  hover:bg-accent-teal/10  hover:ring-2 hover:ring-accent-teal/30'  },
+  2: { badge: 'text-accent-blue',  hover: 'hover:border-accent-blue  hover:bg-accent-blue/10  hover:ring-2 hover:ring-accent-blue/30'  },
+  3: { badge: 'text-accent-purple',   hover: 'hover:border-accent-purple   hover:bg-accent-purple/10   hover:ring-2 hover:ring-accent-purple/30'   },
+  4: { badge: 'text-accent-coral', hover: 'hover:border-accent-coral hover:bg-accent-coral/10 hover:ring-2 hover:ring-accent-coral/30' },
+}
+
 function LevelCard({ level }) {
+  const lc = LEVEL_BADGE_COLOR[level.id]
   return (
     <Link
       to={`/maturity/small/${level.id}`}
-      className="flex flex-col rounded-lg border border-line bg-ink-800 p-5 hover:border-accent-teal hover:bg-accent-teal/10 hover:ring-2 hover:ring-accent-teal/30 transition-all"
+      className={`flex flex-col rounded-lg border border-line bg-ink-800 p-5 transition-all ${lc.hover}`}
       style={{ borderStyle: 'solid' }}
     >
       <div className="flex items-baseline justify-between">
         <h3 className="text-lg font-semibold text-text-primary">{level.name}</h3>
-        <span className="text-xs font-semibold text-accent-teal">L{level.id}</span>
+        <span className={`text-xs font-semibold ${lc.badge}`}>L{level.id}</span>
       </div>
       <p className="mt-1 text-sm text-text-muted">Due: {level.deadline}</p>
 
@@ -93,7 +125,7 @@ function LevelCard({ level }) {
           label="Searchable"
           tooltip="Immediately accessible with no additional retrieval step (CEM)"
           value={level.searchable ?? '— not required'}
-          valueColor={level.searchable ? 'text-accent-yellow' : null}
+          valueColor={level.searchable ? 'text-accent-purple' : null}
         />
         <Row
           label="Retrievable"
@@ -127,62 +159,23 @@ function Row({ label, tooltip, value, valueColor }) {
   )
 }
 
-function SizingTable() {
-  const navigate = useNavigate()
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-base border-collapse">
-        <thead>
-          <tr className="text-left text-xs uppercase tracking-wider text-text-muted">
-            <th className="border-b border-line py-2 pr-4 pl-4">Size</th>
-            <th className="border-b border-line py-2 pr-4">Daily ingest</th>
-            <th className="border-b border-line py-2 pr-4">Hot nodes</th>
-            <th className="border-b border-line py-2 pr-4">
-              Cold nodes{' '}
-              <span className="text-xs normal-case italic text-text-muted">(L3 / L4)</span>
-            </th>
-            <th className="border-b border-line py-2 pr-4">Frozen nodes</th>
-            <th className="border-b border-line py-2">S3 stored</th>
-          </tr>
-        </thead>
-        <tbody>
-          {SIZE_ORDER.map((key) => {
-            const s = sizingTable[key]
-            return (
-              <tr
-                key={key}
-                onClick={() => navigate(`/maturity/${key}/1`)}
-                className="text-text-primary hover:bg-accent-blue/10 transition-colors cursor-pointer"
-              >
-                <td className="border-b border-line/60 py-4 pr-4 pl-4 font-semibold text-accent-blue">{s.label}</td>
-                <td className="border-b border-line/60 py-4 pr-4">{s.ingestRange}</td>
-                <td className="border-b border-line/60 py-4 pr-4">{s.hotNodes}</td>
-                <td className="border-b border-line/60 py-4 pr-4">{s.coldNodes}</td>
-                <td className="border-b border-line/60 py-4 pr-4">{s.frozenNodes}</td>
-                <td className="border-b border-line/60 py-4">{s.s3StoredTB.toLocaleString()} TB</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
-  )
-}
 
 const MARKER_STYLES = {
-  'accent-purple': { bar: 'bg-accent-purple', text: 'text-accent-purple' },
   'accent-teal':   { bar: 'bg-accent-teal',   text: 'text-accent-teal'   },
+  'accent-blue':   { bar: 'bg-accent-blue',   text: 'text-accent-blue'   },
+  'pink':          { bar: 'bg-accent-purple',     text: 'text-accent-purple'    },
   'accent-coral':  { bar: 'bg-accent-coral',  text: 'text-accent-coral'  },
+  'gray':          { bar: 'bg-text-muted/60', text: 'text-text-muted'    },
 }
 
 function Timeline() {
   // Fixed visual positions for even spacing; day labels retain accuracy
   const markers = [
-    { pct: 14, label: 'Submit Logging Plan', detail: '90 days',  color: 'accent-purple' },
-    { pct: 30, label: 'L1',                  detail: '120 days', color: 'accent-teal'   },
-    { pct: 50, label: 'L2',                  detail: '180 days', color: 'accent-teal'   },
-    { pct: 76, label: 'L3',                  detail: '320 days', color: 'accent-teal'   },
-    { pct: 90, label: 'L4',                  detail: 'ongoing',  color: 'accent-coral'  },
+    { pct: 14, label: 'Submit Logging Plan', detail: '90 days',  color: 'gray'        },
+    { pct: 30, label: 'L1',                  detail: '120 days', color: 'accent-teal'  },
+    { pct: 50, label: 'L2',                  detail: '180 days', color: 'accent-blue'  },
+    { pct: 76, label: 'L3',                  detail: '320 days', color: 'pink'         },
+    { pct: 90, label: 'L4',                  detail: 'ongoing',  color: 'accent-coral' },
   ]
   return (
     <div className="relative pt-2 pb-10">

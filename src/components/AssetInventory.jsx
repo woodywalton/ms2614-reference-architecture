@@ -93,18 +93,26 @@ export default function AssetInventory() {
             }`}
             style={{ borderStyle: 'solid' }}
           >All</button>
-          {LEVELS.map(l => (
-            <button
-              key={l}
-              onClick={() => setFilterLevel(l === filterLevel ? null : l)}
-              className={`text-xs px-3 py-1 rounded border transition-colors ${
-                filterLevel === l
-                  ? 'border-accent-blue/60 bg-accent-blue/15 text-accent-blue'
-                  : 'border-line bg-ink-800 text-text-muted hover:border-accent-blue/30 hover:text-text-primary'
-              }`}
-              style={{ borderStyle: 'solid' }}
-            >L{l}</button>
-          ))}
+          {LEVELS.map(l => {
+            const LC = {
+              1: { active: 'border-accent-teal/60 bg-accent-teal/15 text-accent-teal',   hover: 'hover:border-accent-teal/30'  },
+              2: { active: 'border-accent-blue/60 bg-accent-blue/15 text-accent-blue',   hover: 'hover:border-accent-blue/30'  },
+              3: { active: 'border-accent-purple/60 bg-accent-purple/15 text-accent-purple',        hover: 'hover:border-accent-purple/30'   },
+              4: { active: 'border-accent-coral/60 bg-accent-coral/15 text-accent-coral', hover: 'hover:border-accent-coral/30' },
+            }[l]
+            return (
+              <button
+                key={l}
+                onClick={() => setFilterLevel(l === filterLevel ? null : l)}
+                className={`text-xs px-3 py-1 rounded border transition-colors ${
+                  filterLevel === l
+                    ? LC.active
+                    : `border-line bg-ink-800 text-text-muted ${LC.hover} hover:text-text-primary`
+                }`}
+                style={{ borderStyle: 'solid' }}
+              >L{l}</button>
+            )
+          })}
         </div>
 
         {/* Type popover */}
