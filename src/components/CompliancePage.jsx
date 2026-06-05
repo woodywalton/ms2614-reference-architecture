@@ -8,7 +8,7 @@ const TABS = [
   { label: 'Achieve Compliance in Days' },
   { label: 'Coverage Matrix' },
   { label: 'Deployment-Ready Assets' },
-  { label: "What Elastic Can't Do" },
+  { label: "What Can't Elastic Do?" },
 ]
 
 // EUI Borealis vis color pairs — [active, light] per tab
@@ -345,6 +345,7 @@ const LEVEL_HEAD_COLORS = ['text-accent-teal', 'text-accent-teal', 'text-accent-
 
 export default function CompliancePage() {
   const [activeTab, setActiveTab] = useState(0)
+  const [hoveredTab, setHoveredTab] = useState(-1)
   const scrollRef = useRef(null)
 
   useEffect(() => {
@@ -388,20 +389,23 @@ export default function CompliancePage() {
         {TABS.map((tab, i) => {
           const tc = TAB_COLORS[i]
           const isActive = activeTab === i
+          const isHovered = hoveredTab === i
+          let bgColor, textColor
+          if (isActive) {
+            bgColor = isHovered ? `${tc.active}dd` : tc.active
+            textColor = '#FFFFFF'
+          } else {
+            bgColor = isHovered ? `${tc.active}25` : `${tc.active}12`
+            textColor = tc.active
+          }
           return (
             <button
               key={i}
               onClick={() => setActiveTab(i)}
-              className="rounded-lg border-2 px-4 py-4 text-center font-bold text-xl transition-all"
-              style={isActive ? {
-                backgroundColor: tc.active,
-                borderColor: tc.active,
-                color: '#0B1628',
-              } : {
-                backgroundColor: `${tc.active}12`,
-                borderColor: tc.active,
-                color: tc.active,
-              }}
+              onMouseEnter={() => setHoveredTab(i)}
+              onMouseLeave={() => setHoveredTab(-1)}
+              className="rounded-lg border-2 px-4 py-3 text-center font-medium text-lg transition-all"
+              style={{ backgroundColor: bgColor, borderColor: tc.active, color: textColor, borderStyle: 'solid' }}
             >
               {tab.label}
             </button>
@@ -421,7 +425,7 @@ export default function CompliancePage() {
         </div>
 
         {/* Tab 1 — Coverage Matrix */}
-        <div className={activeTab === 1 ? 'p-1' : 'hidden'}>
+        <div className={activeTab === 1 ? 'h-full' : 'hidden'}>
           <CoverageMatrixTab />
         </div>
 
@@ -509,6 +513,13 @@ function ComplianceInDaysTab() {
 
 // ─── Tab 1: Coverage Matrix ────────────────────────────────────────────────────
 
+const Chevron = ({ open }) => (
+  <svg className={`w-4 h-4 text-accent-blue transition-transform duration-150 ${open ? 'rotate-90' : ''}`}
+    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+  </svg>
+)
+
 function CoverageMatrixTab() {
   const [expanded, setExpanded] = useState(new Set())
   const toggle = (i) => setExpanded(prev => {
@@ -518,24 +529,26 @@ function CoverageMatrixTab() {
   })
 
   return (
-    <div className="rounded-lg border border-line bg-ink-800 overflow-hidden" style={{ borderStyle: 'solid' }}>
-      <div className="px-5 py-4 border-b border-line">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-text-primary">Compliance Coverage Matrix</h2>
+    <div className="rounded-lg border border-line bg-ink-800 overflow-hidden flex flex-col h-full" style={{ borderStyle: 'solid' }}>
+      {/* Panel header */}
+      <div className="px-5 py-4 border-b border-line shrink-0">
+        <h2 className="text-base font-semibold text-text-primary">Compliance Coverage Matrix</h2>
         <p className="text-sm text-text-muted mt-1 leading-relaxed">
-          Each row is an M-26-14 technical requirement. ✓ = Elastic platform capability satisfies it when the corresponding asset is deployed.
-          Rows with <span className="text-accent-blue">▸</span> expand to show sub-items.
+          Each row is an M-26-14 technical requirement. ✓ = Elastic capability satisfies it when the asset is deployed.
+          Rows with a <span className="inline-flex items-center align-middle mx-0.5"><Chevron open={false} /></span> expand to show sub-items.
         </p>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="text-xs uppercase tracking-wider text-text-muted bg-ink-700/50">
-              <th className="border-b border-line py-3 pl-5 pr-4 text-left font-semibold w-10" />
-              <th className="border-b border-line py-3 pr-4 text-left font-semibold">Requirement</th>
-              <th className="border-b border-line py-3 pr-4 text-left font-semibold">Elastic Capability</th>
+      {/* Scrollable table area */}
+      <div className="overflow-auto flex-1">
+        <table className="w-full border-collapse">
+          <thead className="sticky top-0 z-10">
+            <tr className="text-xs text-text-muted bg-ink-700 border-b border-line">
+              <th className="py-3 pl-5 pr-4 text-left font-semibold w-10" />
+              <th className="py-3 pr-4 text-left font-semibold tracking-wide">Requirement</th>
+              <th className="py-3 pr-4 text-left font-semibold tracking-wide">Elastic Capability</th>
               {['L1','L2','L3','L4'].map((l, i) => (
-                <th key={l} className={`border-b border-line py-3 px-4 text-center font-semibold ${LEVEL_HEAD_COLORS[i]}`}>{l}</th>
+                <th key={l} className={`py-3 px-4 text-center font-bold text-sm ${LEVEL_HEAD_COLORS[i]}`}>{l}</th>
               ))}
             </tr>
           </thead>
@@ -543,51 +556,54 @@ function CoverageMatrixTab() {
             {MATRIX_ROWS.map((row, i) => {
               const isOpen = expanded.has(i)
               const hasExpand = row.subs?.length > 0
+              const stripe = i % 2 !== 0
               return (
                 <React.Fragment key={i}>
                   <tr
-                    className={`border-b border-line/30 transition-colors ${hasExpand ? 'cursor-pointer hover:bg-ink-700/30' : 'hover:bg-ink-700/20'}`}
+                    className={`border-b border-line/40 transition-colors ${stripe ? 'bg-ink-700/20' : ''} ${
+                      hasExpand
+                        ? 'cursor-pointer hover:bg-white/[0.06]'
+                        : 'hover:bg-white/[0.04]'
+                    }`}
                     onClick={hasExpand ? () => toggle(i) : undefined}
                   >
-                    {/* Expand indicator */}
-                    <td className="py-3 pl-5 pr-2 text-center w-10">
-                      {hasExpand && (
-                        <span className={`text-accent-blue text-xs transition-transform inline-block ${isOpen ? 'rotate-90' : ''}`}>▸</span>
-                      )}
+                    {/* Chevron */}
+                    <td className="py-4 pl-5 pr-2 w-10 align-top pt-5">
+                      {hasExpand && <Chevron open={isOpen} />}
                     </td>
                     {/* Requirement */}
-                    <td className="py-3 pr-4 align-top">
-                      <p className="text-text-primary font-medium leading-snug">{row.req}</p>
-                      <p className="text-xs text-text-muted mt-0.5 leading-relaxed">{row.reqDesc}</p>
+                    <td className="py-4 pr-4 align-top">
+                      <p className="text-sm font-semibold text-text-primary leading-snug">{row.req}</p>
+                      <p className="text-sm text-text-muted mt-1 leading-relaxed">{row.reqDesc}</p>
                     </td>
                     {/* Capability */}
-                    <td className="py-3 pr-4 align-top">
-                      <p className="text-text-primary font-mono text-xs font-semibold leading-snug">{row.cap}</p>
-                      <p className="text-xs text-text-muted mt-0.5 leading-relaxed">{row.capDesc}</p>
+                    <td className="py-4 pr-4 align-top">
+                      <p className="text-sm font-mono font-semibold text-text-primary leading-snug">{row.cap}</p>
+                      <p className="text-sm text-text-muted mt-1 leading-relaxed">{row.capDesc}</p>
                     </td>
                     {/* Level checkmarks */}
                     {row.l.map((covered, li) => (
-                      <td key={li} className="py-3 px-4 text-center align-middle">
+                      <td key={li} className="py-4 px-4 text-center align-middle">
                         {covered
-                          ? <span className="text-accent-green font-bold text-base">✓</span>
-                          : <span className="text-text-muted/20 text-base">—</span>}
+                          ? <span className="text-accent-green font-bold text-lg">✓</span>
+                          : <span className="text-text-muted/20 text-lg">—</span>}
                       </td>
                     ))}
                   </tr>
 
                   {/* Sub-rows */}
                   {isOpen && row.subs?.map((sub) => (
-                    <tr key={sub.id} className="border-b border-line/20 bg-ink-700/20">
-                      <td className="py-2 pl-5 pr-2" />
-                      <td colSpan={2} className="py-2 pr-4 pl-5">
-                        <div className="flex gap-2 items-start">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-accent-blue bg-accent-blue/10 border border-accent-blue/30 px-1.5 py-0.5 rounded shrink-0 mt-0.5"
+                    <tr key={sub.id} className="border-b border-line/20 bg-accent-blue/5">
+                      <td className="py-2.5 pl-5 pr-2" />
+                      <td colSpan={2} className="py-2.5 pr-4 pl-4">
+                        <div className="flex gap-2.5 items-start">
+                          <span className="text-[10px] font-bold text-accent-blue bg-accent-blue/10 border border-accent-blue/30 px-1.5 py-0.5 rounded shrink-0 mt-0.5"
                             style={{ borderStyle: 'solid' }}>
                             {sub.id}
                           </span>
                           <div>
-                            <p className="text-xs font-semibold text-text-primary">{sub.name.replace(/^[A-K]\s—\s/, '')}</p>
-                            <p className="text-xs text-text-muted leading-relaxed">{sub.desc}</p>
+                            <p className="text-sm font-semibold text-text-primary leading-snug">{sub.name.replace(/^[A-K]\s—\s/, '')}</p>
+                            <p className="text-sm text-text-muted leading-relaxed">{sub.desc}</p>
                           </div>
                         </div>
                       </td>
@@ -601,7 +617,8 @@ function CoverageMatrixTab() {
         </table>
       </div>
 
-      <div className="px-5 py-3 border-t border-line/50">
+      {/* Footer */}
+      <div className="px-5 py-3 border-t border-line/50 shrink-0">
         <p className="text-xs text-text-muted italic">
           ✓ = Requirement satisfied when the corresponding Elastic asset is deployed and configured. Requirements at higher levels also apply to all preceding levels.
         </p>
@@ -693,7 +710,7 @@ function AssetsTab({ scrollRef, active }) {
               {/* Section header */}
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-2 h-2 rounded-full ${c.dot}`} />
-                <h3 className={`text-sm font-bold uppercase tracking-widest ${c.text}`}>{layer.label}</h3>
+                <h3 className={`text-sm font-bold ${c.text}`}>{layer.label}</h3>
                 <div className="flex-1 h-px bg-line/50" />
                 <span className="text-xs text-text-muted">{assets.length || 'no'} assets</span>
               </div>
@@ -747,7 +764,7 @@ function ObligationsTab() {
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-accent-yellow/30 bg-accent-yellow/5 px-5 py-4" style={{ borderStyle: 'solid' }}>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-accent-yellow mb-1">What Elastic Can't Do For You</h2>
+        <h2 className="text-base font-semibold text-accent-yellow mb-1">What Can't Elastic Do?</h2>
         <p className="text-base text-text-muted leading-relaxed">
           Elastic satisfies the technical requirements. M-26-14 also imposes operational and documentation
           obligations that stay with your agency regardless of platform choice.
