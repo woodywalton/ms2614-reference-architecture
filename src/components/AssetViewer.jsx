@@ -1,10 +1,13 @@
 // Slide-over flyout for viewing compliance pack asset files.
 // NDJSON files render as individual expandable JSON blocks.
 // JSON/YAML files render as a single syntax-highlighted block.
+// Screenshot preview and inline markdown doc viewer included.
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { ASSET_FILE_MAP, ASSET_TYPE_META, classifyNdjsonLine } from '../data/assets.js'
 
 const MIN_WIDTH = 400
@@ -20,8 +23,12 @@ export default function AssetViewer({ assetId, onClose }) {
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
+  const [screenshotExpanded, setScreenshotExpanded] = useState(true)
+  // docView: null = JSON content, or { file, label } = doc being viewed
+  const [docView, setDocView] = useState(null)
+  const [docText, setDocText] = useState(null)
+  const [docLoading, setDocLoading] = useState(false)
 
-  // Drag-to-resize state (refs avoid stale closures in mousemove)
   const dragRef = useRef({ active: false, startX: 0, startWidth: 0 })
 
   const onResizeStart = useCallback((e) => {
@@ -41,12 +48,15 @@ export default function AssetViewer({ assetId, onClose }) {
     window.addEventListener('mouseup', onUp)
   }, [panelWidth])
 
-  // Fetch file when assetId changes
+  // Fetch asset file when assetId changes
   useEffect(() => {
     if (!asset) { setRawText(null); return }
     setLoading(true)
     setError(null)
     setRawText(null)
+    setDocView(null)
+    setDocText(null)
+    setScreenshotExpanded(true)
     fetch(asset.file)
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
@@ -56,13 +66,33 @@ export default function AssetViewer({ assetId, onClose }) {
       .catch(e => { setError(e.message); setLoading(false) })
   }, [assetId])
 
+  // Fetch doc when docView changes
+  useEffect(() => {
+    if (!docView) { setDocText(null); return }
+    if (docView.file.endsWith('.pdf')) return // PDFs open externally
+    setDocLoading(true)
+    setDocText(null)
+    fetch(docView.file)
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.text()
+      })
+      .then(t => { setDocText(t); setDocLoading(false) })
+      .catch(() => setDocLoading(false))
+  }, [docView])
+
   // Escape key
   useEffect(() => {
     if (!open) return
-    const handler = e => { if (e.key === 'Escape') onClose() }
+    const handler = e => {
+      if (e.key === 'Escape') {
+        if (docView) setDocView(null)
+        else onClose()
+      }
+    }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [open, onClose])
+  }, [open, onClose, docView])
 
   const handleCopy = useCallback(() => {
     if (!rawText) return
@@ -86,11 +116,24 @@ export default function AssetViewer({ assetId, onClose }) {
     setTimeout(() => URL.revokeObjectURL(url), 500)
   }, [rawText, asset])
 
+  const openDocExternal = useCallback((doc) => {
+    window.open(doc.file, '_blank', 'noopener')
+  }, [])
+
+  const downloadDoc = useCallback((doc) => {
+    const a = document.createElement('a')
+    a.href = doc.file
+    a.download = doc.file.split('/').pop()
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }, [])
+
   const typeMeta = asset ? (ASSET_TYPE_META[asset.type] ?? { label: asset.type, color: 'text-text-muted', bg: 'bg-ink-700 border-line' }) : null
 
   return (
     <>
-      {/* Backdrop — full viewport, nav sits above it (z-50) */}
+      {/* Backdrop */}
       <div
         className={`fixed inset-0 z-30 bg-black/50 transition-opacity ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         style={{ marginTop: 0 }}
@@ -98,7 +141,7 @@ export default function AssetViewer({ assetId, onClose }) {
         aria-hidden="true"
       />
 
-      {/* Panel — full viewport height, nav covers the top strip */}
+      {/* Panel */}
       <aside
         className={`fixed right-0 z-40 bg-ink-800 shadow-2xl
                     flex flex-col transform transition-transform duration-200 ease-out
@@ -115,7 +158,7 @@ export default function AssetViewer({ assetId, onClose }) {
         aria-modal="true"
         aria-label={asset ? `${asset.label} asset viewer` : 'Asset viewer'}
       >
-        {/* Drag-to-resize handle on left edge */}
+        {/* Drag-to-resize handle */}
         <div
           className="absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize z-10 group"
           onMouseDown={onResizeStart}
@@ -126,17 +169,34 @@ export default function AssetViewer({ assetId, onClose }) {
         {asset && (
           <>
             {/* Header */}
-            <header className="flex items-start gap-3 px-5 py-4 shrink-0"
-              style={{ borderBottom: '1px solid rgb(var(--color-line))' }}>
+            <header className="flex items-start gap-3 px-5 py-4 shrink-0">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <TypeBadge meta={typeMeta} />
-                  <span className="text-xs text-text-muted">{asset.column}</span>
-                </div>
-                <h2 className="text-base font-semibold text-text-primary leading-tight truncate">
-                  {asset.label}
-                </h2>
-                <p className="mt-1 text-xs text-text-muted font-mono truncate">{asset.file.split('/').pop()}</p>
+                {docView ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setDocView(null)}
+                      className="flex items-center gap-1.5 text-xs text-text-muted hover:text-accent-teal transition-colors"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Back to source
+                    </button>
+                    <span className="text-text-muted/40 text-xs">·</span>
+                    <span className="text-sm font-semibold text-text-primary truncate">{docView.label}</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <TypeBadge meta={typeMeta} />
+                      <span className="text-xs text-text-muted">{asset.column}</span>
+                    </div>
+                    <h2 className="text-base font-semibold text-text-primary leading-tight truncate">
+                      {asset.label}
+                    </h2>
+                    <p className="mt-1 text-xs text-text-muted font-mono truncate">{asset.file.split('/').pop()}</p>
+                  </>
+                )}
               </div>
               <button
                 onClick={onClose}
@@ -149,79 +209,128 @@ export default function AssetViewer({ assetId, onClose }) {
               </button>
             </header>
 
-            {/* Description */}
-            <div className="px-5 py-3 shrink-0 bg-ink-700/40"
-              style={{ borderBottom: '1px solid rgb(var(--color-line))' }}>
-              <p className="text-sm text-text-primary leading-relaxed">{asset.desc}</p>
-              <div className="mt-2 flex gap-2 flex-wrap">
-                {asset.levels.map(l => (
-                  <span key={l} className="text-xs px-1.5 py-0.5 rounded bg-accent-blue/15 text-accent-blue border border-accent-blue/30"
-                    style={{ borderStyle: 'solid' }}>L{l}</span>
-                ))}
-                {asset.ruleCount && (
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-accent-purple/15 text-accent-purple border border-accent-purple/30"
-                    style={{ borderStyle: 'solid' }}>{asset.ruleCount} rules</span>
-                )}
+            {/* Description + levels (hide when viewing doc) */}
+            {!docView && (
+              <div className="px-5 py-3 shrink-0 bg-ink-700/40">
+                <p className="text-sm text-text-primary leading-relaxed">{asset.desc}</p>
+                <div className="mt-2 flex gap-2 flex-wrap">
+                  {asset.levels.map(l => (
+                    <span key={l} className="text-xs px-1.5 py-0.5 rounded bg-accent-blue/15 text-accent-blue border border-accent-blue/30"
+                      style={{ borderStyle: 'solid' }}>L{l}</span>
+                  ))}
+                  {asset.ruleCount && (
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-accent-purple/15 text-accent-purple border border-accent-purple/30"
+                      style={{ borderStyle: 'solid' }}>{asset.ruleCount} rules</span>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Action bar */}
-            <div className="flex gap-2 px-5 py-2.5 shrink-0"
-              style={{ borderBottom: '1px solid rgb(var(--color-line))' }}>
-              <button
-                onClick={handleCopy}
-                disabled={!rawText}
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-line text-text-muted hover:text-text-primary hover:border-accent-blue/50 disabled:opacity-40 transition-colors"
-                style={{ borderStyle: 'solid' }}
-              >
-                {copied ? (
-                  <>
-                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                      <path d="M2 8l4 4 8-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                      <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
-                      <path d="M11 5V3.5A1.5 1.5 0 009.5 2H3.5A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" strokeWidth="1.3"/>
-                    </svg>
-                    Copy NDJSON
-                  </>
-                )}
-              </button>
-              <button
-                onClick={handleDownload}
-                disabled={!rawText}
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-line text-text-muted hover:text-text-primary hover:border-accent-blue/50 disabled:opacity-40 transition-colors"
-                style={{ borderStyle: 'solid' }}
-              >
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 2v8M5 7l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M2 12v1.5A1.5 1.5 0 003.5 15h9a1.5 1.5 0 001.5-1.5V12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-                </svg>
-                Download
-              </button>
-            </div>
+            {/* Action bar (hide when viewing doc) */}
+            {!docView && (
+              <div className="flex gap-2 px-5 py-2.5 shrink-0 flex-wrap">
+                <button
+                  onClick={handleCopy}
+                  disabled={!rawText}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-line text-text-muted hover:text-text-primary hover:border-accent-blue/50 disabled:opacity-40 transition-colors"
+                  style={{ borderStyle: 'solid' }}
+                >
+                  {copied ? (
+                    <><CopyDoneIcon /> Copied</>
+                  ) : (
+                    <><CopyIcon /> Copy</>
+                  )}
+                </button>
+                <button
+                  onClick={handleDownload}
+                  disabled={!rawText}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-line text-text-muted hover:text-text-primary hover:border-accent-blue/50 disabled:opacity-40 transition-colors"
+                  style={{ borderStyle: 'solid' }}
+                >
+                  <DownloadIcon /> Download
+                </button>
+
+                {/* Doc links */}
+                {asset.docs?.map(doc => (
+                  <div key={doc.file} className="flex items-center gap-0.5">
+                    <button
+                      onClick={() => {
+                        if (doc.file.endsWith('.pdf')) openDocExternal(doc)
+                        else setDocView(doc)
+                      }}
+                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-l border border-accent-teal/30 text-accent-teal hover:bg-accent-teal/10 transition-colors"
+                      style={{ borderStyle: 'solid', borderRightWidth: 0 }}
+                      title={doc.label}
+                    >
+                      <DocIcon isPdf={doc.file.endsWith('.pdf')} />
+                      <span className="truncate max-w-[120px]">{doc.label}</span>
+                    </button>
+                    <button
+                      onClick={() => downloadDoc(doc)}
+                      className="flex items-center px-2 py-1.5 rounded-r border border-accent-teal/30 text-accent-teal/70 hover:bg-accent-teal/10 hover:text-accent-teal transition-colors"
+                      style={{ borderStyle: 'solid' }}
+                      title={`Download ${doc.label}`}
+                    >
+                      <DownloadIcon size={11} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
-              {loading && (
-                <div className="flex items-center justify-center py-16 text-text-muted text-sm">
-                  Loading…
-                </div>
-              )}
-              {error && (
-                <div className="rounded-lg border border-accent-coral/30 bg-accent-coral/10 px-4 py-3 text-sm text-accent-coral"
-                  style={{ borderStyle: 'solid' }}>
-                  Failed to load file: {error}
-                </div>
-              )}
-              {rawText && !loading && (
-                asset.format === 'ndjson'
-                  ? <NdjsonViewer raw={rawText} />
-                  : <SingleFileViewer raw={rawText} format={asset.format} />
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2 min-h-0">
+              {docView ? (
+                /* Doc viewer */
+                <DocViewer doc={docView} text={docText} loading={docLoading} />
+              ) : (
+                <>
+                  {/* Screenshot preview */}
+                  {asset.screenshot && (
+                    <div className="rounded-lg overflow-hidden" style={{ border: '1px solid rgb(var(--color-line))' }}>
+                      <button
+                        onClick={() => setScreenshotExpanded(o => !o)}
+                        className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-ink-700 transition-colors bg-ink-700/50"
+                      >
+                        <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">Dashboard Preview</span>
+                        <svg
+                          className={`w-3 h-3 text-text-muted shrink-0 transition-transform ${screenshotExpanded ? 'rotate-180' : ''}`}
+                          viewBox="0 0 12 12" fill="none"
+                        >
+                          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                      {screenshotExpanded && (
+                        <div style={{ borderTop: '1px solid rgb(var(--color-line))' }}>
+                          <img
+                            src={asset.screenshot}
+                            alt={`${asset.label} dashboard preview`}
+                            className="w-full block"
+                            style={{ maxHeight: 300, objectFit: 'cover', objectPosition: 'top' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Source JSON/NDJSON */}
+                  {loading && (
+                    <div className="flex items-center justify-center py-16 text-text-muted text-sm">
+                      Loading…
+                    </div>
+                  )}
+                  {error && (
+                    <div className="rounded-lg border border-accent-coral/30 bg-accent-coral/10 px-4 py-3 text-sm text-accent-coral"
+                      style={{ borderStyle: 'solid' }}>
+                      Failed to load file: {error}
+                    </div>
+                  )}
+                  {rawText && !loading && (
+                    asset.format === 'ndjson'
+                      ? <NdjsonViewer raw={rawText} />
+                      : <SingleFileViewer raw={rawText} format={asset.format} />
+                  )}
+                </>
               )}
             </div>
           </>
@@ -230,6 +339,93 @@ export default function AssetViewer({ assetId, onClose }) {
     </>
   )
 }
+
+// ─── Doc Viewer ───────────────────────────────────────────────────────────────
+
+function DocViewer({ doc, text, loading }) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16 text-text-muted text-sm">
+        Loading…
+      </div>
+    )
+  }
+  if (!text) return null
+
+  return (
+    <div className="px-6 py-4
+      [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-0 [&_h1]:mb-6 [&_h1]:text-text-primary [&_h1]:leading-tight
+      [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:text-text-primary [&_h2]:leading-snug
+      [&_h3]:text-base [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-text-primary
+      [&_h4]:text-sm [&_h4]:font-semibold [&_h4]:mt-4 [&_h4]:mb-1 [&_h4]:text-text-primary
+      [&_p]:text-sm [&_p]:text-text-primary [&_p]:leading-relaxed [&_p]:mb-4
+      [&_a]:text-accent-teal [&_a]:no-underline [&_a:hover]:underline
+      [&_strong]:text-text-primary [&_strong]:font-semibold
+      [&_code]:text-accent-blue [&_code]:bg-ink-700 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono
+      [&_pre]:bg-ink-900 [&_pre]:rounded-lg [&_pre]:p-4 [&_pre]:text-xs [&_pre]:overflow-x-auto [&_pre]:my-4
+      [&_li]:text-sm [&_li]:text-text-primary [&_li]:my-1 [&_li]:leading-relaxed
+      [&_ul]:my-4 [&_ul]:pl-5 [&_ul]:list-disc
+      [&_ol]:my-4 [&_ol]:pl-5 [&_ol]:list-decimal
+      [&_blockquote]:border-l-2 [&_blockquote]:border-accent-teal/50 [&_blockquote]:pl-4 [&_blockquote]:my-4 [&_blockquote]:text-text-muted [&_blockquote]:italic
+      [&_table]:w-full [&_table]:text-sm [&_table]:my-4 [&_table]:border-collapse
+      [&_th]:text-xs [&_th]:font-semibold [&_th]:text-text-muted [&_th]:text-left [&_th]:pb-2 [&_th]:border-b [&_th]:border-line
+      [&_td]:text-sm [&_td]:text-text-primary [&_td]:py-2 [&_td]:border-b [&_td]:border-line/30 [&_td]:align-top
+      [&_hr]:border-line [&_hr]:my-6 [&_hr]:border-t">
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        {text}
+      </ReactMarkdown>
+    </div>
+  )
+}
+
+// ─── Icon helpers ─────────────────────────────────────────────────────────────
+
+function CopyIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+      <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+      <path d="M11 5V3.5A1.5 1.5 0 009.5 2H3.5A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" strokeWidth="1.3"/>
+    </svg>
+  )
+}
+
+function CopyDoneIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+      <path d="M2 8l4 4 8-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function DownloadIcon({ size = 13 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      <path d="M8 2v8M5 7l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M2 12v1.5A1.5 1.5 0 003.5 15h9a1.5 1.5 0 001.5-1.5V12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function DocIcon({ isPdf }) {
+  if (isPdf) {
+    return (
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+        <path d="M3 2h7l3 3v9a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.3"/>
+        <path d="M10 2v4h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+        <path d="M5 9h6M5 11.5h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+      </svg>
+    )
+  }
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+      <path d="M3 2h7l3 3v9a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.3"/>
+      <path d="M10 2v4h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+      <path d="M5 7h6M5 9.5h6M5 12h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+// ─── Type badge ───────────────────────────────────────────────────────────────
 
 function TypeBadge({ meta }) {
   if (!meta) return null
@@ -240,6 +436,8 @@ function TypeBadge({ meta }) {
     </span>
   )
 }
+
+// ─── NDJSON viewer ────────────────────────────────────────────────────────────
 
 function NdjsonViewer({ raw }) {
   const lines = raw.split('\n').map(l => l.trim()).filter(Boolean)
@@ -296,8 +494,9 @@ function NdjsonBlock({ index, raw, parsed, parseErr }) {
                 lineHeight: '1.5',
                 background: 'rgb(var(--color-ink-900, 13 17 23))',
                 padding: '12px 16px',
+                overflowWrap: 'anywhere',
               }}
-              wrapLongLines={false}
+              wrapLongLines={true}
             >
               {JSON.stringify(parsed, null, 2)}
             </SyntaxHighlighter>
@@ -347,8 +546,9 @@ function SingleFileViewer({ raw, format }) {
           lineHeight: '1.5',
           background: 'rgb(var(--color-ink-900, 13 17 23))',
           padding: '16px',
+          overflowWrap: 'anywhere',
         }}
-        wrapLongLines={false}
+        wrapLongLines={true}
       >
         {display}
       </SyntaxHighlighter>

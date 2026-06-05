@@ -161,6 +161,7 @@ export default function MaturityView() {
           className="rounded-lg bg-ink-800 flex flex-col overflow-hidden"
           style={{
             border: '1px solid rgb(var(--color-line))',
+            height: 'min(800px, calc(100vh - 300px))',
           }}
         >
           {infoPanelOpen ? (
@@ -190,12 +191,19 @@ export default function MaturityView() {
               </div>
             </>
           ) : (
-            /* Narrow closed bar — expand button at bottom */
-            <div className="flex flex-col items-center justify-end h-full pb-4">
+            /* Narrow closed bar — click anywhere to expand */
+            <div
+              className="flex flex-col items-center justify-end h-full pb-4 cursor-pointer hover:bg-ink-700/30 transition-colors"
+              onClick={() => setInfoPanelOpen(true)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setInfoPanelOpen(true) }}
+              title="Expand panel"
+            >
               <button
-                onClick={() => setInfoPanelOpen(true)}
-                className="p-1.5 rounded text-text-muted hover:text-text-primary hover:bg-ink-700 transition-colors"
-                title="Expand panel"
+                className="p-1.5 rounded text-text-muted hover:text-text-primary hover:bg-ink-700 transition-colors pointer-events-none"
+                tabIndex={-1}
+                aria-hidden="true"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" role="presentation" aria-hidden="true">
                   <path d="m12.707 8-2.853 2.854-.708-.707L10.793 8.5H7v-1h3.793L9.146 5.854l.708-.708L12.707 8Z"/>
@@ -207,14 +215,14 @@ export default function MaturityView() {
         </div>
 
         {/* Right: architecture diagram with zoom controls */}
-        <div className="relative">
+        <div className="relative" style={{ height: 'min(800px, calc(100vh - 300px))' }}>
           <div
             ref={diagramRef}
             className="rounded-lg p-2 overflow-auto"
             style={{
               border: '1px solid rgb(var(--color-line))',
               backgroundColor: theme === 'dark' ? '#0B1628' : '#FFFFFF',
-              maxHeight: 'min(800px, calc(100vh - 300px))',
+              height: '100%',
             }}
           >
             <div style={{ width: `${zoom * 100}%`, margin: '0 auto' }}>
@@ -222,7 +230,7 @@ export default function MaturityView() {
             </div>
           </div>
           <div
-            className="absolute bottom-3 right-3 z-10 flex items-center rounded-lg border border-line bg-ink-800 shadow-lg overflow-hidden"
+            className="absolute top-3 right-3 z-10 flex items-center rounded-lg border border-line bg-ink-800 shadow-lg overflow-hidden"
             style={{ borderStyle: 'solid' }}
           >
             <button
