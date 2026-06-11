@@ -952,6 +952,82 @@ export const ASSET_FILES = [
     desc: 'Manual Elastic Workflow: reindexes source data into a named retained index with no-delete ILM, triggers compliance snapshot, opens legal hold Kibana Case, and records audit trail. Run before retirement lifecycle begins.',
   },
 
+  // ── Kibana Workflow — Data Classification (THIRF) ────────────────────────
+  {
+    id: 'workflow-data-classification',
+    label: 'Workflow — Data Classification Intake (Manual)',
+    column: 'THIRF',
+    type: 'kibana-workflow',
+    format: 'yaml',
+    levels: [1, 2, 3, 4],
+    file: '/assets/kibana/workflow/m2614-data-classification-intake.yaml',
+    desc: 'Manual Elastic Workflow: opens a Kibana Case for data steward review when a new unclassified index or data stream is discovered. Records classification_pending in the m2614-data-classification-requests audit index. Satisfies M-26-14 Data pillar categorization requirement.',
+  },
+
+  // ── Agent Builder Agents ──────────────────────────────────────────────────
+  {
+    id: 'agent-threat-investigation',
+    label: 'AI Agent — M-26-14 Threat Investigation',
+    column: 'THIRF',
+    type: 'kibana-agent',
+    format: 'json',
+    levels: [2, 3, 4],
+    file: '/assets/kibana/agent/m2614-threat-investigation-agent.json',
+    desc: 'Elastic Agent Builder agent: autonomously investigates security alerts by querying entity risk scores, asset inventory, related logs, and attack discoveries. Produces a structured, compliance-ready investigation summary with M-26-14 pillar/element impact mapping for the Kibana Case.',
+  },
+  {
+    id: 'agent-poam-drafting',
+    label: 'AI Agent — M-26-14 POA&M Drafting',
+    column: 'CEM',
+    type: 'kibana-agent',
+    format: 'json',
+    levels: [2, 3, 4],
+    file: '/assets/kibana/agent/m2614-poam-drafting-agent.json',
+    desc: 'Elastic Agent Builder agent: queries open compliance findings (unresolved Cases, retirement gaps, unclassified data, recurring alerts) and drafts properly formatted Plan of Action and Milestones (POA&M) entries per FISMA requirements with M-26-14 element mapping.',
+  },
+  {
+    id: 'agent-aar',
+    label: 'AI Agent — M-26-14 After-Action Report',
+    column: 'THIRF',
+    type: 'kibana-agent',
+    format: 'json',
+    levels: [2, 3, 4],
+    file: '/assets/kibana/agent/m2614-aar-agent.json',
+    desc: 'Elastic Agent Builder agent: generates compliance-ready After-Action Reports from closed Kibana Cases. Reconstructs the full incident timeline from logs, identifies affected assets and data classifications, calculates detection gap, and drafts a formal AAR in M-26-14/FISMA format.',
+  },
+
+  // ── Agent Builder Custom Tools ────────────────────────────────────────────
+  {
+    id: 'agent-tool-asset-inventory',
+    label: 'Agent Tool — M-26-14 Asset Inventory Search',
+    column: 'THIRF',
+    type: 'kibana-agent-tool',
+    format: 'json',
+    levels: [2, 3, 4],
+    file: '/assets/kibana/agent_tool/m2614-asset-inventory-search-tool.json',
+    desc: 'Custom Agent Builder index-search tool scoped to m2614-asset-canonical-*. Used by the Threat Investigation and AAR agents to look up asset criticality, data classification, ownership, and M-26-14 element mapping during investigations.',
+  },
+  {
+    id: 'agent-tool-retirement-audit',
+    label: 'Agent Tool — M-26-14 Retirement Audit ES|QL',
+    column: 'THIRF',
+    type: 'kibana-agent-tool',
+    format: 'json',
+    levels: [2, 3, 4],
+    file: '/assets/kibana/agent_tool/m2614-retirement-audit-esql-tool.json',
+    desc: 'Custom Agent Builder ES|QL tool that queries m2614-retirement-requests by state (pending_gate1, pending_gate2, legal_hold_initiated, etc.). Used by POA&M and Threat Investigation agents to surface open retirement compliance gaps.',
+  },
+  {
+    id: 'agent-tool-compliance-posture',
+    label: 'Agent Tool — M-26-14 Compliance Posture ES|QL',
+    column: 'CEM',
+    type: 'kibana-agent-tool',
+    format: 'json',
+    levels: [2, 3, 4],
+    file: '/assets/kibana/agent_tool/m2614-compliance-posture-esql-tool.json',
+    desc: 'Custom Agent Builder ES|QL tool that queries m2614-data-classification-requests and m2614-metrics-* for compliance posture metrics. Used by the POA&M Drafting and AAR agents to identify unclassified data streams and maturity score trends.',
+  },
+
   // ── Kibana Rules — Data Management (THIRF) ────────────────────────────────
   {
     id: 'rule-dm-gate1-pending',
@@ -995,7 +1071,9 @@ export const ASSET_TYPE_META = {
   'fleet-pack':        { label: 'Fleet Pack',      color: 'text-[#DD0A73]',       bg: 'bg-[#DD0A73]/10 border-[#DD0A73]/30'         },
   'es-watcher':        { label: 'ES Watcher',      color: 'text-accent-blue',     bg: 'bg-accent-blue/10 border-accent-blue/30'     },
   'slm-policy':        { label: 'SLM Policy',      color: 'text-accent-green',    bg: 'bg-accent-green/10 border-accent-green/30'   },
-  'kibana-workflow':   { label: 'Workflow',         color: 'text-[#EE72A6]',       bg: 'bg-[#EE72A6]/10 border-[#EE72A6]/30'         },
+  'kibana-workflow':   { label: 'Workflow',          color: 'text-[#EE72A6]',       bg: 'bg-[#EE72A6]/10 border-[#EE72A6]/30'         },
+  'kibana-agent':      { label: 'AI Agent',          color: 'text-[#9170FF]',       bg: 'bg-[#9170FF]/10 border-[#9170FF]/30'         },
+  'kibana-agent-tool': { label: 'Agent Tool',        color: 'text-[#7B6FD4]',       bg: 'bg-[#7B6FD4]/10 border-[#7B6FD4]/30'         },
 }
 
 // Detect which NDJSON schema a parsed line belongs to

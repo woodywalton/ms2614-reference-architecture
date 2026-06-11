@@ -16,8 +16,10 @@ const TYPE_FILTERS = [
   { type: 'ingest-pipeline', label: 'Ingest Pipeline' },
   { type: 'transform',       label: 'Transform' },
   { type: 'es-watcher',      label: 'ES Watcher' },
-  { type: 'kibana-workflow', label: 'Workflow' },
-  { type: 'fleet-pack',      label: 'Fleet Pack' },
+  { type: 'kibana-workflow',   label: 'Workflow' },
+  { type: 'kibana-agent',      label: 'AI Agent' },
+  { type: 'kibana-agent-tool', label: 'Agent Tool' },
+  { type: 'fleet-pack',        label: 'Fleet Pack' },
 ]
 
 export default function AssetInventory() {

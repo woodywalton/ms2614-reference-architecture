@@ -182,6 +182,21 @@ const MATRIX_ROWS = [
     ],
   },
 
+  {
+    phase: 1,
+    firstLevel: 2,
+    req: 'Data classification intake for new indices and data streams',
+    reqDesc: 'M-26-14 Data pillar requires agencies to categorize data and limit access based on that categorization. New indices and data streams must be classified for sensitivity before retention policies and access controls are applied.',
+    cap: 'Kibana Workflow — Data Classification Intake',
+    capDesc: 'Manual Kibana Workflow opens a Kibana Case for data steward review when a new unclassified data stream is discovered, records classification_pending in audit index, and notifies the responsible team.',
+    modalHow: 'The M-26-14 compliance pack includes a Data Classification Intake Kibana Workflow that initiates a formal classification review whenever a new index or data stream is discovered without an assigned sensitivity label. The workflow opens a Kibana Case assigned to the data steward with M-26-14 sensitivity tier guidance (public → restricted), instructions for inspecting the index and applying the appropriate ILM policy, and records a classification_pending state in the m2614-data-classification-requests audit index. The M-26-14 POA&M Drafting Agent can query this index to surface unclassified data streams as open compliance findings. Classification must be completed before default retention policies or broad access roles are applied to the new data stream.',
+    modalAssetIds: ['workflow-data-classification', 'agent-poam-drafting', 'agent-tool-compliance-posture'],
+    modalCapabilities: [
+      { name: 'Kibana Workflows', type: 'platform', desc: 'YAML-defined automation that opens a classification review Case, records audit state, and notifies the data steward team. No code required — operators update consts before running.', href: 'https://www.elastic.co/guide/en/kibana/current/workflows.html' },
+      { name: 'Kibana Cases', type: 'platform', desc: 'Traceable review interface for data steward classification decisions. Each case includes M-26-14 sensitivity tier matrix and step-by-step classification instructions.', href: 'https://www.elastic.co/guide/en/kibana/current/cases-overview.html' },
+    ],
+  },
+
   // ── Phase 2: Days 2–7 ──────────────────────────────────────────────────────
   {
     phase: 2,
@@ -292,6 +307,22 @@ const MATRIX_ROWS = [
     modalAssetIds: ['dash-maturity-overview', 'dash-asset-coverage', 'dash-alert-coverage', 'dash-appendix-b-coverage', 'dash-compliance-attestation'],
     modalCapabilities: [
       { name: 'Kibana Reporting (PDF/PNG)', type: 'platform', desc: 'Export dashboards as formatted PDFs or PNGs for ATO evidence packages and audit submissions.', href: 'https://www.elastic.co/guide/en/kibana/current/reporting-getting-started.html' },
+    ],
+  },
+
+  {
+    phase: 2,
+    firstLevel: 2,
+    req: 'AI-assisted threat investigation, POA&M drafting, and after-action reporting',
+    reqDesc: 'M-26-14 requires documented incident response, ongoing POA&M management, and auditable compliance reporting. These manual documentation burdens are the primary bottleneck for agency compliance teams.',
+    cap: 'Elastic Agent Builder — 3 AI compliance agents',
+    capDesc: 'Three pre-configured AI agents automate the most time-intensive compliance documentation tasks: threat investigation summaries, POA&M entry drafting from live findings, and after-action report generation from closed cases.',
+    modalHow: 'The M-26-14 compliance pack ships three Elastic Agent Builder agents, each pre-configured with M-26-14 context, the appropriate built-in Elastic tools, and custom ES|QL tools scoped to the compliance indices. The Threat Investigation Agent autonomously investigates security alerts — querying entity risk scores, asset inventory, related logs, and attack discoveries — and produces a structured investigation summary with M-26-14 pillar/element impact mapping, ready to attach to the Kibana Case. The POA&M Drafting Agent queries open cases, unclassified data streams, retirement audit gaps, and recurring unresolved alerts, then drafts FISMA-compliant POA&M entries with proper control references, risk ratings, milestones, and completion dates. The After-Action Report Agent reconstructs incident timelines from closed cases and log data, calculates detection gaps, maps affected assets to M-26-14 elements, and drafts a formal AAR document — reducing a 2–4 hour manual task to under 2 minutes. All three agents use custom ES|QL tools scoped to m2614-* indices for data-grounded, verifiable output. Agents are deployed via the included shell script using the Agent Builder REST API.',
+    modalAssetIds: ['agent-threat-investigation', 'agent-poam-drafting', 'agent-aar', 'agent-tool-asset-inventory', 'agent-tool-retirement-audit', 'agent-tool-compliance-posture'],
+    modalCapabilities: [
+      { name: 'Elastic Agent Builder', type: 'platform', desc: 'Custom AI agent platform with built-in tools for Elasticsearch, Kibana Cases, security alerts, entity risk scores, and Elastic Workflows. Agents are deployed via REST API with configurable system instructions and tool scoping.', href: 'https://www.elastic.co/docs/explore-analyze/ai-features/elastic-agent-builder' },
+      { name: 'Agent Builder Built-in Security Tools', type: 'platform', desc: 'security.alerts, security.entity_risk_scores, security.attack_discoveries, security.get_entity — built-in tools giving agents direct access to the Elastic Security data model.', href: 'https://www.elastic.co/docs/explore-analyze/ai-features/agent-builder/tools/builtin-tools-reference' },
+      { name: 'Workflow Integration (platform.core.get_workflow_execution_status)', type: 'platform', desc: 'Native integration between Agent Builder agents and Kibana Workflows — agents can check workflow status and resume paused workflows at human-input steps, enabling the full human-in-the-loop IR pipeline natively.', href: 'https://www.elastic.co/docs/explore-analyze/ai-features/agent-builder/tools/builtin-tools-reference' },
     ],
   },
 
