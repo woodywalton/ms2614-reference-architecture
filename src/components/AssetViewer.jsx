@@ -9,6 +9,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { ASSET_FILE_MAP, ASSET_TYPE_META, classifyNdjsonLine } from '../data/assets.js'
+import { liveClusterUrl, liveLinkIsListing } from '../data/liveLinks.js'
 
 const MIN_WIDTH = 400
 const MAX_WIDTH = 1400
@@ -250,6 +251,23 @@ export default function AssetViewer({ assetId, onClose }) {
                   <DownloadIcon /> Download
                 </button>
 
+                {/* Live demo cluster deep link */}
+                {liveClusterUrl(asset) && (
+                  <a
+                    href={liveClusterUrl(asset)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-accent-blue/40 text-accent-blue hover:bg-accent-blue/10 transition-colors"
+                    style={{ borderStyle: 'solid' }}
+                    title={liveLinkIsListing(asset)
+                      ? 'Open the live demo cluster listing page for this asset type'
+                      : 'Open this asset in the live demo cluster'}
+                  >
+                    <ExternalLinkIcon />
+                    {liveLinkIsListing(asset) ? 'Live Cluster (list)' : 'View Live'}
+                  </a>
+                )}
+
                 {/* Doc links */}
                 {asset.docs?.map(doc => (
                   <div key={doc.file} className="flex items-center gap-0.5">
@@ -393,6 +411,15 @@ function CopyDoneIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
       <path d="M2 8l4 4 8-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function ExternalLinkIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+      <path d="M6.5 3.5H3.8A1.3 1.3 0 002.5 4.8v7.4a1.3 1.3 0 001.3 1.3h7.4a1.3 1.3 0 001.3-1.3V9.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+      <path d="M9.5 2.5h4v4M13.2 2.8L7.5 8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   )
 }

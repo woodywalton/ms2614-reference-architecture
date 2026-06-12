@@ -118,6 +118,7 @@ export const ASSET_FILES = [
     format: 'ndjson',
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/dashboard/m2614-hwam-overview.ndjson',
+    screenshot: '/screenshots/08-hwam-overview.png',
     desc: 'M-26-14 Element 1 primary view: total assets, Element 1/2 coverage KPIs, OS platform distribution, HWAM source coverage, unmanaged and stale device tables.',
   },
   {
@@ -128,6 +129,7 @@ export const ASSET_FILES = [
     format: 'ndjson',
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/dashboard/m2614-hwam-gaps.ndjson',
+    screenshot: '/screenshots/09-hwam-gaps.png',
     desc: 'Compliance gap measurement: assets with no Element 1/2 coverage, missing encryption status, no MDM enrollment. Drives M-26-14 self-attestation gap closure.',
   },
   {
@@ -138,6 +140,7 @@ export const ASSET_FILES = [
     format: 'ndjson',
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/dashboard/m2614-swam-software.ndjson',
+    screenshot: '/screenshots/11-swam-software.png',
     desc: 'M-26-14 Element 2: Software Asset Management. Fleet-wide software inventory, publisher distribution, authorized vs unauthorized titles, recent installs.',
   },
   {
@@ -148,6 +151,7 @@ export const ASSET_FILES = [
     format: 'ndjson',
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/dashboard/m2614-hwam-lifecycle.ndjson',
+    screenshot: '/screenshots/10-hwam-lifecycle.png',
     desc: 'Asset lifecycle: active/stale/inactive asset counts, OS version distribution, manufacturer breakdown, oldest stale managed assets, newest discovered devices.',
   },
   {
@@ -158,6 +162,7 @@ export const ASSET_FILES = [
     format: 'ndjson',
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/dashboard/m2614-asset-drift.ndjson',
+    screenshot: '/screenshots/12-asset-drift.png',
     desc: 'Config drift and compliance posture: encryption violations, MDM non-compliance, OS version spread, baseline hash diversity, per-asset compliance status table.',
   },
 

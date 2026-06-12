@@ -24,10 +24,25 @@
           "properties": {
             "id":   { "type": "keyword" },
             "name": { "type": "keyword" },
+            "last_seen": { "type": "date" },
             "os": {
               "properties": {
-                "name":    { "type": "keyword" },
-                "version": { "type": "keyword" }
+                "name":     { "type": "keyword" },
+                "version":  { "type": "keyword" },
+                "build":    { "type": "keyword" },
+                "platform": { "type": "keyword" }
+              }
+            },
+            "hardware": {
+              "properties": {
+                "serial_number": { "type": "keyword" }
+              }
+            },
+            "compliance": {
+              "properties": {
+                "encrypted":     { "type": "boolean" },
+                "mdm_enrolled":  { "type": "boolean" },
+                "mdm_compliant": { "type": "boolean" }
               }
             }
           }

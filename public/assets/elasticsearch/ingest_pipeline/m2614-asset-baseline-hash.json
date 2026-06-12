@@ -16,6 +16,12 @@
       }
     },
     {
+      "script": {
+        "description": "Unwrap pivot terms-agg maps ({value: count}) to their scalar key. The snapshot transform groups by asset.id and takes size-1 terms aggs for identity fields; the mapper expects keywords.",
+        "source": "def targets = [['asset'], ['asset','os'], ['asset','hardware'], ['m2614']];\ndef fields = [['name'], ['version','build','platform'], ['serial_number'], ['baseline_hash']];\nfor (int i = 0; i < targets.size(); i++) {\n  def node = ctx;\n  for (String seg : (List)targets[i]) {\n    if (!(node instanceof Map)) { node = null; break; }\n    node = ((Map)node).get(seg);\n  }\n  if (!(node instanceof Map)) continue;\n  for (String f : (List)fields[i]) {\n    def v = ((Map)node).get(f);\n    if (v instanceof Map) {\n      if (((Map)v).isEmpty()) { ((Map)node).remove(f); }\n      else { ((Map)node)[f] = ((Map)v).keySet().iterator().next(); }\n    }\n  }\n}"
+      }
+    },
+    {
       "set": {
         "description": "Record snapshot capture time for drift comparison queries",
         "field": "m2614.baseline_timestamp",
