@@ -45,14 +45,13 @@
   "transform": {
     "script": {
       "lang": "painless",
-      "source": "String taskId = ctx.payload['task'] != null ? ctx.payload['task'].toString() : 'unknown'; String sourceIndex = ctx.metadata['params']['source_index'].toString(); String destIndex = ctx.metadata['params']['dest_index'].toString(); String heldBy = ctx.metadata['params']['held_by'].toString(); String holdReason = ctx.metadata['params']['hold_reason'].toString(); String requestId = destIndex + '-legalhold'; return ['task_id': taskId, 'source_index': sourceIndex, 'dest_index': destIndex, 'held_by': heldBy, 'hold_reason': holdReason, 'request_id': requestId, 'audit_doc': ['@timestamp': ctx.execution_time, 'request_id': requestId, 'index_name': destIndex, 'source_index': sourceIndex, 'state': 'legal_hold_initiated', 'created_at': ctx.execution_time, 'updated_at': ctx.execution_time, 'ilm_policy': 'm2614-logs-l3-no-delete', 'ilm_phase': 'pending', 'notes': holdReason, 'gate1_approved_by': heldBy, 'watcher_id': ctx.metadata['watcher_id'], 'reindex_task_id': taskId]];"
+      "source": "String taskId = ctx.payload['task'] != null ? ctx.payload['task'].toString() : 'unknown'; String sourceIndex = ctx.metadata['params']['source_index'].toString(); String destIndex = ctx.metadata['params']['dest_index'].toString(); String heldBy = ctx.metadata['params']['held_by'].toString(); String holdReason = ctx.metadata['params']['hold_reason'].toString(); String requestId = destIndex + '-legalhold'; return ['_id': requestId, 'task_id': taskId, 'source_index': sourceIndex, 'dest_index': destIndex, 'held_by': heldBy, 'hold_reason': holdReason, 'request_id': requestId, 'audit_doc': ['@timestamp': ctx.execution_time, 'request_id': requestId, 'index_name': destIndex, 'source_index': sourceIndex, 'state': 'legal_hold_initiated', 'created_at': ctx.execution_time, 'updated_at': ctx.execution_time, 'ilm_policy': 'm2614-logs-l3-no-delete', 'ilm_phase': 'pending', 'notes': holdReason, 'gate1_approved_by': heldBy, 'watcher_id': ctx.metadata['watcher_id'], 'reindex_task_id': taskId]];"
     }
   },
   "actions": {
     "create_legal_hold_audit_record": {
       "index": {
-        "index": "m2614-retirement-requests",
-        "doc_id": "{{ctx.payload.request_id}}"
+        "index": "m2614-retirement-requests"
       }
     },
     "apply_no_delete_ilm_policy": {

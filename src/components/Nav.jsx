@@ -155,6 +155,16 @@ const PRINTABLES = [
     detail: 'Web · CISA Resource',
     href: 'https://www.cisa.gov/resources-tools/resources/logging-reference-architecture',
   },
+  {
+    title: 'Live Demo Cluster — Kibana (Read-Only)',
+    description: 'Explore every asset in this reference architecture deployed live on Elastic Cloud: dashboards, detection rules, ILM policies, watchers, transforms, ML jobs, Elastic Workflows, and Agent Builder agents. Sign in with the read-only demo account below.',
+    detail: 'Web · Live Elastic Cluster · Kibana 9.4',
+    href: 'https://m-26-14-7ae75d.kb.us-east-1.aws.found.io',
+    credentials: {
+      username: 'm2614_demo',
+      password: 'Ej8szaXcK4TTFHmYRT9BlLDG',
+    },
+  },
 ]
 
 function PrintablesFlyout({ onClose }) {
@@ -216,6 +226,15 @@ function PrintablesFlyout({ onClose }) {
                 </svg>
               </div>
               <p className="text-sm text-text-muted leading-relaxed">{p.description}</p>
+              {p.credentials && (
+                <div
+                  className="mt-1 rounded-md bg-ink-900/70 border border-line/40 px-3 py-2 font-mono text-xs text-text-primary flex flex-col gap-1 cursor-text select-text"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+                >
+                  <div><span className="text-text-muted">username&nbsp;</span>{p.credentials.username}</div>
+                  <div><span className="text-text-muted">password&nbsp;</span>{p.credentials.password}</div>
+                </div>
+              )}
               <p className="text-xs text-text-muted/60 italic">{p.detail}</p>
             </a>
           ))}

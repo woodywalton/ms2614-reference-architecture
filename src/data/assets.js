@@ -574,6 +574,16 @@ export const ASSET_FILES = [
     file: '/assets/elasticsearch/ilm_policy/m2614-logs-l4-no-delete.json',
     desc: 'Recommended L4 end state: Hot/Frozen with 180-day frozen timing and no delete phase — all data retirement flows through the two-gate approval workflow with a full audit trail.',
   },
+  {
+    id: 'ilm-logs-hva-extended',
+    label: 'ILM Policy — HVA/HIS Extended Retention',
+    column: 'Elastic Search AI Platform',
+    type: 'ilm-policy',
+    format: 'json',
+    levels: [4],
+    file: '/assets/elasticsearch/ilm_policy/m2614-logs-hva-extended.json',
+    desc: 'Extended retention for High Value Asset / High Impact System data streams: same Day-1 Hot/Frozen architecture with hot 0-365d (12-month searchable window), frozen 365d+ (retrievable through 24 months and beyond), no auto-delete — retirement governed exclusively by the two-gate workflow. Apply selectively to HVA datasets.',
+  },
 
   // ── Elasticsearch — SLM Policies ─────────────────────────────────────────
   {
@@ -678,6 +688,17 @@ export const ASSET_FILES = [
     levels: [1, 2, 3, 4],
     file: '/assets/elasticsearch/index_template/m2614-retirement-requests.json',
     desc: 'Append-only audit log and state machine for the two-gate data retirement approval workflow. Each state transition creates a new document; current state = most recent doc per index_name.',
+  },
+
+  {
+    id: 'template-jit-grants',
+    label: 'Index Template — JIT Access Grant Register',
+    column: 'Elastic Search AI Platform',
+    type: 'index-template',
+    format: 'json',
+    levels: [4],
+    file: '/assets/elasticsearch/index_template/m2614-jit-grants.json',
+    desc: 'Just-in-time access grant register (Element 5 L4) — one document per grant. The grant itself is an Elasticsearch role mapping (m2614-jit-{grant_id}), so revocation is a single idempotent DELETE that never touches passwords. Paired with the jit-expiry and jit-audit watchers.',
   },
 
   // ── Elasticsearch — Ingest Pipelines ───────────────────────────────────────
@@ -902,6 +923,26 @@ export const ASSET_FILES = [
     levels: [1, 2, 3, 4],
     file: '/assets/elasticsearch/watcher/m2614-selective-copy-legal-hold.json',
     desc: 'Manual-trigger watcher: async reindexes a query-scoped subset from a frozen/source index into a named retained index (no-delete ILM), triggers compliance snapshot, and opens a Kibana legal hold Case. Customize metadata.params before executing.',
+  },
+  {
+    id: 'watcher-jit-expiry',
+    label: 'ES Watcher — JIT Access Auto-Revoker',
+    column: 'Elastic Search AI Platform',
+    type: 'es-watcher',
+    format: 'json',
+    levels: [4],
+    file: '/assets/elasticsearch/watcher/m2614-jit-expiry.json',
+    desc: 'Every 15 minutes: finds active JIT grants past expires_at, deletes the backing role mapping (instant revocation across all realms), and writes a status:expired audit record to the grant register. Element 5 L4 just-in-time access enforcement.',
+  },
+  {
+    id: 'watcher-jit-audit',
+    label: 'ES Watcher — JIT Daily Audit Report',
+    column: 'Elastic Search AI Platform',
+    type: 'es-watcher',
+    format: 'json',
+    levels: [4],
+    file: '/assets/elasticsearch/watcher/m2614-jit-audit.json',
+    desc: 'Daily 13:00 UTC: inventories all active JIT grants and appends a report to m2614-jit-audit-reports flagging grants active >72h — long-running grants violate the just-in-time principle. Pair with a detection rule or connector for ISSO notification.',
   },
 
   // ── Fleet Pack ─────────────────────────────────────────────────────────────
