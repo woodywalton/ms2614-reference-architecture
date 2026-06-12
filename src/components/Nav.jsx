@@ -157,13 +157,9 @@ const PRINTABLES = [
   },
   {
     title: 'Live Demo Cluster — Kibana (Read-Only)',
-    description: 'Explore every asset in this reference architecture deployed live on Elastic Cloud: dashboards, detection rules, ILM policies, watchers, transforms, ML jobs, Elastic Workflows, and Agent Builder agents. Sign in with the read-only demo account below.',
+    description: 'Explore every asset in this reference architecture deployed live on Elastic Cloud: dashboards, detection rules, ILM policies, watchers, transforms, ML jobs, Elastic Workflows, and Agent Builder agents. Sign in with the read-only demo account (credentials available from the Elastic team on request).',
     detail: 'Web · Live Elastic Cluster · Kibana 9.4',
     href: 'https://m-26-14-7ae75d.kb.us-east-1.aws.found.io',
-    credentials: {
-      username: 'm2614_demo',
-      password: 'Ej8szaXcK4TTFHmYRT9BlLDG',
-    },
   },
 ]
 
