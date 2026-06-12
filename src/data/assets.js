@@ -678,6 +678,16 @@ export const ASSET_FILES = [
     file: '/assets/elasticsearch/index_template/m2614-asset-canonical.json',
     desc: 'Layer 3 canonical asset index (m2614-assets) — one document per resolved device, upserted by asset.id. Single query target for HWAM/SWAM dashboards and M-26-14 compliance attestation.',
   },
+  {
+    id: 'template-asset-baselines',
+    label: 'Index Template — Asset Configuration Baselines',
+    column: 'Elastic Search AI Platform',
+    type: 'index-template',
+    format: 'json',
+    levels: [3, 4],
+    file: '/assets/elasticsearch/index_template/m2614-asset-baselines.json',
+    desc: 'Point-in-time configuration baseline snapshots per canonical asset (identity, OS version, config hash). The Asset Drift dashboard compares current state against these snapshots for drift detection.',
+  },
 
   {
     id: 'template-retirement-requests',
