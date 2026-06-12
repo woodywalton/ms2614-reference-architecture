@@ -15,6 +15,7 @@ export const ASSET_FILES = [
     desc: 'Top-level compliance posture: maturity level, coverage percentages, and readiness indicators for each M-26-14 element.',
     screenshot: '/screenshots/01-maturity-overview.png',
     docs: [
+      { label: 'Maturity Overview Guide', file: '/docs/dashboards/m2614-maturity-overview.md' },
       { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
     ],
   },
@@ -29,6 +30,7 @@ export const ASSET_FILES = [
     desc: 'Hardware and software inventory coverage by Appendix B asset category, powered by osquery Fleet pack data.',
     screenshot: '/screenshots/02-asset-coverage.png',
     docs: [
+      { label: 'Asset Coverage Guide', file: '/docs/dashboards/m2614-asset-coverage.md' },
       { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
     ],
   },
@@ -43,6 +45,7 @@ export const ASSET_FILES = [
     desc: 'Detection rule coverage and alert volume across all 11 Appendix B log categories.',
     screenshot: '/screenshots/03-alert-coverage.png',
     docs: [
+      { label: 'Alert Coverage Guide', file: '/docs/dashboards/m2614-alert-coverage.md' },
       { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
     ],
   },
@@ -57,6 +60,7 @@ export const ASSET_FILES = [
     desc: 'Log source coverage by Appendix B event category — which categories are collecting, which have gaps.',
     screenshot: '/screenshots/06-appendix-b-coverage.png',
     docs: [
+      { label: 'Appendix B Matrix Guide', file: '/docs/dashboards/m2614-appendix-b-coverage.md' },
       { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
     ],
   },
@@ -85,6 +89,7 @@ export const ASSET_FILES = [
     desc: 'Data stream health, ingest rates, and ILM phase distribution — operational visibility into the logging pipeline.',
     screenshot: '/screenshots/05-log-management.png',
     docs: [
+      { label: 'Log Management Guide', file: '/docs/dashboards/m2614-log-management.md' },
       { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
     ],
   },
@@ -99,6 +104,7 @@ export const ASSET_FILES = [
     desc: 'Searchable and retrievable retention coverage by data stream and time window — evidence for M-26-14 retention obligations.',
     screenshot: '/screenshots/04-retention-compliance.png',
     docs: [
+      { label: 'Retention Compliance Guide', file: '/docs/dashboards/m2614-retention-compliance.md' },
       { label: 'Compliance Dashboard Guide', file: '/docs/detection-rules/compliance-dashboard-guide.md' },
     ],
   },
@@ -536,7 +542,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [3, 4],
     file: '/assets/elasticsearch/ilm_policy/m2614-logs-l3-hot-frozen.json',
-    desc: 'L3 log retention: hot tier searchable window (3 days CEM), then direct rollover to frozen object storage for THIRF retrieval within 72 hours.',
+    desc: 'Day-1 Hot/Frozen retention design: hot tier (rollover 1d/50GB), frozen searchable snapshot at 90 days, ILM auto-delete at 365 days. Everything stays searchable across the full window — deploy on Day 1 regardless of current maturity level.',
   },
   {
     id: 'ilm-logs-l3-no-delete',
@@ -546,7 +552,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [3, 4],
     file: '/assets/elasticsearch/ilm_policy/m2614-logs-l3-no-delete.json',
-    desc: 'L3 log retention variant with no delete phase — for agencies required to hold all logs indefinitely under NARA or other mandates.',
+    desc: 'Same Hot/Frozen design as the L3 policy but with no delete phase — retirement is governed exclusively by the two-gate workflow once WS6 is deployed, or by NARA/litigation-hold mandates.',
   },
   {
     id: 'ilm-logs-l4-hot-frozen',
@@ -556,7 +562,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [4],
     file: '/assets/elasticsearch/ilm_policy/m2614-logs-l4-hot-frozen.json',
-    desc: 'L4 log retention: extended hot searchable window (30 days CEM), then frozen for full 18-month THIRF retrieval requirement.',
+    desc: 'Same Hot/Frozen architecture with L4 timing: frozen searchable snapshot at 180 days (6-month hot searchable window), ILM auto-delete at 365 days. Only the phase timing changes between maturity levels — never the tiering design.',
   },
   {
     id: 'ilm-logs-l4-no-delete',
@@ -566,7 +572,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [4],
     file: '/assets/elasticsearch/ilm_policy/m2614-logs-l4-no-delete.json',
-    desc: 'L4 log retention variant with no delete phase — permanent retention for agencies under extended preservation obligations.',
+    desc: 'Recommended L4 end state: Hot/Frozen with 180-day frozen timing and no delete phase — all data retirement flows through the two-gate approval workflow with a full audit trail.',
   },
 
   // ── Elasticsearch — SLM Policies ─────────────────────────────────────────
@@ -755,7 +761,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/m2614-ml-catb-dns-entropy.json',
-    desc: 'Anomaly detection job measuring DNS query entropy to detect DGA-generated domains.',
+    desc: 'Anomaly detection job measuring DNS query entropy to detect DGA-generated domains. Deploys with paired datafeed datafeed-m2614-ml-catb-dns-entropy.json.',
     docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
@@ -766,7 +772,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/m2614-ml-element1-asset-coverage.json',
-    desc: 'Tracks asset coverage percentage over time; detects anomalous drops indicating coverage gaps.',
+    desc: 'Tracks asset coverage percentage over time; detects anomalous drops indicating coverage gaps. Deploys with paired datafeed datafeed-m2614-ml-element1-asset-coverage.json.',
     docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
@@ -777,7 +783,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/m2614-ml-element2-ingestion-rate.json',
-    desc: 'Monitors per-source ingestion rate; anomalies indicate data pipeline failures or log suppression.',
+    desc: 'Monitors per-source ingestion rate; anomalies indicate data pipeline failures or log suppression. Deploys with paired datafeed datafeed-m2614-ml-element2-ingestion-rate.json.',
     docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
@@ -788,7 +794,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/m2614-ml-element3-rule-silence.json',
-    desc: 'Detects when active detection rules stop generating alerts — indicating evasion or data gaps.',
+    desc: 'Detects when active detection rules stop generating alerts — indicating evasion or data gaps. Deploys with paired datafeed datafeed-m2614-ml-element3-rule-silence.json.',
     docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
@@ -799,7 +805,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/m2614-ml-element4-ilm-anomaly.json',
-    desc: 'Monitors ILM phase transitions; anomalies indicate retention policy drift or storage failures.',
+    desc: 'Monitors ILM phase transitions; anomalies indicate retention policy drift or storage failures. Deploys with paired datafeed datafeed-m2614-ml-element4-ilm-anomaly.json.',
     docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
   {
@@ -810,7 +816,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [3, 4],
     file: '/assets/elasticsearch/ml_job/m2614-ml-element5-hash-coverage.json',
-    desc: 'Tracks log integrity hash coverage; drops indicate tamper-evidence gaps in the chain of custody.',
+    desc: 'Tracks log integrity hash coverage; drops indicate tamper-evidence gaps in the chain of custody. Deploys with paired datafeed datafeed-m2614-ml-element5-hash-coverage.json.',
     docs: [{ label: 'ML Jobs Guide', file: '/docs/ml-jobs-guide.md' }],
   },
 
