@@ -496,6 +496,13 @@ function NdjsonBlock({ index, raw, parsed, parseErr }) {
                 padding: '12px 16px',
                 overflowWrap: 'anywhere',
               }}
+              codeTagProps={{
+                style: {
+                  whiteSpace: 'pre-wrap',
+                  overflowWrap: 'anywhere',
+                  wordBreak: 'break-word',
+                },
+              }}
               wrapLongLines={true}
             >
               {JSON.stringify(parsed, null, 2)}
@@ -547,6 +554,13 @@ function SingleFileViewer({ raw, format }) {
           background: 'rgb(var(--color-ink-900, 13 17 23))',
           padding: '16px',
           overflowWrap: 'anywhere',
+        }}
+        codeTagProps={{
+          style: {
+            whiteSpace: 'pre-wrap',
+            overflowWrap: 'anywhere',
+            wordBreak: 'break-word',
+          },
         }}
         wrapLongLines={true}
       >

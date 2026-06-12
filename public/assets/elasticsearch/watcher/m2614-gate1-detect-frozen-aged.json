@@ -13,9 +13,6 @@
     }
   },
   "metadata": {
-    "es_host": "https://m-26-14-7ae75d.es.us-east-1.aws.found.io",
-    "kibana_host": "https://m-26-14-7ae75d.kb.us-east-1.aws.found.io",
-    "auth_header": "__AUTH_HEADER__",
     "frozen_threshold_days": 30,
     "watcher_id": "m2614-gate1-detect-frozen-aged"
   },
@@ -26,7 +23,7 @@
           "ilm": {
             "http": {
               "request": {
-                "url": "https://m-26-14-7ae75d.es.us-east-1.aws.found.io/_all/_ilm/explain",
+                "url": "https://__ES_HOST__/_all/_ilm/explain",
                 "method": "get",
                 "params": {
                   "only_managed": "true",
@@ -112,7 +109,7 @@
       },
       "webhook": {
         "scheme": "https",
-        "host": "m-26-14-7ae75d.kb.us-east-1.aws.found.io",
+        "host": "__KIBANA_HOST__",
         "port": 443,
         "method": "post",
         "path": "/api/cases",
