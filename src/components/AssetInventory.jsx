@@ -10,13 +10,61 @@ const TYPE_FILTERS = [
   { type: 'kibana-dashboard', label: 'Dashboard' },
   { type: 'kibana-rule',      label: 'Detection Rule' },
   { type: 'ml-job',          label: 'ML Job' },
-  { type: 'ml-datafeed',     label: 'ML Datafeed' },
   { type: 'ilm-policy',      label: 'ILM Policy' },
+  { type: 'slm-policy',      label: 'SLM Policy' },
   { type: 'index-template',  label: 'Index Template' },
   { type: 'ingest-pipeline', label: 'Ingest Pipeline' },
   { type: 'transform',       label: 'Transform' },
-  { type: 'fleet-pack',      label: 'Fleet Pack' },
+  { type: 'es-watcher',      label: 'ES Watcher' },
+  { type: 'kibana-workflow',   label: 'Workflow' },
+  { type: 'kibana-agent',      label: 'AI Agent' },
+  { type: 'kibana-agent-tool', label: 'Agent Tool' },
+  { type: 'fleet-pack',        label: 'Fleet Pack' },
 ]
+
+// Build a README.md manifest for the downloaded bundle from asset metadata:
+// what each file is, which maturity levels it serves, where it lives, and how to deploy.
+function buildBundleReadme(files, filterLevel) {
+  const typeLabel = (t) => (TYPE_FILTERS.find(x => x.type === t) || { label: t }).label
+  const lines = []
+  lines.push('# M-26-14 Compliance Pack — Asset Bundle')
+  lines.push('')
+  lines.push(filterLevel
+    ? `Assets filtered for **Maturity Level ${filterLevel}**. ${files.length} files.`
+    : `Complete asset bundle — all maturity levels. ${files.length} files.`)
+  lines.push('')
+  lines.push('Each asset below is listed with its type, the maturity levels it serves, its path inside this bundle, and a description of where and how it is intended to be used.')
+  lines.push('')
+  lines.push('## Deployment')
+  lines.push('')
+  lines.push('Deploy order (the compliance pack repository ships `scripts/deploy.py`, which automates all of this with token substitution for `__ES_HOST__` / `__KIBANA_HOST__` / `__AUTH_HEADER__` placeholders found in watcher files):')
+  lines.push('')
+  lines.push('1. **Elasticsearch foundations** — index templates, ILM policies, SLM policy, ingest pipelines, enrich policies')
+  lines.push('2. **Processing** — transforms, watchers (substitute the `__…__` tokens first), ML jobs + datafeeds')
+  lines.push('3. **Kibana** — dashboards (`POST /api/saved_objects/_import`), detection rules (`POST /api/detection_engine/rules/_import`), Elastic Workflows (bulk API), Agent Builder agents + tools')
+  lines.push('')
+  lines.push('See `docs/maturity-progression-checklist.md` (included in this bundle) for the level-by-level deployment checklist describing exactly which assets to deploy at each maturity level and how to verify them.')
+  lines.push('')
+  for (const col of ASSET_COLUMNS) {
+    const colFiles = files.filter(f => f.column === col)
+    if (!colFiles.length) continue
+    lines.push(`## ${col}`)
+    lines.push('')
+    for (const f of colFiles) {
+      lines.push(`### ${f.label}`)
+      lines.push('')
+      lines.push(`- **Type:** ${typeLabel(f.type)} · **Levels:** ${f.levels.join(', ')} · **File:** \`${f.file.replace('/assets/', '')}\``)
+      lines.push('')
+      lines.push(f.desc)
+      lines.push('')
+    }
+  }
+  lines.push('---')
+  lines.push('')
+  lines.push('Generated from the Elastic M-26-14 Reference Architecture asset inventory.')
+  lines.push('')
+  return lines.join('\n')
+}
 
 export default function AssetInventory() {
   const [filterLevel, setFilterLevel] = useState(null)
@@ -40,6 +88,12 @@ export default function AssetInventory() {
     const zip = new JSZip()
     const label = filterLevel ? `L${filterLevel}` : 'all'
     const folder = zip.folder(`m2614-compliance-pack-${label}`)
+    // Bundle documentation: generated manifest + maturity progression checklist
+    folder.file('README.md', buildBundleReadme(visible, filterLevel))
+    try {
+      const res = await fetch('/docs/maturity-progression-checklist.md')
+      if (res.ok) folder.file('docs/maturity-progression-checklist.md', await res.text())
+    } catch (_) { /* skip if unavailable */ }
     await Promise.all(
       visible.map(async f => {
         try {
