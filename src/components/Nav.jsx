@@ -141,8 +141,7 @@ const PRINTABLES = [
     title: 'CXO — Elastic M-26-14 Reference Architecture',
     description: 'Executive briefing deck for agency CXO and leadership audiences.',
     detail: 'PDF · Executive Briefing',
-    href: null,
-    comingSoon: true,
+    href: '/docs/CXO%20-%20Elastic%20M-26-14%20Reference%20Architectures.pdf',
   },
   {
     title: 'Elastic M-26-14 Reference Architecture',
