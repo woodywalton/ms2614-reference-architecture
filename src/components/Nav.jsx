@@ -156,6 +156,12 @@ const PRINTABLES = [
     href: 'https://www.cisa.gov/resources-tools/resources/logging-reference-architecture',
   },
   {
+    title: 'Demo Guide — 15-Minute Walkthrough',
+    description: 'Step-by-step demo script for presenters and self-directed evaluators. Four acts covering asset discovery, compliance posture, detection coverage, and retention integrity — with exact dashboards to open, talking points, and drilldown moments.',
+    detail: 'Markdown · Demo Script',
+    href: '/docs/demo-guide.md',
+  },
+  {
     title: 'Live Demo Cluster — Kibana (Read-Only)',
     description: 'Explore every asset in this reference architecture deployed live on Elastic Cloud: dashboards, detection rules, ILM policies, watchers, transforms, ML jobs, Elastic Workflows, and Agent Builder agents. Sign in with the read-only demo account (credentials available from the Elastic team on request).',
     detail: 'Web · Live Elastic Cluster · Kibana 9.4',
