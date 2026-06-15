@@ -117,12 +117,12 @@ export default function Nav() {
             </button>
           </EuiToolTip>
 
-          {/* Printables */}
+          {/* Docs */}
           <button
             onClick={() => setPrintablesOpen(true)}
             className="flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium transition-colors text-text-muted hover:text-text-primary hover:bg-ink-700"
           >
-            <span>Printables</span>
+            <span>Docs</span>
             <DocumentsIcon />
           </button>
         </div>
@@ -138,28 +138,43 @@ export default function Nav() {
 
 const PRINTABLES = [
   {
+    title: 'CXO — Elastic M-26-14 Reference Architecture',
+    description: 'Executive briefing deck for agency CXO and leadership audiences.',
+    detail: 'PDF · Executive Briefing',
+    href: null,
+    comingSoon: true,
+  },
+  {
     title: 'Elastic M-26-14 Reference Architecture',
-    description: 'Elastic reference architecture diagrams and deployment guidance for achieving M-26-14 compliance across all four maturity levels.',
+    description: 'Architecture diagrams and deployment guidance across all four maturity levels.',
     detail: 'PDF · Reference Architecture',
     href: '/docs/Elastic%20M-26-14%20Reference%20Architectures.pdf',
   },
   {
-    title: 'OMB M-26-14 Memorandum: Ensuring Effective and Efficient Agency Logging and Network Visibility to Defend Against Evolving Cyber Threats',
-    description: 'The official OMB memorandum establishing the M-26-14 Logging Maturity Model requirements for federal agencies.',
+    title: 'Live Demo Cluster — Kibana (Read-Only)',
+    description: 'Every compliance pack asset running live on Elastic Cloud. Read-only — credentials from the Elastic team on request.',
+    detail: 'Web · Live Elastic Cluster · Kibana 9.4',
+    href: 'https://m-26-14-7ae75d.kb.us-east-1.aws.found.io',
+  },
+  {
+    title: 'Self-Guided Demo Walkthrough',
+    description: 'Self-directed tour of the live cluster — what each dashboard shows and how the data gets there.',
+    detail: 'Web · Interactive Walkthrough',
+    href: '/demo-guide',
+    internal: true,
+  },
+  { type: 'separator' },
+  {
+    title: 'OMB M-26-14 Memorandum',
+    description: 'Official OMB memorandum establishing M-26-14 logging requirements for federal agencies.',
     detail: 'PDF · Official OMB Memorandum',
     href: 'https://www.whitehouse.gov/wp-content/uploads/2026/05/M-26-14-Ensuring-Effective-and-Efficient-Agency-Logging-and-Network-Visibility-to-Defend-Against-Evolving-Cyber-Threats.pdf',
   },
   {
     title: 'CISA M-26-14 Logging Reference Architecture',
-    description: 'CISA\'s official Logging Reference Architecture (LRA) resource page, the authoritative technical baseline for M-26-14 compliance.',
+    description: "CISA's Logging Reference Architecture — the authoritative technical baseline for M-26-14.",
     detail: 'Web · CISA Resource',
     href: 'https://www.cisa.gov/resources-tools/resources/logging-reference-architecture',
-  },
-  {
-    title: 'Live Demo Cluster — Kibana (Read-Only)',
-    description: 'Explore every asset in this reference architecture deployed live on Elastic Cloud: dashboards, detection rules, ILM policies, watchers, transforms, ML jobs, Elastic Workflows, and Agent Builder agents. Sign in with the read-only demo account (credentials available from the Elastic team on request).',
-    detail: 'Web · Live Elastic Cluster · Kibana 9.4',
-    href: 'https://m-26-14-7ae75d.kb.us-east-1.aws.found.io',
   },
 ]
 
@@ -188,7 +203,7 @@ function PrintablesFlyout({ onClose }) {
         <div className="flex items-center justify-between px-6 py-5 border-b border-line/40">
           <div className="flex items-center gap-2 text-text-primary font-semibold text-lg">
             <DocumentsIcon />
-            <span>Printables</span>
+            <span>Reference Documentation</span>
           </div>
           <button
             onClick={onClose}
@@ -202,38 +217,58 @@ function PrintablesFlyout({ onClose }) {
         </div>
 
         <p className="px-6 pt-4 pb-2 text-sm text-text-muted leading-relaxed">
-          Printable and shareable overviews and reference guides for how Elastic can be your organization's M-26-14 compliance accelerator.
+          Reference guides, architecture docs, and live resources for the Elastic M-26-14 compliance pack.
         </p>
 
-        {/* Printable cards */}
+        {/* Doc cards */}
         <div className="flex flex-col gap-3 px-6 py-4">
-          {PRINTABLES.map((p) => (
-            <a
-              key={p.title}
-              href={p.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg bg-ink-800 p-5 flex flex-col gap-2 hover:bg-ink-700 transition-colors group"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span className="text-sm font-semibold text-text-primary leading-snug">{p.title}</span>
-                <svg className="w-4 h-4 text-text-muted group-hover:text-text-primary transition-colors shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </div>
-              <p className="text-sm text-text-muted leading-relaxed">{p.description}</p>
-              {p.credentials && (
+          {PRINTABLES.map((p, i) => {
+            if (p.type === 'separator') {
+              return <hr key={`sep-${i}`} className="border-line/40 my-1" />
+            }
+            if (p.comingSoon) {
+              return (
                 <div
-                  className="mt-1 rounded-md bg-ink-900/70 border border-line/40 px-3 py-2 font-mono text-xs text-text-primary flex flex-col gap-1 cursor-text select-text"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+                  key={p.title}
+                  className="rounded-lg bg-ink-800/50 p-5 flex flex-col gap-2 opacity-50 cursor-not-allowed"
                 >
-                  <div><span className="text-text-muted">username&nbsp;</span>{p.credentials.username}</div>
-                  <div><span className="text-text-muted">password&nbsp;</span>{p.credentials.password}</div>
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-sm font-semibold text-accent-blue leading-snug">{p.title}</span>
+                    <span className="text-[10px] font-medium text-text-muted/80 bg-ink-700 px-2 py-0.5 rounded shrink-0 mt-0.5 uppercase tracking-wide">Soon</span>
+                  </div>
+                  <p className="text-sm text-text-muted leading-relaxed">{p.description}</p>
+                  <p className="text-xs text-text-muted/60 italic">{p.detail}</p>
                 </div>
-              )}
-              <p className="text-xs text-text-muted/60 italic">{p.detail}</p>
-            </a>
-          ))}
+              )
+            }
+            return (
+              <a
+                key={p.title}
+                href={p.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg bg-ink-800 p-5 flex flex-col gap-2 hover:bg-ink-700 transition-colors group"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-sm font-semibold text-accent-blue group-hover:underline leading-snug">{p.title}</span>
+                  <svg className="w-4 h-4 text-accent-blue/50 group-hover:text-accent-blue transition-colors shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </div>
+                <p className="text-sm text-text-muted leading-relaxed">{p.description}</p>
+                {p.credentials && (
+                  <div
+                    className="mt-1 rounded-md bg-ink-900/70 border border-line/40 px-3 py-2 font-mono text-xs text-text-primary flex flex-col gap-1 cursor-text select-text"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+                  >
+                    <div><span className="text-text-muted">username&nbsp;</span>{p.credentials.username}</div>
+                    <div><span className="text-text-muted">password&nbsp;</span>{p.credentials.password}</div>
+                  </div>
+                )}
+                <p className="text-xs text-text-muted/60 italic">{p.detail}</p>
+              </a>
+            )
+          })}
         </div>
       </div>
     </div>

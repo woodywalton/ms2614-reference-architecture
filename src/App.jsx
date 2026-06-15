@@ -5,6 +5,7 @@ import LevelView from './components/LevelView.jsx'
 import MaturityView from './components/MaturityView.jsx'
 import AssetInventory from './components/AssetInventory.jsx'
 import CompliancePage from './components/CompliancePage.jsx'
+import DemoGuide from './components/DemoGuide.jsx'
 
 function MaturitySizeRedirect() {
   const { size } = useParams()
@@ -36,8 +37,9 @@ export default function App() {
 
         {/* Browse nav stub pages */}
         <Route path="/asset-inventory" element={<AssetInventory />} />
+        <Route path="/demo-guide" element={<DemoGuide />} />
 
-<Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <footer className="fixed bottom-0 inset-x-0 z-10 border-t border-line bg-ink-900/90 backdrop-blur py-1.5 text-center text-[11px] text-text-muted/60">
         © 2026 Elastic · Reference architecture viewer · Static UI · No data is collected or transmitted.
