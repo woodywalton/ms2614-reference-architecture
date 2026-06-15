@@ -18,7 +18,7 @@ function basename(file) {
 // unless the asset declares `liveId`).
 const TYPE_LINKS = {
   'kibana-dashboard': name =>
-    `/app/dashboards#/view/${name}?_g=(time:(from:now-30d,to:now))`,
+    `/app/dashboards#/view/${name}?_g=(time:(from:'2026-04-01T00:00:00.000Z',to:'2026-06-30T23:59:59.999Z'))`,
   'index-template': name =>
     `/app/management/data/index_management/templates/${encodeURIComponent(name)}`,
   'ilm-policy': name =>
