@@ -31,6 +31,23 @@
       }
     },
     {
+      "set": {
+        "description": "Stamp top-level host.name (Entity Store v2 host identity) from the resolved asset.name; falls back to asset.fqdn",
+        "field": "host.name",
+        "copy_from": "asset.name",
+        "ignore_empty_value": true
+      }
+    },
+    {
+      "set": {
+        "description": "Fallback host.name from asset.fqdn when asset.name is absent",
+        "field": "host.name",
+        "copy_from": "asset.fqdn",
+        "ignore_empty_value": true,
+        "if": "ctx.host == null || ctx.host.name == null"
+      }
+    },
+    {
       "script": {
         "description": "Evaluate M-26-14 Element 1 (HWAM) and Element 2 (SWAM) coverage flags",
         "lang": "painless",

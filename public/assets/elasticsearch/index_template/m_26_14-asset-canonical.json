@@ -20,6 +20,11 @@
       "properties": {
         "@timestamp": { "type": "date" },
         "doc_count":  { "type": "double" },
+        "host": {
+          "properties": {
+            "name": { "type": "keyword" }
+          }
+        },
         "asset": {
           "properties": {
             "id":               { "type": "keyword" },
