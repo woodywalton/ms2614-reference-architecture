@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-The **M-26-14 Compliance Attestation Dashboard** is a live, continuously-updated view of your agency's detection coverage across all eleven Appendix B event categories required by OMB Memorandum M-26-14 §5. It reads from a continuously-running Elasticsearch Transform (`m2614-metrics-alert-coverage`) that aggregates alert activity across the ten threat-category rules (A–J) plus the meta-coverage Rule K. The result is a single-screen answer to the question every AO asks before an ATO renewal: "Is the detection layer actually working right now, and can you prove it?"
+The **M-26-14 Compliance Attestation Dashboard** is a live, continuously-updated view of your agency's detection coverage across all eleven Appendix B event categories required by OMB Memorandum M-26-14 §5. It reads from a continuously-running Elasticsearch Transform (`m_26_14-metrics-alert-coverage`) that aggregates alert activity across the ten threat-category rules (A–J) plus the meta-coverage Rule K. The result is a single-screen answer to the question every AO asks before an ATO renewal: "Is the detection layer actually working right now, and can you prove it?"
 
 ### Who Uses This Dashboard
 
@@ -29,7 +29,7 @@ This architecture is identical to how Elastic's own Cloud Security Posture Manag
 
 ## 2. Dashboard Layout
 
-The dashboard (`m2614-compliance-attestation-dash`) contains three primary panel groups. All panels read from the `m2614-metrics-alert-coverage` index, not from the raw `.alerts-security.*` store, which keeps load times fast regardless of total alert volume.
+The dashboard (`m_26_14-compliance-attestation-dash`) contains three primary panel groups. All panels read from the `m_26_14-metrics-alert-coverage` index, not from the raw `.alerts-security.*` store, which keeps load times fast regardless of total alert volume.
 
 ![M-26-14 Compliance Attestation dashboard — three coverage KPI metrics at top, 11-category evidence table in the middle, and alert volume bar chart at the bottom](../screenshots/07-compliance-attestation.png)
 
@@ -207,11 +207,11 @@ The AO responds in 20 minutes: evidence accepted, condition noted in the ATO ren
 
 ### Dashboard Shows "No Data" on All Panels
 
-The `m2614-metrics-alert-coverage` index has no documents, or the dashboard data view is pointing at the wrong index.
+The `m_26_14-metrics-alert-coverage` index has no documents, or the dashboard data view is pointing at the wrong index.
 
 **Check:** Run the following in Dev Tools > Console:
 ```
-GET m2614-metrics-alert-coverage/_count
+GET m_26_14-metrics-alert-coverage/_count
 ```
 
 If the count is zero, the transform has not run or no M-26-14-tagged alerts exist yet.
@@ -223,7 +223,7 @@ python3 scripts/setup_ws7_dashboard.py --seed-test-data
 
 This injects synthetic M-26-14 alerts with realistic timestamps and category tags into `.alerts-security.*` and waits for the transform to process them.
 
-**Fix — verify the transform is running:** Open **Kibana > Stack Management > Transforms**. Find `m2614-metrics-alert-coverage`. Status should be `started`. If it shows `stopped` or `failed`, click Start. If it shows a health error, check the transform details for the specific failure message (common cause: the destination index mapping has a conflict with a previous version; delete and recreate the index, then restart the transform).
+**Fix — verify the transform is running:** Open **Kibana > Stack Management > Transforms**. Find `m_26_14-metrics-alert-coverage`. Status should be `started`. If it shows `stopped` or `failed`, click Start. If it shows a health error, check the transform details for the specific failure message (common cause: the destination index mapping has a conflict with a previous version; delete and recreate the index, then restart the transform).
 
 ### Category Always Shows RED
 
@@ -249,20 +249,20 @@ If this returns zero results, no M-26-14-tagged alerts exist. Confirm the detect
 
 ### Transform Not Running or Showing Health Errors
 
-Open **Kibana > Stack Management > Transforms**. Select `m2614-metrics-alert-coverage` and check the **Health** tab for error details.
+Open **Kibana > Stack Management > Transforms**. Select `m_26_14-metrics-alert-coverage` and check the **Health** tab for error details.
 
 Common causes:
 - **Index privilege error:** The transform user (typically `elastic` or a dedicated service account) does not have read access to `.alerts-security.*`. Grant the `read` privilege on the `.alerts-security.*` index pattern to the transform's user context.
-- **Destination index conflict:** A prior version of the transform created the `m2614-metrics-alert-coverage` index with an incompatible mapping. Stop the transform, delete the destination index, and restart the transform. The transform will recreate the index with the correct mapping.
-- **Cluster disk watermark:** The cluster is at or near the high disk watermark. Elasticsearch blocks writes, including transform output. Free disk space and clear the read-only flag: `PUT m2614-metrics-alert-coverage/_settings { "index.blocks.read_only_allow_delete": null }`.
+- **Destination index conflict:** A prior version of the transform created the `m_26_14-metrics-alert-coverage` index with an incompatible mapping. Stop the transform, delete the destination index, and restart the transform. The transform will recreate the index with the correct mapping.
+- **Cluster disk watermark:** The cluster is at or near the high disk watermark. Elasticsearch blocks writes, including transform output. Free disk space and clear the read-only flag: `PUT m_26_14-metrics-alert-coverage/_settings { "index.blocks.read_only_allow_delete": null }`.
 
 ### Coverage Score Is Wrong (Not Matching Category Count)
 
-The Compliance Score Gauge calculates `(GREEN categories) / 11 × 100%`. If the denominator appears wrong (e.g., the score shows 9/10 but ten categories are GREEN), the `m2614-rule-registry` index may be missing one or more category documents.
+The Compliance Score Gauge calculates `(GREEN categories) / 11 × 100%`. If the denominator appears wrong (e.g., the score shows 9/10 but ten categories are GREEN), the `m_26_14-rule-registry` index may be missing one or more category documents.
 
 **Check:**
 ```
-GET m2614-rule-registry/_count
+GET m_26_14-rule-registry/_count
 ```
 Expected: 11 documents (one per category A through K).
 
@@ -304,15 +304,15 @@ Rule K — Coverage Gap Monitor  [runs every 24h]
     v
 Alert Category Normalization Ingest Pipeline
     |  Promotes the Appendix-B tag from the tags array to a dedicated
-    |  m2614.appendix_b_category keyword field on each incoming alert
+    |  m_26_14.appendix_b_category keyword field on each incoming alert
     |
     v
-ES Transform: m2614-metrics-alert-coverage  [syncs every 1 hour]
+ES Transform: m_26_14-metrics-alert-coverage  [syncs every 1 hour]
     |  Source:  .alerts-security.* (filtered to M-26-14 tagged alerts)
-    |  Groups:  m2614.appendix_b_category + 1-day date bucket
+    |  Groups:  m_26_14.appendix_b_category + 1-day date bucket
     |  Metrics: alert_count, last_fired timestamp, derived days_since_last_fire
     |  Status:  Painless script computes GREEN/YELLOW/RED per row
-    |  Dest:    m2614-metrics-alert-coverage index
+    |  Dest:    m_26_14-metrics-alert-coverage index
     |
     v
 Kibana Compliance Attestation Dashboard
@@ -321,9 +321,9 @@ Kibana Compliance Attestation Dashboard
     Panel 3:  Compliance Score Gauge (pct of categories GREEN)
 ```
 
-**Why the transform layer matters:** The dashboard reads the small, pre-aggregated `m2614-metrics-alert-coverage` index — not the full `.alerts-security.*` store, which can contain millions of records. This means dashboard load time is sub-second regardless of the cluster's total alert volume. The transform does the heavy aggregation once per hour in the background, not on every dashboard load.
+**Why the transform layer matters:** The dashboard reads the small, pre-aggregated `m_26_14-metrics-alert-coverage` index — not the full `.alerts-security.*` store, which can contain millions of records. This means dashboard load time is sub-second regardless of the cluster's total alert volume. The transform does the heavy aggregation once per hour in the background, not on every dashboard load.
 
-**The normalization pipeline is the critical dependency.** The Appendix B category letter lives in a tags array on each alert. The transform cannot pivot on an array element directly; the ingest pipeline extracts it to a dedicated field at alert write time. If this pipeline is not installed and wired to the `.alerts-security.*` index template, the `m2614.appendix_b_category` field will not exist on alerts, and the transform will produce no useful output. Verifying this pipeline is present and active is the first diagnostic step when the dashboard shows no data.
+**The normalization pipeline is the critical dependency.** The Appendix B category letter lives in a tags array on each alert. The transform cannot pivot on an array element directly; the ingest pipeline extracts it to a dedicated field at alert write time. If this pipeline is not installed and wired to the `.alerts-security.*` index template, the `m_26_14.appendix_b_category` field will not exist on alerts, and the transform will produce no useful output. Verifying this pipeline is present and active is the first diagnostic step when the dashboard shows no data.
 
 ---
 
@@ -335,18 +335,18 @@ The **M-26-14 Maturity Overview** dashboard serves as the hub. A horizontal navi
 
 | Link Label | Target Dashboard | Purpose |
 |---|---|---|
-| Elements 1 & 2 — Asset Coverage | `m2614-asset-coverage` | HWAM enrollment gaps and log source coverage |
-| Element 3 — Appendix B Matrix | `m2614-appendix-b-coverage` | MITRE-style coverage matrix for all 11 categories |
-| Element 3 — Alert Coverage | `m2614-alert-coverage` | Per-category alert volume and rule activity |
-| Element 4 — Retention Compliance | `m2614-retention-compliance` | ILM policy compliance per data stream |
-| Element 5 — Log Integrity | `m2614-log-management` | SHA-256 hash coverage and integrity violations |
-| Attestation Report | `m2614-compliance-attestation-dash` | Executive attestation scorecard |
+| Elements 1 & 2 — Asset Coverage | `m_26_14-asset-coverage` | HWAM enrollment gaps and log source coverage |
+| Element 3 — Appendix B Matrix | `m_26_14-appendix-b-coverage` | MITRE-style coverage matrix for all 11 categories |
+| Element 3 — Alert Coverage | `m_26_14-alert-coverage` | Per-category alert volume and rule activity |
+| Element 4 — Retention Compliance | `m_26_14-retention-compliance` | ILM policy compliance per data stream |
+| Element 5 — Log Integrity | `m_26_14-log-management` | SHA-256 hash coverage and integrity violations |
+| Attestation Report | `m_26_14-compliance-attestation-dash` | Executive attestation scorecard |
 
 ---
 
 ## 9. Appendix B Coverage Matrix
 
-The **M-26-14 Appendix B Coverage Matrix** (`m2614-appendix-b-coverage`) is a companion dashboard modeled after the Elastic MITRE ATT&CK Coverage view. It provides a heat-map-style view of all eleven mandatory log categories.
+The **M-26-14 Appendix B Coverage Matrix** (`m_26_14-appendix-b-coverage`) is a companion dashboard modeled after the Elastic MITRE ATT&CK Coverage view. It provides a heat-map-style view of all eleven mandatory log categories.
 
 ![M-26-14 Appendix B Coverage Matrix — color-coded 11-category tiles, KPI row, alert volume and detection rules bar charts, and full-detail coverage table](../screenshots/06-appendix-b-coverage.png)
 
@@ -370,7 +370,7 @@ The **M-26-14 Appendix B Coverage Matrix** (`m2614-appendix-b-coverage`) is a co
 
 ### Data Source
 
-Same source as the Compliance Attestation Dashboard: the `m2614-metrics-alert-coverage` index populated by the `m2614-alert-coverage-daily` transform. Coverage matrix data refreshes every hour.
+Same source as the Compliance Attestation Dashboard: the `m_26_14-metrics-alert-coverage` index populated by the `m_26_14-alert-coverage-daily` transform. Coverage matrix data refreshes every hour.
 
 ---
 

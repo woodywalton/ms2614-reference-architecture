@@ -33,7 +33,7 @@ OMB Memorandum M-26-14 §5 requires agencies to implement a Threat and Hunting-I
 
 | Field | Value |
 |---|---|
-| Rule ID | `m2614-appendixb-h-offhours-bulk-process-execution` |
+| Rule ID | `m_26_14-appendixb-h-offhours-bulk-process-execution` |
 | UUID | `a3f7c891-2d4e-4b8a-9f1c-6e5d3a2b0c8f` |
 | Rule Type | ES|QL |
 | Severity | High |

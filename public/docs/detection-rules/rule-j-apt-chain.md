@@ -14,8 +14,8 @@ Two time-window variants are provided:
 
 | Rule | Window | Purpose |
 |------|--------|---------|
-| `m2614-appendixb-j-apt-chain-2h` | 2 hours | Fast-moving attacks, commodity malware, automated exploitation |
-| `m2614-appendixb-j-apt-chain-4h` | 4 hours | Slow-paced APT actors (APT29, APT41) that deliberately pace lateral movement to evade short-window rules |
+| `m_26_14-appendixb-j-apt-chain-2h` | 2 hours | Fast-moving attacks, commodity malware, automated exploitation |
+| `m_26_14-appendixb-j-apt-chain-4h` | 4 hours | Slow-paced APT actors (APT29, APT41) that deliberately pace lateral movement to evade short-window rules |
 
 ### Why This Matters for M-26-14 §5(j)
 
@@ -48,7 +48,7 @@ M-26-14 Appendix B §5(j) requires federal agencies to deploy threat detection c
 
 | Field | Value |
 |-------|-------|
-| Rule ID | `m2614-appendixb-j-apt-chain-2h` |
+| Rule ID | `m_26_14-appendixb-j-apt-chain-2h` |
 | Type | EQL Sequence |
 | Severity | Critical |
 | Risk Score | 91 |
@@ -72,7 +72,7 @@ M-26-14 Appendix B §5(j) requires federal agencies to deploy threat detection c
 
 | Field | Value |
 |-------|-------|
-| Rule ID | `m2614-appendixb-j-apt-chain-4h` |
+| Rule ID | `m_26_14-appendixb-j-apt-chain-4h` |
 | Type | EQL Sequence |
 | Severity | Critical |
 | Risk Score | 91 |
@@ -148,7 +148,7 @@ When this rule fires, follow this playbook in order.
 ### 4. Investigate the Lateral Movement Target (Step 3)
 
 - Record `destination.ip` and `destination.port`.
-- Map `destination.ip` to an asset in the M-26-14 asset inventory index (`m2614-osquery-hardware-inventory`).
+- Map `destination.ip` to an asset in the M-26-14 asset inventory index (`m_26_14-osquery-hardware-inventory`).
 - **SMB (445):** Check the destination host for file creation events (`logs-endpoint.events.file*`) or new process starts in the 30 minutes following the connection.
 - **RDP (3389):** Check for authentication events (`logs-windows.security*` or `logs-system.auth*`) on the destination host.
 - **WinRM (5985/5986):** Check for PowerShell remoting sessions and any subsequent commands executed.

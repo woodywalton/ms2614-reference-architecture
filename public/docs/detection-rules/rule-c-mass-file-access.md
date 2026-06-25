@@ -29,7 +29,7 @@ Why this matters for M-26-14: §5 requires agencies at Level 2 and above to coll
 
 | Field | Value |
 |---|---|
-| **Rule ID** | `m2614-appendixb-c-mass-file-access` |
+| **Rule ID** | `m_26_14-appendixb-c-mass-file-access` |
 | **Type** | ES\|QL (aggregating) |
 | **Severity** | High |
 | **Risk Score** | 73 |
@@ -108,7 +108,7 @@ The analyst pivots to the Timeline and finds that `cmd.exe` was spawned by `coll
 
 Four minutes after the rule fired at file number 500, a USB mass storage device event appears in `logs-endpoint.events.device*`. Post-incident forensics confirm that `jdoe` — who received a termination notice the previous morning — staged 2.3 GB of employee records, salary data, and performance reviews to an encrypted USB drive before badge access was revoked at midnight.
 
-The WS3 peripheral inventory rule (m2614-appendixb-e series) would also have caught the USB enumeration event. The mass-file-access rule provided the four-minute warning that — had 24/7 SOC coverage been in place — could have enabled containment before data left the building.
+The WS3 peripheral inventory rule (m_26_14-appendixb-e series) would also have caught the USB enumeration event. The mass-file-access rule provided the four-minute warning that — had 24/7 SOC coverage been in place — could have enabled containment before data left the building.
 
 The incident satisfies the M-26-14 §7 reporting threshold (PII of more than 100 individuals accessed by an unauthorized subject) and triggers a mandatory 72-hour notification to the agency CISO and CISA.
 
@@ -195,7 +195,7 @@ Add these exceptions under **Security → Rules → [this rule] → Exception Li
 | Integration | Purpose | Minimum Config |
 |---|---|---|
 | **Elastic Defend** (Endpoint Security) | Generates `logs-endpoint.events.file*` events | File Access monitoring: **Enabled** in Endpoint policy |
-| **Auditd** (Linux only) | Generates `logs-auditd.*` file syscall events | Syscall rules must include: `-a always,exit -F arch=b64 -S open,openat,read -k m2614_file_access` |
+| **Auditd** (Linux only) | Generates `logs-auditd.*` file syscall events | Syscall rules must include: `-a always,exit -F arch=b64 -S open,openat,read -k m_26_14_file_access` |
 
 ### Data Streams That Must Be Flowing
 

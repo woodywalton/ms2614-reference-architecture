@@ -22,7 +22,7 @@ This rule directly addresses the "enrollment of new endpoints" sub-requirement a
 
 | Field | Value |
 |---|---|
-| **Rule ID** | `m2614-appendixb-e-rogue-device-fleet-enrollment` |
+| **Rule ID** | `m_26_14-appendixb-e-rogue-device-fleet-enrollment` |
 | **Type** | `new_terms` |
 | **Severity** | High |
 | **Risk Score** | 65 |
@@ -84,7 +84,7 @@ Run the following queries against the alert's source document fields:
 Query the agency HWAM data sources:
 
 ```
-GET /m2614-osquery-hardware-inventory-*/_search
+GET /m_26_14-osquery-hardware-inventory-*/_search
 {
   "query": {
     "bool": {
@@ -98,7 +98,7 @@ GET /m2614-osquery-hardware-inventory-*/_search
 }
 ```
 
-If CDM HWAM integration is active, also query `m2614-hwam_assets-*`.
+If CDM HWAM integration is active, also query `m_26_14-hwam_assets-*`.
 
 **If no match is found**: treat as unauthorized pending further investigation. Do not dismiss.
 

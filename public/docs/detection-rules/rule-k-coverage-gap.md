@@ -10,8 +10,8 @@ Category K is a **meta-detection category** — it detects gaps in your detectio
 
 | Rule | Signal Type | Fires When |
 |------|-------------|------------|
-| `m2614-appendixb-k-alert-presence` | Health confirmation | A category IS active — at least one alert fired in the last 24 hours |
-| `m2614-appendixb-k-silent-category` | Coverage gap warning | Companion Watcher detects a category with ZERO alerts in the past 30 days |
+| `m_26_14-appendixb-k-alert-presence` | Health confirmation | A category IS active — at least one alert fired in the last 24 hours |
+| `m_26_14-appendixb-k-silent-category` | Coverage gap warning | Companion Watcher detects a category with ZERO alerts in the past 30 days |
 
 Together, these rules provide a daily attestation of detection coverage that can be directly cited in M-26-14 AO reports and POA&M entries.
 
@@ -37,7 +37,7 @@ Category K addresses the requirement for agencies to maintain evidence that each
 
 | Field | Value |
 |-------|-------|
-| Rule ID | `m2614-appendixb-k-alert-presence` |
+| Rule ID | `m_26_14-appendixb-k-alert-presence` |
 | Type | ES\|QL |
 | Severity | Medium |
 | Risk Score | 47 |
@@ -53,7 +53,7 @@ Category K addresses the requirement for agencies to maintain evidence that each
 
 | Field | Value |
 |-------|-------|
-| Rule ID | `m2614-appendixb-k-silent-category` |
+| Rule ID | `m_26_14-appendixb-k-silent-category` |
 | Type | ES\|QL |
 | Severity | Medium |
 | Risk Score | 47 |
@@ -63,9 +63,9 @@ Category K addresses the requirement for agencies to maintain evidence that each
 | MITRE ATT&CK | None (coverage health rule) |
 | Tags | `M-26-14`, `Appendix-B-K`, `Element-3`, `Level-2`, `CEM`, `Coverage-Gap` |
 
-**Logic:** Counts M-26-14 alerts by Appendix-B category tag over the past 30 days. Result rows represent active categories. Categories absent from results have zero alerts over 30 days — the gap condition. A companion Elasticsearch Watcher (`m2614-watcher-registry-zero-count`) performs the authoritative zero-count check against the `m2614-rule-registry` reference index and fires notifications for missing categories.
+**Logic:** Counts M-26-14 alerts by Appendix-B category tag over the past 30 days. Result rows represent active categories. Categories absent from results have zero alerts over 30 days — the gap condition. A companion Elasticsearch Watcher (`m_26_14-watcher-registry-zero-count`) performs the authoritative zero-count check against the `m_26_14-rule-registry` reference index and fires notifications for missing categories.
 
-> **ES|QL Limitation Note:** ES|QL `LOOKUP JOIN` against custom user indices requires the target to be configured as an Enrich Policy or a system alias. Direct joins against `m2614-rule-registry` using `LOOKUP JOIN` are not available in Elastic 9.4.2 for arbitrary custom indices. The companion Watcher provides this functionality. See the Setup section for Watcher configuration details.
+> **ES|QL Limitation Note:** ES|QL `LOOKUP JOIN` against custom user indices requires the target to be configured as an Enrich Policy or a system alias. Direct joins against `m_26_14-rule-registry` using `LOOKUP JOIN` are not available in Elastic 9.4.2 for arbitrary custom indices. The companion Watcher provides this functionality. See the Setup section for Watcher configuration details.
 
 ---
 
@@ -170,7 +170,7 @@ This histogram shows exactly when alerts stopped. The last non-zero bucket is th
 2. Monitor the relevant data stream for new documents (check within 15–30 minutes of agent check-in).
 3. Verify the category rule fires again within the next run cycle.
 4. Create a POA&M entry documenting: gap start date, root cause, discovery date, remediation date, and preventive control added.
-5. Update the `m2614-rule-registry` index: set `m2614.monitoring.last_fired` to the current timestamp.
+5. Update the `m_26_14-rule-registry` index: set `m_26_14.monitoring.last_fired` to the current timestamp.
 
 ---
 
@@ -225,7 +225,7 @@ To add a maintenance-window exception:
 
 | Index | Purpose | Fixture File |
 |-------|---------|--------------|
-| `m2614-rule-registry` | Registry of all expected M-26-14 rules with monitoring metadata | `tests/ws5_detection/fixtures/fixture_k_registry.ndjson` |
+| `m_26_14-rule-registry` | Registry of all expected M-26-14 rules with monitoring metadata | `tests/ws5_detection/fixtures/fixture_k_registry.ndjson` |
 
 Create this index and load the fixture:
 
@@ -243,11 +243,11 @@ curl -X POST "http://localhost:9200/_bulk" \
 
 ### Companion Watcher
 
-Deploy `m2614-watcher-registry-zero-count` to handle the authoritative zero-count gap detection. This Watcher:
+Deploy `m_26_14-watcher-registry-zero-count` to handle the authoritative zero-count gap detection. This Watcher:
 - Runs daily at 06:00 UTC.
 - Queries `.alerts-security.*` for M-26-14-tagged alerts grouped by Appendix-B category over the past 30 days.
 - Compares result against the expected category set [A, B, C, D, E, F, G, H, I, J].
 - Creates a Kibana alert (via webhook) for each missing category, with the category letter and estimated gap start date.
 - Sends email notification to the ISSO.
 
-Watcher configuration template is available at `packages/m2614_compliance/elasticsearch/watcher/m2614-watcher-registry-zero-count.json` (to be created in a future pack release).
+Watcher configuration template is available at `packages/m2614_compliance/elasticsearch/watcher/m_26_14-watcher-registry-zero-count.json` (to be created in a future pack release).

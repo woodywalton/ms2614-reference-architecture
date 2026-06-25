@@ -28,7 +28,7 @@ These rules directly satisfy **M-26-14 §5(a)** which requires agencies to imple
 
 | Field | Windows (EQL) | Okta (EQL) | Azure/Entra (ES\|QL) | Linux SSH (ES\|QL) |
 |---|---|---|---|---|
-| **Rule ID** | `m2614-appendixb-a-windows-credential-stuffing` | `m2614-appendixb-a-okta-credential-stuffing` | `m2614-appendixb-a-azure-credential-stuffing` | `m2614-appendixb-a-linux-ssh-credential-stuffing` |
+| **Rule ID** | `m_26_14-appendixb-a-windows-credential-stuffing` | `m_26_14-appendixb-a-okta-credential-stuffing` | `m_26_14-appendixb-a-azure-credential-stuffing` | `m_26_14-appendixb-a-linux-ssh-credential-stuffing` |
 | **Type** | EQL sequence | EQL sequence | ES\|QL aggregation | ES\|QL aggregation |
 | **Severity** | High | High | High | High |
 | **Risk Score** | 73 | 73 | 73 | 65 |

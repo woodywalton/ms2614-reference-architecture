@@ -9,7 +9,7 @@
 
 export const LIVE_KIBANA_BASE = 'https://m-26-14-7ae75d.kb.us-east-1.aws.found.io'
 
-// strip path + extension: '/assets/elasticsearch/transform/m2614-foo.json' -> 'm2614-foo'
+// strip path + extension: '/assets/elasticsearch/transform/m_26_14-foo.json' -> 'm_26_14-foo'
 function basename(file) {
   return file.split('/').pop().replace(/\.(json|ndjson|yaml|yml)$/, '')
 }

@@ -87,7 +87,7 @@ export default function AssetInventory() {
     setDownloading(true)
     const zip = new JSZip()
     const label = filterLevel ? `L${filterLevel}` : 'all'
-    const folder = zip.folder(`m2614-compliance-pack-${label}`)
+    const folder = zip.folder(`m_26_14-compliance-pack-${label}`)
     // Bundle documentation: generated manifest + maturity progression checklist
     folder.file('README.md', buildBundleReadme(visible, filterLevel))
     try {
@@ -111,7 +111,7 @@ export default function AssetInventory() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `m2614-compliance-pack-${label}.zip`
+    a.download = `m_26_14-compliance-pack-${label}.zip`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

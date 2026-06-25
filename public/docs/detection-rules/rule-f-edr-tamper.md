@@ -24,7 +24,7 @@ This rule extends the concept of the Elastic prebuilt rule `fc552f49` (Elastic D
 
 | Field | Value |
 |---|---|
-| **Rule ID** | `m2614-appendixb-f-edr-tamper` |
+| **Rule ID** | `m_26_14-appendixb-f-edr-tamper` |
 | **Kibana UUID** | `3e7a1c2f-9b84-4d56-ae12-fc7309a8b3d1` |
 | **Type** | EQL Sequence |
 | **Severity** | Critical |
@@ -63,7 +63,7 @@ The second sequence step matches termination of any of the following process nam
 |---|---|---|
 | `fc552f49-8f1c-409b-90f8-6f5b9869b6c4` | Elastic Defend Alert Followed by Telemetry Loss | Detects the downstream effect (heartbeat loss) rather than the cause (process termination). Deploy both: this rule catches the tamper earlier; fc552f49 catches silent failures not preceded by a process kill event. |
 
-**Deployment recommendation:** Deploy both rules together. This rule (`m2614-appendixb-f-edr-tamper`) provides faster, more specific detection when a process termination event is captured. Rule `fc552f49` provides a backstop for cases where the agent is killed in a way that does not generate a process end event (e.g., kernel-level manipulation, OS crash, VM suspension).
+**Deployment recommendation:** Deploy both rules together. This rule (`m_26_14-appendixb-f-edr-tamper`) provides faster, more specific detection when a process termination event is captured. Rule `fc552f49` provides a backstop for cases where the agent is killed in a way that does not generate a process end event (e.g., kernel-level manipulation, OS crash, VM suspension).
 
 ---
 
