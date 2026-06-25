@@ -29,6 +29,7 @@
             "status":           { "type": "keyword" },
             "managed":          { "type": "boolean" },
             "criticality":      { "type": "keyword" },
+            "component":        { "type": "keyword" },
             "source":           { "type": "keyword" },
             "discovery_method": { "type": "keyword" },
             "first_seen":       { "type": "date" },
