@@ -31,20 +31,17 @@
       }
     },
     {
-      "set": {
-        "description": "Stamp top-level host.name (Entity Store v2 host identity) from the resolved asset.name; falls back to asset.fqdn",
-        "field": "host.name",
-        "copy_from": "asset.name",
-        "ignore_empty_value": true
+      "script": {
+        "description": "Stamp lowercase top-level host.name (canonical host identity) from asset.name, falling back to asset.fqdn. Lowercased so it joins the m_26_14-observed ledger, whose entity id is lowercased.",
+        "lang": "painless",
+        "source": "def asset = ctx.asset; if (asset == null) return;\nString hn = null;\nif (asset.get('name') != null && asset.get('name').toString().length() > 0) hn = asset.get('name').toString();\nelse if (asset.get('fqdn') != null && asset.get('fqdn').toString().length() > 0) hn = asset.get('fqdn').toString();\nif (hn != null) {\n  if (!ctx.containsKey('host') || ctx.host == null) ctx['host'] = new HashMap();\n  ctx.host['name'] = hn.toLowerCase();\n}"
       }
     },
     {
-      "set": {
-        "description": "Fallback host.name from asset.fqdn when asset.name is absent",
-        "field": "host.name",
-        "copy_from": "asset.fqdn",
-        "ignore_empty_value": true,
-        "if": "ctx.host == null || ctx.host.name == null"
+      "script": {
+        "description": "Derive asset.component (M-26-14 reporting component / bureau-enclave rollup dimension) from organization grouping; default 'unattributed'. The transform aggregates organization.* but not component, so derive it here.",
+        "lang": "painless",
+        "source": "def asset = ctx.asset; if (asset == null) return;\nif (asset.get('component') != null && asset.get('component').toString().length() > 0) return;\nString component = null;\ndef org = asset.get('organization');\nif (org instanceof Map) {\n  if (org.get('department') != null && org.get('department').toString().length() > 0) component = org.get('department').toString();\n  else if (org.get('owner') != null && org.get('owner').toString().length() > 0) component = org.get('owner').toString();\n}\nasset['component'] = (component != null) ? component : 'unattributed';"
       }
     },
     {

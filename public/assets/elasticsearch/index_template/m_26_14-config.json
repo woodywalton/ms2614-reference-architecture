@@ -12,13 +12,8 @@
     },
     "mappings": {
       "dynamic": false,
-      "runtime": {
-        "config_key": {
-          "type": "keyword",
-          "script": { "source": "emit('default')" }
-        }
-      },
       "properties": {
+        "config_key": { "type": "keyword" },
         "lra": {
           "properties": {
             "published": { "type": "date" }

@@ -67,6 +67,7 @@
   "settings": {
     "max_page_search_size": 500,
     "dates_as_epoch_millis": false,
-    "align_checkpoints": true
+    "align_checkpoints": true,
+    "deduce_mappings": false
   }
 }
