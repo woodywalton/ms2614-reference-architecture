@@ -20,7 +20,7 @@ Look at the three Element coverage KPIs across the top row:
 
 - **Element 1 Covered: 55** — every managed device has a current hardware inventory record. 100%.
 - **Element 2 Covered: 55** — software inventory is running on all of them.
-- **Total Baseline Snapshots: 57** — a cryptographic configuration snapshot exists for every managed asset, plus two extras from devices that were re-enrolled.
+- **Total Baseline Snapshots: 55** — a cryptographic configuration snapshot exists for every one of the 55 managed assets.
 
 Click any row in the Unmanaged Assets table to open a Discover view filtered to that specific device. You'll see its manufacturer, last-seen timestamp, and the discovery source — but nothing else, because there's no agent to report back from.
 
@@ -40,7 +40,7 @@ Click any row in the Unmanaged Assets table to open a Discover view filtered to 
 
 Knowing devices exist is one requirement. Knowing they're compliant is another. This dashboard answers the posture question: encrypted? MDM-enrolled? Running authorized software?
 
-You'll see two gap metrics immediately: **4 unencrypted managed devices** and **4 not enrolled in MDM**. Click either metric tile to open a Discover view showing exactly which devices — names, OS versions, last-seen times. This is what you hand the ISO instead of a manual audit spreadsheet.
+You'll see two gap metrics immediately: **5 unencrypted managed devices** and **3 not enrolled in MDM**. Click either metric tile to open a Discover view showing exactly which devices — names, OS versions, last-seen times. This is what you hand the ISO instead of a manual audit spreadsheet.
 
 > **Where this data comes from:** Encryption status is reported by osquery's `disk_encryption` table query, which runs every few hours on each enrolled endpoint and returns the state of every mounted volume. MDM enrollment status comes separately from the Microsoft Intune integration, which pushes device compliance records directly to Elasticsearch without requiring a query agent on the device. The `m_26_14-asset-entity-resolution` transform merges both sources into a single posture record per device — if osquery sees a device as unencrypted and Intune has no record of MDM enrollment, the combined record reflects both gaps simultaneously. Both the Coverage Gaps and the Asset Inventory dashboard draw from the same `m_26_14-assets` index — [you can navigate between them using the links at the bottom of each dashboard](https://m-26-14-7ae75d.kb.us-east-1.aws.found.io/app/dashboards#/view/m_26_14-hwam-overview).
 
@@ -74,7 +74,7 @@ You'll see **4 drifted assets** on this dashboard. Click the metric tile and the
 
 These could be routine OS updates, intentional policy changes, or something to investigate. The important thing is the system caught them — not a quarterly audit.
 
-> **How this works:** Drift is detected by the `m_26_14-ws7-r1-os-version-changed` and `m_26_14-ws7-r2-encryption-disabled` detection rules, which compare live asset fields against the stored `m_26_14.baseline_hash` value. Any mismatch fires a Kibana alert immediately.
+> **How this works:** At certification, the baseline-snapshot transform captures each device's `m_26_14.baseline_hash` — a SHA-256 fingerprint of its OS version, build, serial, and encryption status — into the frozen `m_26_14-asset-baselines` index. On every subsequent update, the `m_26_14-asset-canonical-enrich` pipeline recomputes the live fingerprint and looks up the certified one (via the `m_26_14-asset-baseline-lookup` enrich policy); when they differ it sets `m_26_14.drift_detected: true`. That field is what the dashboard tile counts, and it is recomputed on every entity-resolution checkpoint, so the count is stable rather than a one-shot stamp. The `m_26_14-ws7-r1-os-version-changed` and `m_26_14-ws7-r2-encryption-disabled` detection rules watch the same fields and raise a Kibana alert the moment a specific field drifts.
 
 ---
 
@@ -90,7 +90,7 @@ The bars here show active detection rules by Appendix B category alongside alert
 
 Categories A, B, and H go further than static rules: they also have ML anomaly detection running continuously. The ML jobs learn what "normal" looks like in this environment and alert on genuine deviations — not just threshold crossings.
 
-> **How this works:** Every alert passes through the `m_26_14-alert-category-pipeline` ingest pipeline, which tags it with its Appendix B category. The `m_26_14-alert-coverage-daily` transform rolls those counts into per-day summaries; `m_26_14-alert-coverage-latest` maintains the current view. Seven ML jobs feed this same pipeline: `m_26_14-ml-cata-high-auth-failures`, `m_26_14-ml-cata-rare-auth-ip`, and `m_26_14-ml-cata-ueba-login` for Category A; `m_26_14-ml-catb-dns-dga` and `m_26_14-ml-catb-rare-country` for Category B; `m_26_14-ml-cath-rare-process-linux` and `m_26_14-ml-cath-rare-process-windows` for Category H.
+> **How this works:** Every alert passes through the `m_26_14-alert-category-pipeline` ingest pipeline, which tags it with its Appendix B category. The `m_26_14-alert-coverage-daily` transform rolls those counts into per-day summaries; `m_26_14-alert-coverage-latest` maintains the current view. Categories A, B, and H are reinforced by **machine-learning detection rules** — `m_26_14-ml-cata-high-auth-failures`, `-cata-rare-auth-ip`, and `-cata-ueba-login` for Category A; `-catb-dns-dga` and `-catb-rare-country` for Category B; `-cath-rare-process-linux` and `-cath-rare-process-windows` for Category H — that flag anomalies a static threshold would miss. (These ML *rules* are separate from the maturity ML anomaly-detection *jobs* covered on the Maturity Overview.)
 
 ---
 
@@ -155,7 +155,7 @@ This is what the ISSO opens every morning. The same pipeline that powers every d
 
 Behind this view:
 
-- **10 ML jobs** monitoring for anomalies across identity (Cat A), DNS/C2 (Cat B), off-hours execution (Cat H), compliance degradation trends, and coverage drops
+- **6 ML anomaly-detection jobs** tracking maturity signals — asset-coverage drops, ingestion-rate dips, rule silence, retention/ILM anomalies, hash-coverage gaps, and DNS entropy — plus machine-learning detection rules reinforcing identity (Cat A), DNS/C2 (Cat B), and off-hours execution (Cat H)
 - **6 ES Watchers** enforcing the two-gate data retirement workflow, JIT privileged access expiry, and selective legal-hold copy
 - **3 AI Agents** in Elastic Agent Builder — `m_26_14-poam-drafting-agent` for gap documentation, `m_26_14-threat-investigation-agent` for security triage, `m_26_14-aar-agent` for after-action reports — each wired to ES|QL compliance query tools
 

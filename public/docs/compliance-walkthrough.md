@@ -500,7 +500,7 @@ M-26-14 Appendix C defines a five-element maturity model. Each element has multi
 - Bucket span: 6 hours
 - Model memory: 64 MB
 
-> **Note:** This job has a known prerequisite gap. The `m_26_14.category` field must be present on alert documents, written by the `m_26_14-alert-category-pipeline` ingest pipeline. This pipeline is a planned Phase 2 deliverable and is not yet built. Until it is deployed, the element3 job will run but will not produce useful anomaly scores. Do not enable the `m_26_14-ml-e3-rule-silence` alert rule until this pipeline is in production. This is documented as a Critical RA Flag in the compliance attestation dashboard.
+> **Prerequisite:** The `m_26_14.category` field must be present on alert documents. It is written by the `m_26_14-alert-category-pipeline` ingest pipeline, which is **deployed** and set as the `final_pipeline` on the security alerts data stream (`.internal.alerts-security.alerts-default-*`). The element3 job reads `m_26_14.category` from those enriched alerts. The job produces useful anomaly scores only once each Appendix B category has accrued enough alert history for the 6-hour buckets to form a baseline (allow ~14 days). On a fresh or low-volume cluster the datafeed may return few buckets until detection rules have been firing for a while.
 
 **Key documentation links**:
 - [Ingest pipelines](https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html)
@@ -679,9 +679,24 @@ For agencies with an existing CDM HWAM system, the mock HWAM API integration (`t
 
 **HWAM cross-reference in rule investigation**: When a rogue device alert (Category E / §5(e)) fires, the SOC playbook queries `m_26_14-osquery-hardware-inventory-*` by `host.mac` and `host.serial_number` to determine authorization status. See [rule-e-rogue-device.md](detection-rules/rule-e-rogue-device.md) Investigation Guide Step 2.
 
+**Mechanism 3 — Canonical entity store (the resolved truth SAs demo)**
+
+Raw inventory from osquery and Intune lands as multiple per-source documents in the `logs-m_26_14_asset.inventory-*` data stream (one device can report from several sources). Two Transforms resolve and certify it:
+
+- **`m_26_14-asset-entity-resolution`** (continuous, `group_by asset.id`) merges every source record per device into one canonical entity in **`m_26_14-assets`**, latest-wins per field (`top_metrics` sorted by `@timestamp`). Its dest pipeline `m_26_14-asset-canonical-enrich` unwraps `top_metrics` maps, normalizes null/boolean strings, stamps a lowercased `host.name` (so Entity Store v2 can mint the host entity), derives `asset.component`, evaluates the Element 1/Element 2 coverage flags, and computes the `m_26_14.baseline_hash` configuration fingerprint.
+- **`m_26_14-asset-baseline-snapshot`** captures each canonical entity's fingerprint into **`m_26_14-asset-baselines`** as the certified point-in-time baseline. This transform is run **once and then stopped** so the baseline is frozen — it is the certification reference, not a moving target.
+
+**Representative live fleet** (deterministic seed): **60** canonical assets — **55 managed** (25 macOS laptops, 20 Windows workstations, 10 Linux servers) and **5 unmanaged** network-discovered devices (`UNKNOWN-001…005`). Posture gaps are pinned to named devices for a stable demo: **5 unencrypted** managed devices and **3 not enrolled in MDM**. **55** certified baselines (one per managed asset).
+
+**Config drift (derived, stable)**: `m_26_14.drift_detected` (the field the drift dashboard counts; also mirrored to `asset.compliance.drift_detected`) is **not** a manually stamped flag and is **not** written by a watcher (an earlier design referenced a "WS3 drift watcher" that was never built). It is derived in `m_26_14-asset-canonical-enrich`: after computing the live `baseline_hash`, an `enrich` processor (policy `m_26_14-asset-baseline-lookup`, keyed on `asset.id`) fetches the certified hash from the frozen `m_26_14-asset-baselines`, and a script sets `drift_detected = (live_hash != certified_hash)`. Because it runs on **every** transform checkpoint, the count is stable across re-enrichment. The demo fleet has **4 drifted assets** — `LAPTOP-001`, `WKSTN-003`, `WKSTN-013`, `WKSTN-015` (OS-version drift from their certified baseline). The `m_26_14-ws7-r1-os-version-changed` and `m_26_14-ws7-r2-encryption-disabled` detection rules provide the real-time alerting complement on the same fields.
+
+> **Operational note for SAs:** drift stability depends on the `m_26_14-asset-baseline-snapshot` transform staying **stopped**. If it is restarted it will re-snapshot current (drifted) state, the baselines move to match, and the drift count collapses to 0. To re-establish a drift story: stop the snapshot transform, re-execute the `m_26_14-asset-baseline-lookup` enrich policy, change a fingerprint field (OS version or encryption) on a few devices in the inventory stream, then let the entity-resolution transform re-checkpoint.
+
 **Key documentation links**:
 - [Osquery Fleet integration](https://www.elastic.co/guide/en/fleet/current/osquery-manager-integration.html)
 - [CISA CDM Program](https://www.cisa.gov/cdm)
+- [Enrich processor](https://www.elastic.co/guide/en/elasticsearch/reference/current/enrich-processor.html)
+- [Transforms](https://www.elastic.co/guide/en/elasticsearch/reference/current/transforms.html)
 
 ### 7.2 Software Asset Management (SWAM)
 
@@ -713,6 +728,12 @@ The CDM (Continuous Diagnostics and Mitigation) program integration connects thi
 ## 8. Quick-Start Deployment Sequence
 
 The following sequence represents the minimum path from zero to M-26-14 Level 2 compliance. Each step includes a verification command.
+
+> **Two delivery paths.** The M-26-14 assets ship two ways:
+> 1. **EPR integration package** (`m_26_14`, format_version 3.x, Enterprise, **Kibana/Elasticsearch 9.4+**) — install from Fleet → Integrations. This carries every EPR-packageable asset (ingest pipelines, transforms, data-stream templates, dashboards, ML modules, security rules, osquery pack). Recommended for new deployments.
+> 2. **Bootstrap + web app** for assets EPR cannot carry. A Dev Console / REST bootstrap runbook loads ES-level assets (ILM policies, enrich policies, standalone index templates, watchers, SLM); agents, agent tools, and workflows load via the reference-architecture web app or the Kibana API.
+>
+> The deployment scripts referenced below (`setup-kibana/setup.py`, `setup_ws5.py`, the `seed-demo-data/` seeders) live in the **`elastic-m2614-compliance`** companion repo, not in this reference-architecture repo. Run them from that repo's root with a populated `.env`. They are the scripted equivalent of the package + bootstrap install and are used to stand up the live demo cluster.
 
 ### Step 1 — Deploy Elastic Fleet and Enroll Endpoints
 
@@ -791,6 +812,9 @@ Open Kibana → Dashboards → search "M-26-14". Validate:
 | Elastic License | Enterprise (for full feature set) | Indicator Match rules require Enterprise; ML requires Platinum+ |
 | Elastic Defend | 8.10+ | Process, network, file events; memory acquisition |
 | Fleet Server | 8.14+ | Enrollment events for Category E (rogue device) |
+| `m_26_14` EPR package | **Kibana / Elasticsearch 9.4+** | Integration package format_version 3.x; Entity Store v2 scoring requires 9.4+ and Enterprise |
+
+> **Version split.** The detection rules, ML jobs, and ingest pipelines run on 8.16+. The **EPR integration package** and the **Entity Store v2 scoring engine** (canonical entity store, observed-ledger retention, expected/observed quadrant) require **9.4+ and Enterprise**. Deploy on 9.4.x to get both the rule set and the packaged + scored experience. The live demo cluster runs 9.4.2.
 
 **License verification**:
 ```
