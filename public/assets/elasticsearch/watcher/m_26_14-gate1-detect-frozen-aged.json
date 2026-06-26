@@ -1,7 +1,7 @@
 {
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance",
+    "managed_by": "m_26_14",
     "m_26_14": {
       "workstream": 7,
       "description": "Gate 1 detection: daily scan for m_26_14 indices frozen longer than threshold with no active retirement request. Creates audit record + Kibana Case per candidate."

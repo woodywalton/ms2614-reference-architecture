@@ -1,7 +1,7 @@
 {
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance",
+    "managed_by": "m_26_14",
     "m_26_14": {
       "workstream": 6,
       "description": "Index template for M-26-14 alert coverage metrics produced by the daily and latest transforms"

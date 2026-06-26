@@ -1,7 +1,7 @@
 {
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance",
+    "managed_by": "m_26_14",
     "m_26_14": {
       "workstream": 7,
       "description": "Entity resolution Transform: merges asset events from all HWAM/SWAM sources into one canonical record per device in m_26_14-assets"

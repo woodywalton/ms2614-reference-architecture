@@ -1,7 +1,7 @@
 {
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance",
+    "managed_by": "m_26_14",
     "m_26_14": {
       "workstream": 7,
       "description": "Legal hold / selective copy template. MUST be deployed INACTIVE (PUT _watcher/watch/<id>?active=false) because the reindex runs in the input phase — an active scheduled fire would reindex the placeholder params. Trigger manually via POST /_watcher/watch/m_26_14-selective-copy-legal-hold/_execute after customizing metadata.params. Reindexes a query-scoped subset into a named retained index (no-delete ILM) then snapshots it. The audit record stores source_index so m_26_14-gate2-execute-deletion blocks retirement of any index matching an active hold's source pattern. Deploy via scripts/deploy.py which substitutes __ES_HOST__/__KIBANA_HOST__/__AUTH_HEADER__ tokens and registers the watch inactive."

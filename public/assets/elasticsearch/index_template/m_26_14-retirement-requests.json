@@ -1,7 +1,7 @@
 {
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance",
+    "managed_by": "m_26_14",
     "m_26_14": {
       "workstream": 7,
       "description": "Audit log and state machine for two-gate data retirement approval workflow. Append-only: each state transition creates a new document. Current state = most recent doc per index_name."

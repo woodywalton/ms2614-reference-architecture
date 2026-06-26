@@ -1,7 +1,7 @@
 {
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance",
+    "managed_by": "m_26_14",
     "m_26_14": {
       "workstream": 7,
       "description": "Source-agnostic asset normalizer: maps any HWAM/SWAM source to unified asset.* schema and computes deterministic asset.id"

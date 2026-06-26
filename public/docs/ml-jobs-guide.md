@@ -84,7 +84,7 @@ for current status.
 ## 3. Component A: Custom ML Jobs
 
 Six custom anomaly detection jobs monitor M-26-14 compliance health. All job definition files are
-in `packages/m2614_compliance/elasticsearch/ml_job/`.
+in `public/assets/elasticsearch/ml_job/`.
 
 | Job ID | Job File | Bucket Span | Model Memory | M-26-14 Requirement | MITRE ATT&CK |
 |---|---|---|---|---|---|
@@ -138,7 +138,7 @@ inflating entropy scores. Satisfies Appendix B §5(b) (network/C2) and §5(g) (I
 
 ## 4. Datafeed Notes
 
-All six datafeeds are in `packages/m2614_compliance/elasticsearch/ml_job/` with filenames prefixed
+All six datafeeds are in `public/assets/elasticsearch/ml_job/` with filenames prefixed
 `datafeed-`.
 
 **Element 5 — simple term query, no aggregation.** The element5 datafeed uses a plain
@@ -165,7 +165,7 @@ difference between benign and DGA-generated domains.
 ## 5. Component B: Kibana ML Alert Rules
 
 Thirteen Kibana detection rules surface ML anomaly signals. All rule files are in
-`packages/m2614_compliance/kibana/rule/`.
+`public/assets/kibana/rule/`.
 
 ### 5.1 Compliance Health Rules (custom job wrappers)
 
@@ -231,7 +231,7 @@ reference jobs that have not yet been created.
    Confirm `type` is `platinum`, `enterprise`, or active `trial`.
 
 2. **Deploy 6 custom job definitions.**
-   For each job file in `packages/m2614_compliance/elasticsearch/ml_job/`:
+   For each job file in `public/assets/elasticsearch/ml_job/`:
    ```
    PUT /_ml/anomaly_detectors/{job_id}
    ```
@@ -300,7 +300,7 @@ reference jobs that have not yet been created.
 
    **Option B — Manual datafeed deployment (for existing clusters or scripted setup).**
    If the prebuilt jobs exist but lack datafeeds (e.g. after a fresh index migration), deploy the
-   three auth job datafeeds included in `packages/m2614_compliance/elasticsearch/ml_job/`:
+   three auth job datafeeds included in `public/assets/elasticsearch/ml_job/`:
    ```
    PUT /_ml/datafeeds/datafeed-auth_rare_source_ip_for_a_user
    PUT /_ml/datafeeds/datafeed-auth_high_count_logon_fails_for_a_user

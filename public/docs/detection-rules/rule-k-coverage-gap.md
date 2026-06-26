@@ -250,4 +250,4 @@ Deploy `m_26_14-watcher-registry-zero-count` to handle the authoritative zero-co
 - Creates a Kibana alert (via webhook) for each missing category, with the category letter and estimated gap start date.
 - Sends email notification to the ISSO.
 
-Watcher configuration template is available at `packages/m2614_compliance/elasticsearch/watcher/m_26_14-watcher-registry-zero-count.json` (to be created in a future pack release).
+Watcher configuration template is available at `public/assets/elasticsearch/watcher/m_26_14-watcher-registry-zero-count.json` (to be created in a future pack release).

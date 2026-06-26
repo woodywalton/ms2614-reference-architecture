@@ -1,7 +1,7 @@
 {
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance",
+    "managed_by": "m_26_14",
     "m_26_14": {
       "workstream": 3,
       "description": "Hardware inventory data stream for M-26-14 Element 1 (HWAM)"

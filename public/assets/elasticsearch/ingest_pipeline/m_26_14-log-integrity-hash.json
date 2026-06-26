@@ -1,7 +1,7 @@
 {
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance"
+    "managed_by": "m_26_14"
   },
   "description": "M-26-14 Appendix C Element 5 Level 3 — log integrity hashing. Computes SHA-256 fingerprint of canonical ECS event fields at ingest time. Deploy as final_pipeline on logs-* index templates.",
   "version": 1,

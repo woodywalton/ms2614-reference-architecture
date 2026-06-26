@@ -374,4 +374,4 @@ Same source as the Compliance Attestation Dashboard: the `m_26_14-metrics-alert-
 
 ---
 
-*This guide covers the M-26-14 Compliance Attestation Dashboard and companion dashboards as shipped in the `m2614_compliance` pack. For detection rule documentation, see the individual rule guides in this directory. For architecture decisions and Phase 2 roadmap, see `wow-scenario-compliance-attestation.md`.*
+*This guide covers the M-26-14 Compliance Attestation Dashboard and companion dashboards as shipped in the `m_26_14` pack. For detection rule documentation, see the individual rule guides in this directory. For architecture decisions and Phase 2 roadmap, see `wow-scenario-compliance-attestation.md`.*

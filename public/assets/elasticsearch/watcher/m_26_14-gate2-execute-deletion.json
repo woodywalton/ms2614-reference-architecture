@@ -1,7 +1,7 @@
 {
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance",
+    "managed_by": "m_26_14",
     "m_26_14": {
       "workstream": 7,
       "description": "Gate 2 execution: hourly check for approved_gate2 retirement requests. This is the ONLY step that makes deletion possible: it switches the index from its no-delete ILM policy to the delete-enabled variant, then ILM takes a compliance snapshot (wait_for_snapshot) before deleting. Safety guards: (1) index name must contain 'm_26_14' (scope guard against forged retirement records), (2) any legal hold whose source_index pattern matches the candidate blocks retirement, (3) a missing delete_policy on the request record causes a skip, never a default. Deploy via scripts/deploy.py which substitutes __ES_HOST__/__KIBANA_HOST__/__AUTH_HEADER__ tokens."

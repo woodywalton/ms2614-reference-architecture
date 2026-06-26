@@ -453,7 +453,7 @@ M-26-14 Appendix C defines a five-element maturity model. Each element has multi
 
 **Job details**:
 - Job ID: `m_26_14-ml-element1-asset-coverage`
-- Job file: `packages/m2614_compliance/elasticsearch/ml_job/m_26_14-anomaly-element1.json`
+- Job file: `public/assets/elasticsearch/ml_job/m_26_14-anomaly-element1.json`
 - Bucket span: 1 hour
 - Model memory: 128 MB
 
@@ -475,7 +475,7 @@ M-26-14 Appendix C defines a five-element maturity model. Each element has multi
 
 **Job details**:
 - Job ID: `m_26_14-ml-element2-ingestion-rate`
-- Job file: `packages/m2614_compliance/elasticsearch/ml_job/m_26_14-anomaly-element2.json`
+- Job file: `public/assets/elasticsearch/ml_job/m_26_14-anomaly-element2.json`
 - Bucket span: 1 hour
 - Model memory: 512 MB (reflects per-partition cardinality of multiple data streams)
 
@@ -496,7 +496,7 @@ M-26-14 Appendix C defines a five-element maturity model. Each element has multi
 
 **Job details**:
 - Job ID: `m_26_14-ml-element3-rule-silence`
-- Job file: `packages/m2614_compliance/elasticsearch/ml_job/m_26_14-anomaly-element3.json`
+- Job file: `public/assets/elasticsearch/ml_job/m_26_14-anomaly-element3.json`
 - Bucket span: 6 hours
 - Model memory: 64 MB
 
@@ -516,7 +516,7 @@ M-26-14 Appendix C defines a five-element maturity model. Each element has multi
 
 **Job details**:
 - Job ID: `m_26_14-ml-element4-ilm-anomaly` (also labeled `m_26_14-ml-element4-privop-spike` in some pack files)
-- Job file: `packages/m2614_compliance/elasticsearch/ml_job/m_26_14-anomaly-element4.json`
+- Job file: `public/assets/elasticsearch/ml_job/m_26_14-anomaly-element4.json`
 - Bucket span: 1 hour
 - Model memory: 64 MB
 - Anomaly score threshold: 85 (higher than other jobs due to natural ILM variability)
@@ -541,7 +541,7 @@ M-26-14 Appendix C defines a five-element maturity model. Each element has multi
 
 **Job details**:
 - Job ID: `m_26_14-ml-element5-hash-coverage`
-- Job file: `packages/m2614_compliance/elasticsearch/ml_job/m_26_14-anomaly-element5.json`
+- Job file: `public/assets/elasticsearch/ml_job/m_26_14-anomaly-element5.json`
 - Bucket span: 1 hour
 - Model memory: 256 MB
 - Detector: `low_mean on event.integrity.hash_ratio by data_stream.dataset`

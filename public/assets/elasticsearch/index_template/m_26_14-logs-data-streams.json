@@ -1,7 +1,7 @@
 {
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance",
+    "managed_by": "m_26_14",
     "description": "Index template for logs-m_26_14.* data streams. Applies ECS mappings, M-26-14 log integrity hashing pipeline (Element 5), and compliance-tier ILM policy."
   },
   "index_patterns": ["logs-m_26_14.*"],

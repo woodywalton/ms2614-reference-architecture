@@ -1,7 +1,7 @@
 {
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance",
+    "managed_by": "m_26_14",
     "m_26_14": {
       "description": "Long-term compliance snapshot policy — 7-year retention for M-26-14 audit requirements. Referenced by wait_for_snapshot in ILM delete phases to guarantee snapshot before deletion."
     }

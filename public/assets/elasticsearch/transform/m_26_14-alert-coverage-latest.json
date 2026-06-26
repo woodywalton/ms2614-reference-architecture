@@ -24,7 +24,7 @@
   "description": "M-26-14 Appendix B alert coverage — latest alert per rule for compliance status",
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance",
+    "managed_by": "m_26_14",
     "m_26_14": {
       "workstream": 6,
       "description": "Latest transform: current compliance status — one document per rule_id showing most recent alert"

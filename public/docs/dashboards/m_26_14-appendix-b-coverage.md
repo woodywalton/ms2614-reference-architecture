@@ -188,4 +188,4 @@ POST _transform/m_26_14-alert-coverage-daily/_start
 
 ---
 
-*This guide covers the M-26-14 Appendix B Coverage Matrix as shipped in the `m2614_compliance` pack. For the companion Compliance Attestation Dashboard and detection rule documentation, see `../detection-rules/compliance-dashboard-guide.md`.*
+*This guide covers the M-26-14 Appendix B Coverage Matrix as shipped in the `m_26_14` pack. For the companion Compliance Attestation Dashboard and detection rule documentation, see `../detection-rules/compliance-dashboard-guide.md`.*

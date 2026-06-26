@@ -1,7 +1,7 @@
 {
   "_meta": {
     "managed": true,
-    "managed_by": "m2614_compliance",
+    "managed_by": "m_26_14",
     "m_26_14": {
       "workstream": 7,
       "description": "Gate 1 approval handler: hourly check for approved_gate1 retirement requests. Records pending_gate2 state and opens the Gate 2 Kibana Case. IMPORTANT: no ILM change happens at Gate 1 — the index stays on its no-delete policy until Gate 2 approval, when m_26_14-gate2-execute-deletion switches it to the delete-enabled variant. Deploy via scripts/deploy.py which substitutes __ES_HOST__/__KIBANA_HOST__/__AUTH_HEADER__ tokens."
