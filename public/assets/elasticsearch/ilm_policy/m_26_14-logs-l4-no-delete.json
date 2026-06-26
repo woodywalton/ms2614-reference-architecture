@@ -29,7 +29,7 @@
         "min_age": "180d",
         "actions": {
           "searchable_snapshot": {
-            "snapshot_repository": "m_26_14-compliance-snapshots",
+            "snapshot_repository": "found-snapshots",
             "force_merge_index": true
           }
         }

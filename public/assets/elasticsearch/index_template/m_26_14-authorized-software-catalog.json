@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "managed": true,
+    "managed_by": "m2614_compliance",
+    "m_26_14": {
+      "workstream": 3,
+      "description": "Authorized software catalog (SWAM allowlist) — enrich source index for the m_26_14-authorized-software enrich policy used by the m_26_14-osquery-normalize pipeline. One doc per authorized package name."
+    }
+  },
+  "index_patterns": ["m_26_14-authorized-software"],
+  "priority": 500,
+  "template": {
+    "settings": {
+      "index.number_of_shards": 1,
+      "index.number_of_replicas": 1,
+      "index.auto_expand_replicas": "0-1"
+    },
+    "mappings": {
+      "dynamic": false,
+      "properties": {
+        "package": {
+          "properties": {
+            "name": { "type": "keyword" }
+          }
+        },
+        "software": {
+          "properties": {
+            "authorized":   { "type": "boolean" },
+            "category":     { "type": "keyword" },
+            "approved_by":  { "type": "keyword" },
+            "approval_ref": { "type": "keyword" },
+            "min_version":  { "type": "keyword" }
+          }
+        },
+        "updated_at": { "type": "date" }
+      }
+    }
+  }
+}
