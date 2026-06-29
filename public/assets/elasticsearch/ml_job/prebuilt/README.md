@@ -18,7 +18,7 @@ duplicated here:
 ## Why these are separated from the pack's own ML assets
 
 The parent `ml_job/` directory contains the six **custom** M-26-14 anomaly
-detection jobs (`m2614-ml-*`) and their paired datafeeds. Those are first-class
+detection jobs (`m_26_14-ml-*`) and their paired datafeeds. Those are first-class
 compliance pack assets: the pack owns both the job definition and the datafeed.
 
 For prebuilt jobs, the job definition is owned by Elastic and installed from

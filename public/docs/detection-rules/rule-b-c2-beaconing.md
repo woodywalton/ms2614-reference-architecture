@@ -26,7 +26,7 @@ The rule aggregates all egress network connections within a 30-minute window usi
 
 | Field | Value |
 |---|---|
-| Rule ID | `m2614-appendixb-b-c2-beaconing` |
+| Rule ID | `m_26_14-appendixb-b-c2-beaconing` |
 | Internal UUID | `b3c4d5e6-f7a8-4b9c-0d1e-2f3a4b5c6d7e` |
 | Type | ES\|QL (aggregating) |
 | Severity | High |

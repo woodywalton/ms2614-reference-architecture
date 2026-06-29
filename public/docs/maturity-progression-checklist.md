@@ -18,7 +18,7 @@ Complete these before targeting any specific level:
 
 - [ ] Elastic cluster deployed (Cloud or self-managed, Kibana ^8.16 or ^9.x)
 - [ ] Fleet Server running and accessible to all agent-eligible hosts
-- [ ] Snapshot repository configured (`m2614-compliance-snapshots`) pointing to S3/GCS/Azure Blob (GovCloud recommended)
+- [ ] Snapshot repository configured (`m_26_14-compliance-snapshots`) pointing to S3/GCS/Azure Blob (GovCloud recommended)
 - [ ] M-26-14 Compliance Pack installed (`elastic-package install` or Kibana Fleet → Integrations)
 - [ ] At least one alert connector configured (email, Slack, ServiceNow, or PagerDuty) in Kibana → Stack Management → Connectors
 - [ ] Agency Logging Plan drafted (template: `docs/agency-logging-plan-template.md`)
@@ -33,10 +33,10 @@ What changes as you progress is **policy parameters and governance, never the ti
 
 | Policy | Hot → Frozen at | Delete | Use when |
 |---|---|---|---|
-| `m2614-logs-l3-hot-frozen` | 90 days | 365 days (ILM auto) | L3 target, before two-gate retirement is deployed |
-| `m2614-logs-l3-no-delete` | 90 days | none — two-gate workflow governs retirement | L3 target with WS6 two-gate retirement |
-| `m2614-logs-l4-hot-frozen` | 180 days | 365 days (ILM auto) | L4 searchability target, before two-gate retirement |
-| `m2614-logs-l4-no-delete` | 180 days | none — two-gate workflow governs retirement | **L4 / recommended end state** |
+| `m_26_14-logs-l3-hot-frozen` | 90 days | 365 days (ILM auto) | L3 target, before two-gate retirement is deployed |
+| `m_26_14-logs-l3-no-delete` | 90 days | none — two-gate workflow governs retirement | L3 target with WS6 two-gate retirement |
+| `m_26_14-logs-l4-hot-frozen` | 180 days | 365 days (ILM auto) | L4 searchability target, before two-gate retirement |
+| `m_26_14-logs-l4-no-delete` | 180 days | none — two-gate workflow governs retirement | **L4 / recommended end state** |
 
 All four are the same H/F architecture (hot rollover at 1d/50GB, frozen via searchable snapshot on the snapshot repository). At L1/L2, deploying any of these policies already exceeds the 6-month/12-month *retrievable* requirements — the per-level Element 4 checklist items below verify thresholds, they do not require different architectures.
 
@@ -60,7 +60,7 @@ All four are the same H/F architecture (hot rollover at 1d/50GB, frozen via sear
   Include: System integration (auth + syslog), auditd_manager integration
 
 - [ ] **Enable osquery M-26-14 inventory pack**  
-  Fleet → Agent Policies → Add integration → Custom osquery → import `fleet_package_policy/m2614_asset_inventory_pack.yaml`  
+  Fleet → Agent Policies → Add integration → Custom osquery → import `fleet_package_policy/m_26_14_asset_inventory_pack.yaml`  
   Schedules: hardware inventory every 6h, software inventory every 6h, ARP cache every 1h
 
 - [ ] **Verify ≥70% of known assets enrolled**  
@@ -68,8 +68,8 @@ All four are the same H/F architecture (hot rollover at 1d/50GB, frozen via sear
   If below 70%: identify unenrolled hosts by comparing Fleet enrollment against existing asset inventory (AD, CMDB, CDM)
 
 - [ ] **For agencies with CDM tools (Tenable, ForeScout, Qualys, CrowdStrike):**  
-  Configure WS2 CDM integration policy for your tool (`fleet_package_policy/m2614-cdm-{tool}-defaults.json`)  
-  This populates `m2614-hwam-assets` and `m2614-swam-software` indices as the authoritative inventory denominator
+  Configure WS2 CDM integration policy for your tool (`fleet_package_policy/m_26_14-cdm-{tool}-defaults.json`)  
+  This populates `m_26_14-hwam-assets` and `m_26_14-swam-software` indices as the authoritative inventory denominator
 
 ### Element 2 — Collection Coverage: ≥50% of inventoried assets producing logs, timely aggregation
 
@@ -89,7 +89,7 @@ All four are the same H/F architecture (hot rollover at 1d/50GB, frozen via sear
 At L1, you are not required to cover 50%+ — you are at L1 when alerts exist and are referenced in investigations, even ad hoc. Enable all 11 compliance pack detection rules and confirm at least some are firing.
 
 - [ ] **Enable all Appendix B detection rules**  
-  Kibana → Security → Rules → search "m2614" → enable all 11 `m2614-appendixb-*` rules  
+  Kibana → Security → Rules → search "m_26_14" → enable all 11 `m_26_14-appendixb-*` rules  
   Rules: `a` (identity), `b` (network/C2), `c` (file access), `d` (privilege), `e` (infra changes), `f` (EDR tamper), `g` (IoC — when available), `h` (off-hours), `i` (exfil volume), `j` (APT chain), `k` (coverage gap meta-rule)
 
 - [ ] **Verify at least one connector is assigned to each rule**  
@@ -101,11 +101,11 @@ At L1, you are not required to cover 50%+ — you are at L1 when alerts exist an
 ### Element 4 — Data Retention: Logs retrievable for ≥6 months
 
 - [ ] **Apply the Day-1 H/F ILM policy to all log data streams** (see "Day-1 Retention Design" above)  
-  `PUT _index_template/logs-default-m2614 { "index_patterns": ["logs-*"], "template": { "settings": { "index.lifecycle.name": "m2614-logs-l3-hot-frozen" } }, "priority": 50 }`  
+  `PUT _index_template/logs-default-m_26_14 { "index_patterns": ["logs-*"], "template": { "settings": { "index.lifecycle.name": "m_26_14-logs-l3-hot-frozen" } }, "priority": 50 }`  
   This already exceeds the L1 6-month retrievable requirement — and the L2 12-month one. Do not deploy a shorter-lived interim policy.
 
 - [ ] **Verify snapshot repository connectivity**  
-  Elastic Cloud Hosted: `GET _snapshot/found-snapshots` (built in). Self-managed: `GET _snapshot/m2614-compliance-snapshots/_all` → confirm snapshots exist and repository is reachable
+  Elastic Cloud Hosted: `GET _snapshot/found-snapshots` (built in). Self-managed: `GET _snapshot/m_26_14-compliance-snapshots/_all` → confirm snapshots exist and repository is reachable
 
 - [ ] **Confirm WS1 retention dashboard shows ≥6 months for all data streams**  
   WS1 Dashboard → Element 4 panel → "Retention compliance" → all streams green at 6-month threshold
@@ -128,7 +128,7 @@ At L1, you are not required to cover 50%+ — you are at L1 when alerts exist an
   WS1 Dashboard → Element 1 → "Coverage gaps" list → categorize by type (server/network/OT/IoT/unknown)
 
 - [ ] **For network devices:** confirm syslog/NetFlow data arriving and mapped to `host.name` in ECS  
-  Add to denominator: mark as "log-covered" in `m2614-asset-ground-truth` index even without an agent
+  Add to denominator: mark as "log-covered" in `m_26_14-asset-ground-truth` index even without an agent
 
 - [ ] **Confirm daily inventory updates**  
   osquery inventory pack is scheduled at 6h intervals — satisfies "daily" requirement automatically.  
@@ -175,7 +175,7 @@ At L1, you are not required to cover 50%+ — you are at L1 when alerts exist an
 ### Element 4 — Data Retention: Retrievable for ≥12 months
 
 - [ ] **No policy change needed if you followed the Day-1 design**  
-  The Day-1 `m2614-logs-l3-hot-frozen` policy already retains 365 days (frozen searchable snapshots) — the L2 12-month retrievable requirement is met. Verify it is still applied:  
+  The Day-1 `m_26_14-logs-l3-hot-frozen` policy already retains 365 days (frozen searchable snapshots) — the L2 12-month retrievable requirement is met. Verify it is still applied:  
   `GET logs-*/_settings?filter_path=**.lifecycle.name`
 
 - [ ] **Confirm cost implications**  
@@ -215,7 +215,7 @@ At L1, you are not required to cover 50%+ — you are at L1 when alerts exist an
   WS1 Dashboard → Element 1 → "Last inventory update" column → all assets showing update within 24h
 
 - [ ] **Document all exceptions**  
-  Maintain `m2614-asset-exceptions` index (or CSV register) listing assets excluded from coverage, with reason, ISSO approval, and compensating control. Exception list is required for auditor review.
+  Maintain `m_26_14-asset-exceptions` index (or CSV register) listing assets excluded from coverage, with reason, ISSO approval, and compensating control. Exception list is required for auditor review.
 
 ### Element 2 — Collection Coverage: ≥90%, timely aggregation
 
@@ -227,7 +227,7 @@ At L1, you are not required to cover 50%+ — you are at L1 when alerts exist an
   This adds behavior-based events (process injection, memory anomaly, network behavior) that satisfy §5(f) and §5(j) without additional integrations.
 
 - [ ] **Configure ingestion latency monitoring rule**  
-  Enable `m2614-e2-ingestion-lag.ndjson` rule → fires when log category exceeds SLA threshold.  
+  Enable `m_26_14-e2-ingestion-lag.ndjson` rule → fires when log category exceeds SLA threshold.  
   Assign connector for immediate ISSO notification.
 
 ### Element 3 — Collection Operations: ≥70% of Appendix B categories, routinely evaluated and tuned
@@ -242,7 +242,7 @@ At L1, you are not required to cover 50%+ — you are at L1 when alerts exist an
 
 - [ ] **Enable threat intelligence integrations for category (g)**  
   Install at minimum: abuse.ch integration (MalwareBazaar + URLhaus + Feodo Tracker — free)  
-  AND CISA KEV integration → `m2614-appendixb-g-ioc-monitoring` rule can now fire on active IoC matches
+  AND CISA KEV integration → `m_26_14-appendixb-g-ioc-monitoring` rule can now fire on active IoC matches
 
 - [ ] **Configure ES|QL behavioral rules** for categories where ML is not yet enabled  
   Category (h) off-hours rule is in pack. Add ES|QL anomaly approximations:  
@@ -256,7 +256,7 @@ At L1, you are not required to cover 50%+ — you are at L1 when alerts exist an
 
 - [ ] **Confirm the L3 policy variant**  
   Same H/F architecture as Day 1 — hot 0-90d, frozen 90d+ (searchable snapshot). If two-gate retirement (WS6) is deployed, switch to the no-delete variant so the workflow, not ILM, governs deletion:  
-  `PUT _index_template/logs-default-m2614 { "template": { "settings": { "index.lifecycle.name": "m2614-logs-l3-no-delete" } } }`
+  `PUT _index_template/logs-default-m_26_14 { "template": { "settings": { "index.lifecycle.name": "m_26_14-logs-l3-no-delete" } } }`
 
 - [ ] **Verify searchable coverage ≥3 months**  
   With searchable snapshots, frozen data is searchable too — the L3 "3-month searchable" requirement is met by the H/F design itself, with the most recent 90 days on hot for lowest latency.  
@@ -274,8 +274,8 @@ At L1, you are not required to cover 50%+ — you are at L1 when alerts exist an
   Verify: `GET _cluster/settings?filter_path=**.ssl`
 
 - [ ] **Deploy WS4 log integrity hashing pipeline**  
-  Apply `m2614-log-integrity-hash.json` as a final pipeline on all `logs-*` data streams:  
-  `PUT _index_template/logs-default-m2614 { "template": { "settings": { "final_pipeline": "m2614-log-integrity-hash" } } }`
+  Apply `m_26_14-log-integrity-hash.json` as a final pipeline on all `logs-*` data streams:  
+  `PUT _index_template/logs-default-m_26_14 { "template": { "settings": { "final_pipeline": "m_26_14-log-integrity-hash" } } }`
 
 - [ ] **Verify hashing coverage ≥99%**  
   ```esql
@@ -283,10 +283,10 @@ At L1, you are not required to cover 50%+ — you are at L1 when alerts exist an
   | STATS total = COUNT(*), hashed = COUNT(*) WHERE event.integrity.hashed == true
   | EVAL pct = ROUND(hashed / total * 100, 2)
   ```
-  Target: ≥99%. Unhashed events indicate pipeline bypass or failure — investigate `tags: m2614-hash-failure`.
+  Target: ≥99%. Unhashed events indicate pipeline bypass or failure — investigate `tags: m_26_14-hash-failure`.
 
 - [ ] **Schedule daily integrity verification**  
-  `tools/integrity_verify.py` re-computes SHA-256 hashes externally and reports tampered/unhashed documents. Run nightly (cron or CI). The `m2614-ml-element5-hash-coverage` ML job additionally alerts on hash coverage degradation in near-real-time.
+  `tools/integrity_verify.py` re-computes SHA-256 hashes externally and reports tampered/unhashed documents. Run nightly (cron or CI). The `m_26_14-ml-element5-hash-coverage` ML job additionally alerts on hash coverage degradation in near-real-time.
 
 ---
 
@@ -302,7 +302,7 @@ At L1, you are not required to cover 50%+ — you are at L1 when alerts exist an
   Common resolution paths: vendor-provided syslog support released, OT platform integration matured, device EOL'd and decommissioned.
 
 - [ ] **Deploy OT security platform if applicable**  
-  Claroty, Dragos, or Nozomi provides deep OT/ICS asset inventory (including Levels 0-1 Purdue model assets that can't run agents). Configure the OT platform integration to feed `m2614-hwam-assets`.
+  Claroty, Dragos, or Nozomi provides deep OT/ICS asset inventory (including Levels 0-1 Purdue model assets that can't run agents). Configure the OT platform integration to feed `m_26_14-hwam-assets`.
 
 - [ ] **Validate 95% threshold**  
   WS1 Dashboard → Element 1 → "Inventory coverage %" ≥ 95. Denominator = all known IT/OT/IoT assets per Agency Logging Plan scope.
@@ -322,7 +322,7 @@ At L1, you are not required to cover 50%+ — you are at L1 when alerts exist an
 95% of 11 = at least 10-11 categories with active, ML/AI-tuned alerts.
 
 - [ ] **Enable Elastic ML anomaly detection suite** (requires Platinum/Enterprise subscription)  
-  Kibana → Machine Learning → Anomaly Detection → import `m2614-anomaly-element3.json`  
+  Kibana → Machine Learning → Anomaly Detection → import `m_26_14-anomaly-element3.json`  
   Jobs: `rare_process_by_host`, `suspicious_login_activity`, `high_count_network_events`, `unusual_network_activity`, `rare_user_activity`  
   Wait for initialization period (minimum 2 weeks of data for baseline to establish)
 
@@ -346,12 +346,12 @@ At L1, you are not required to cover 50%+ — you are at L1 when alerts exist an
 ### Element 4 — Data Retention: ≥6 months searchable + ≥12 months retrievable
 
 - [ ] **Apply L4 no-delete ILM policy**  
-  `m2614-logs-l4-no-delete.json`: same H/F architecture, hot 0-180d, frozen 180d+, no auto-delete.  
-  `PUT _index_template/logs-default-m2614 { "template": { "settings": { "index.lifecycle.name": "m2614-logs-l4-no-delete" } } }`
+  `m_26_14-logs-l4-no-delete.json`: same H/F architecture, hot 0-180d, frozen 180d+, no auto-delete.  
+  `PUT _index_template/logs-default-m_26_14 { "template": { "settings": { "index.lifecycle.name": "m_26_14-logs-l4-no-delete" } } }`
 
 - [ ] **Extended retention for HVA/HIS data streams** (recommended)  
-  The pack ships `elasticsearch/ilm_policy/m2614-logs-hva-extended.json`: same Day-1 H/F architecture, hot 0-365d (12-month searchable window), frozen 365d+ (retrievable through 24 months and beyond), no auto-delete — retirement governed exclusively by the WS6 two-gate workflow. Apply selectively to HVA datasets:  
-  `PUT logs-{hva-dataset}-*/_settings { "index.lifecycle.name": "m2614-logs-hva-extended" }`  
+  The pack ships `elasticsearch/ilm_policy/m_26_14-logs-hva-extended.json`: same Day-1 H/F architecture, hot 0-365d (12-month searchable window), frozen 365d+ (retrievable through 24 months and beyond), no auto-delete — retirement governed exclusively by the WS6 two-gate workflow. Apply selectively to HVA datasets:  
+  `PUT logs-{hva-dataset}-*/_settings { "index.lifecycle.name": "m_26_14-logs-hva-extended" }`  
   Adjust the 365d hot timing to your agency records schedule if it differs.
 
 - [ ] **Verify WS6 retirement workflow is deployed** (see Element 5 below)  
@@ -367,24 +367,24 @@ The pack ships a JIT access kit built on native Elasticsearch role mappings — 
 
 | Asset | Purpose |
 |---|---|
-| `elasticsearch/index_template/m2614-jit-grants.json` | Grant register: one document per grant (`grant_id`, `username`, `role`, `expires_at`, `status`, `case_id`, `justification`, …) |
-| `elasticsearch/watcher/m2614-jit-expiry.json` | Every 15 min: finds `status:active` grants past `expires_at`, deletes the backing role mapping `m2614-jit-{grant_id}` (instant revocation), writes a `status:expired` audit record |
-| `elasticsearch/watcher/m2614-jit-audit.json` | Daily 13:00 UTC: inventories all active grants, appends a report to `m2614-jit-audit-reports` flagging grants active >72h (stale = violates just-in-time principle) |
+| `elasticsearch/index_template/m_26_14-jit-grants.json` | Grant register: one document per grant (`grant_id`, `username`, `role`, `expires_at`, `status`, `case_id`, `justification`, …) |
+| `elasticsearch/watcher/m_26_14-jit-expiry.json` | Every 15 min: finds `status:active` grants past `expires_at`, deletes the backing role mapping `m_26_14-jit-{grant_id}` (instant revocation), writes a `status:expired` audit record |
+| `elasticsearch/watcher/m_26_14-jit-audit.json` | Daily 13:00 UTC: inventories all active grants, appends a report to `m_26_14-jit-audit-reports` flagging grants active >72h (stale = violates just-in-time principle) |
 
 - [ ] **Deploy the JIT kit**  
   `python scripts/deploy.py --only templates,watchers`
 
 - [ ] **Establish JIT provisioning procedure**  
   ISSO opens a Kibana Case, then grants access in two steps:  
-  1. `PUT _security/role_mapping/m2614-jit-{grant_id}` with `roles: [scoped-role]` and `rules: { field: { username: "{analyst}" } }`  
-  2. Index a grant document into `m2614-jit-grants` with `status: active` and `expires_at`  
+  1. `PUT _security/role_mapping/m_26_14-jit-{grant_id}` with `roles: [scoped-role]` and `rules: { field: { username: "{analyst}" } }`  
+  2. Index a grant document into `m_26_14-jit-grants` with `status: active` and `expires_at`  
   Revocation (manual or by the expiry watcher) deletes the role mapping. Document the procedure in the Agency Logging Plan; each ISSO must be able to execute it.
 
 - [ ] **Configure permission monitoring**  
   Enable Elasticsearch audit logging (`xpack.security.audit.enabled: true` — see Prerequisites; on Elastic Cloud Hosted, via deployment user settings).  
   Audit log destination: `logs-elasticsearch.audit-*` (Elastic Agent Elasticsearch integration).  
   Enable detection rules for unusual data access patterns (analyst accessing outside normal scope, bulk export).  
-  Pair a detection rule or connector with `m2614-jit-audit-reports` for ISSO notification on stale grants.
+  Pair a detection rule or connector with `m_26_14-jit-audit-reports` for ISSO notification on stale grants.
 
 **Part B: Two-Gate Retirement**
 
@@ -392,13 +392,13 @@ The pack ships the two-gate retirement workflow in two interchangeable implement
 
 | Implementation | Assets | Character |
 |---|---|---|
-| **Elastic Workflows (primary, recommended)** | `kibana/workflow/m2614-data-retirement-gate1-detect.yaml`, `m2614-data-retirement-gate1-approval.yaml`, `m2614-data-retirement-gate2-execute.yaml`, `m2614-legal-hold-selective-copy.yaml`, `m2614-data-classification-intake.yaml` | Human-in-the-loop: visible run history in Kibana → Workflows, explicit step-through, easiest to audit and demo |
-| **Watcher (autonomous variant)** | `elasticsearch/watcher/m2614-gate1-detect-frozen-aged.json`, `m2614-gate1-approval-advance.json`, `m2614-gate2-execute-deletion.json`, `m2614-selective-copy-legal-hold.json` | Scheduled, runs unattended; the legal-hold watch is registered **inactive** (its input performs a reindex — execute manually per hold) |
+| **Elastic Workflows (primary, recommended)** | `kibana/workflow/m_26_14-data-retirement-gate1-detect.yaml`, `m_26_14-data-retirement-gate1-approval.yaml`, `m_26_14-data-retirement-gate2-execute.yaml`, `m_26_14-legal-hold-selective-copy.yaml`, `m_26_14-data-classification-intake.yaml` | Human-in-the-loop: visible run history in Kibana → Workflows, explicit step-through, easiest to audit and demo |
+| **Watcher (autonomous variant)** | `elasticsearch/watcher/m_26_14-gate1-detect-frozen-aged.json`, `m_26_14-gate1-approval-advance.json`, `m_26_14-gate2-execute-deletion.json`, `m_26_14-selective-copy-legal-hold.json` | Scheduled, runs unattended; the legal-hold watch is registered **inactive** (its input performs a reindex — execute manually per hold) |
 
-Deploy one (Workflows recommended); both write the same `m2614-retirement-requests` audit trail. Deploy via `python scripts/deploy.py --only workflows` or `--only watchers`.
+Deploy one (Workflows recommended); both write the same `m_26_14-retirement-requests` audit trail. Deploy via `python scripts/deploy.py --only workflows` or `--only watchers`.
 
 - [ ] **Deploy retirement requests index template**  
-  `elasticsearch/index_template/m2614-retirement-requests.json` (deployed by `scripts/deploy.py --only templates`)
+  `elasticsearch/index_template/m_26_14-retirement-requests.json` (deployed by `scripts/deploy.py --only templates`)
 
 - [ ] **Deploy the two-gate workflow set** (table above)  
   Gate 1 detects frozen indices reaching retirement age and opens an approval request; Gate 2 executes deletion only after both approvals are recorded.
@@ -410,11 +410,11 @@ Deploy one (Workflows recommended); both write the same `m2614-retirement-reques
   Neither approver may be the same individual. Document in Agency Logging Plan.
 
 - [ ] **Run retirement workflow dry run**  
-  Trigger Gate 1 manually (Kibana → Workflows → run), confirm both approval gates required, confirm deletion only executes after both approvals, confirm the audit record lands in `m2614-retirement-requests`.
+  Trigger Gate 1 manually (Kibana → Workflows → run), confirm both approval gates required, confirm deletion only executes after both approvals, confirm the audit record lands in `m_26_14-retirement-requests`.
 
 - [ ] **Switch to no-delete ILM and disable any remaining auto-delete phases**  
   `GET _ilm/policy` → review all policies → confirm no `"delete"` phase on any policy applied to `logs-*`.  
-  The `m2614-logs-l4-hot-frozen` and `m2614-logs-l3-hot-frozen` policies have auto-delete at 365d — these must NOT be active on any data stream once WS6 is deployed; use the `-no-delete` variants so retirement is governed exclusively by the two-gate workflow.
+  The `m_26_14-logs-l4-hot-frozen` and `m_26_14-logs-l3-hot-frozen` policies have auto-delete at 365d — these must NOT be active on any data stream once WS6 is deployed; use the `-no-delete` variants so retirement is governed exclusively by the two-gate workflow.
 
 ---
 
@@ -424,7 +424,7 @@ Level 4 is not a destination — it requires ongoing operational discipline. Rec
 
 **Monthly:**
 - [ ] Review WS1 maturity dashboard — confirm all five elements still at L4
-- [ ] Review active JIT grants (`m2614-jit-grants` where `status:active` + daily `m2614-jit-audit-reports`) — revoke any stale grants
+- [ ] Review active JIT grants (`m_26_14-jit-grants` where `status:active` + daily `m_26_14-jit-audit-reports`) — revoke any stale grants
 - [ ] Review element 3 alert coverage — all 11 categories still actively firing?
 - [ ] Check ML anomaly job health — jobs running, no spooling errors
 
@@ -432,7 +432,7 @@ Level 4 is not a destination — it requires ongoing operational discipline. Rec
 - [ ] Full rule tuning review — adjust thresholds, exclusions, MITRE coverage gaps
 - [ ] Review asset exceptions list — close any exceptions where coverage is now achievable
 - [ ] Test retirement workflow — submit a dry-run retirement case, confirm both approvers respond within SLA
-- [ ] Review JIT access grant log (`m2614-jit-grants`) — all past grants properly expired/revoked by the `m2614-jit-expiry` watcher?
+- [ ] Review JIT access grant log (`m_26_14-jit-grants`) — all past grants properly expired/revoked by the `m_26_14-jit-expiry` watcher?
 
 **Annually:**
 - [ ] Update Agency Logging Plan

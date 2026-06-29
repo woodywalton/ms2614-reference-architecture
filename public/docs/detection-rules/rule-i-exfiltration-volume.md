@@ -24,7 +24,7 @@ The rule uses **ES|QL aggregation** (not threshold), which allows it to `SUM(net
 
 | Field | Value |
 |---|---|
-| **Rule ID** | `m2614-appendixb-i-exfiltration-volume` |
+| **Rule ID** | `m_26_14-appendixb-i-exfiltration-volume` |
 | **Internal UUID** | `a7f3c2e1-84b5-4d9e-b6f2-3c1a5e8d7f04` |
 | **Type** | ES\|QL |
 | **Language** | esql |
@@ -77,7 +77,7 @@ The following Elastic prebuilt detection rules address overlapping scenarios. Th
 
 On the evening of May 30, 2026, workstation `workstation-22` (user `jsmith`, IT department) began generating sustained HTTPS egress traffic to `203.0.113.50` — a US-East endpoint operated by an S3-compatible cloud storage provider with no FedRAMP authorization and no US data residency contractual guarantees.
 
-The tool responsible was `rclone.exe`, a legitimate open-source cloud sync utility. `rclone` is not prohibited per se, but it is absent from the agency's WS3 authorized software inventory (`m2614-osquery-software-*`). The user had downloaded it earlier in the day from the official rclone.org website — the download itself was not blocked by the proxy, because `rclone.org` is not on any deny-list.
+The tool responsible was `rclone.exe`, a legitimate open-source cloud sync utility. `rclone` is not prohibited per se, but it is absent from the agency's WS3 authorized software inventory (`m_26_14-osquery-software-*`). The user had downloaded it earlier in the day from the official rclone.org website — the download itself was not blocked by the proxy, because `rclone.org` is not on any deny-list.
 
 Between 8:15 PM and 9:02 PM local time, `rclone.exe` made 14 sequential HTTPS upload connections, each transferring approximately 60 MB. The rule's one-hour evaluation window captured all connections, summing to **780 MB** of egress — 56% above the 500 MB threshold.
 
@@ -124,7 +124,7 @@ FROM logs-endpoint.events.process*
 Cross-reference `process.name` against the WS3 authorized software inventory:
 
 ```esql
-FROM m2614-osquery-software-*
+FROM m_26_14-osquery-software-*
 | WHERE host.name == "<HOST_NAME>"
   AND software.name LIKE "*<PROCESS_BASE_NAME>*"
 | KEEP host.name, software.name, software.authorized, software.version
@@ -239,5 +239,5 @@ If `network.direction` is blank for your source, you must either fix the ingest 
 ### Recommended Enrichments (not required)
 
 - **GeoIP processor** on the `logs-network_traffic.*` pipeline: populates `destination.geo.*` for jurisdiction-based escalation.
-- **WS3 Software Inventory** (`m2614-osquery-software-*`): enables co-querying process names against the authorized software list at investigation time.
+- **WS3 Software Inventory** (`m_26_14-osquery-software-*`): enables co-querying process names against the authorized software list at investigation time.
 - **Threat Intelligence integration**: maps destination IPs to known malicious infrastructure, enhancing triage confidence.

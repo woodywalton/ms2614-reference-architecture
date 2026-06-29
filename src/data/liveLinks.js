@@ -9,7 +9,7 @@
 
 export const LIVE_KIBANA_BASE = 'https://m-26-14-7ae75d.kb.us-east-1.aws.found.io'
 
-// strip path + extension: '/assets/elasticsearch/transform/m2614-foo.json' -> 'm2614-foo'
+// strip path + extension: '/assets/elasticsearch/transform/m_26_14-foo.json' -> 'm_26_14-foo'
 function basename(file) {
   return file.split('/').pop().replace(/\.(json|ndjson|yaml|yml)$/, '')
 }
@@ -17,8 +17,12 @@ function basename(file) {
 // Per-type URL builders. `name` is the deployed object name (file basename
 // unless the asset declares `liveId`).
 const TYPE_LINKS = {
+  // Relative window so the link always frames the rolling demo data (base
+  // seed = last ~30d, ML baseline = last 21d) plus the fixed-date governance
+  // records (retirement requests back to ~Apr 1). now-120d/now covers both and
+  // auto-tracks reseeds instead of going stale on a fixed date.
   'kibana-dashboard': name =>
-    `/app/dashboards#/view/${name}?_g=(time:(from:'2026-04-01T00:00:00.000Z',to:'2026-06-30T23:59:59.999Z'))`,
+    `/app/dashboards#/view/${name}?_g=(time:(from:now-120d,to:now))`,
   'index-template': name =>
     `/app/management/data/index_management/templates/${encodeURIComponent(name)}`,
   'ilm-policy': name =>

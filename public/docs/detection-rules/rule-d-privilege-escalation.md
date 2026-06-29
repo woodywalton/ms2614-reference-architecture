@@ -26,7 +26,7 @@ Standalone "account created" alerts are common and often buried in alert queues.
 
 | Field | Value |
 |---|---|
-| Rule ID | `m2614-appendixb-d-privilege-escalation-sequence` |
+| Rule ID | `m_26_14-appendixb-d-privilege-escalation-sequence` |
 | Internal UUID | `d4e7f3a2-8b1c-4e5d-9f6a-2c3b7e8d1a4f` |
 | Type | `eql` (sequence) |
 | Severity | High |
@@ -80,7 +80,7 @@ Windows Security logs event ID 4720 — account created. The Elastic Windows int
 
 Thirty-seven minutes later, at 3:49 AM, the operator authenticates to `fileserver-02` — a Windows file server containing classified acquisition documents — using the `svc_backup_temp` account over SMB (Logon Type 3, event ID 4624).
 
-The EQL sequence engine matches these two events by account name across the 37-minute window. The sequence rule `m2614-appendixb-d-privilege-escalation-sequence` fires at **high severity, risk score 73**, presenting both events together in a single alert. The analyst immediately sees: account created at 3:12 by a Domain Admin account, first use at 3:49 on a classified file server. The context that was invisible in two separate alerts is now the headline of one.
+The EQL sequence engine matches these two events by account name across the 37-minute window. The sequence rule `m_26_14-appendixb-d-privilege-escalation-sequence` fires at **high severity, risk score 73**, presenting both events together in a single alert. The analyst immediately sees: account created at 3:12 by a Domain Admin account, first use at 3:49 on a classified file server. The context that was invisible in two separate alerts is now the headline of one.
 
 The analyst disables the account, isolates `fileserver-02`, resets the compromised Domain Admin credentials, and opens a THIRF incident within 11 minutes of alert generation.
 

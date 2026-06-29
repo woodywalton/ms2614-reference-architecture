@@ -1,0 +1,19 @@
+{
+  "id": "m_26_14-compliance-posture-query",
+  "type": "esql",
+  "description": "Queries M-26-14 compliance posture metrics and classification audit records using ES|QL. Supports querying m_26_14-data-classification-requests for unclassified data streams and m_26_14-metrics-* for maturity score time series. Use for POA&M drafting, ATO risk narrative, and compliance gap identification.",
+  "tags": ["m_26_14", "compliance", "posture", "data-classification", "poam", "cato"],
+  "configuration": {
+    "query": "FROM m_26_14-metrics-alert-coverage,m_26_14-metrics-asset-coverage,m_26_14-metrics-retention | WHERE @timestamp >= NOW() - ?lookback | STATS count = COUNT(*), latest = MAX(@timestamp) BY metric_type, state | SORT latest DESC | LIMIT ?limit",
+    "params": {
+      "lookback": {
+        "type": "string",
+        "description": "Time lookback period in ES|QL duration format. Examples: 7d (7 days), 30d (30 days), 90d (90 days)."
+      },
+      "limit": {
+        "type": "integer",
+        "description": "Maximum number of aggregated results to return. Default: 50."
+      }
+    }
+  }
+}
