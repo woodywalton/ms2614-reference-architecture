@@ -145,7 +145,7 @@ const PRINTABLES = [
   },
   {
     title: 'Elastic M-26-14 Reference Architecture',
-    description: 'Architecture diagrams and deployment guidance across all four maturity levels.',
+    description: 'Architecture diagrams and deployment guidance across all five maturity levels.',
     detail: 'PDF · Reference Architecture',
     href: '/docs/Elastic%20M-26-14%20Reference%20Architectures.pdf',
   },
