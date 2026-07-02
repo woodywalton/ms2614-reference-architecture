@@ -115,6 +115,15 @@
                 },
                 "eol": {
                   "type": "boolean"
+                },
+                "approved_by": {
+                  "type": "keyword"
+                },
+                "approval_ref": {
+                  "type": "keyword"
+                },
+                "min_version": {
+                  "type": "keyword"
                 }
               }
             }
