@@ -7,13 +7,20 @@
       "description": "Normalize M-26-14 osquery asset inventory results for HWAM/SWAM compliance"
     }
   },
-  "description": "Normalize M-26-14 osquery asset inventory results — hardware, software, and network queries",
+  "description": "Normalize M-26-14 osquery asset inventory results \u2014 hardware, software, and network queries",
   "processors": [
     {
       "script": {
         "description": "Copy Fleet agent context to host.* fields; set m_26_14 managed/source flags",
         "lang": "painless",
         "source": "if (ctx.containsKey('agent') && ctx.agent != null) {\n  if (!ctx.containsKey('host') || ctx.host == null) {\n    ctx['host'] = new HashMap();\n  }\n  Map agent = ctx.agent;\n  Map host = ctx.host;\n  if (agent.containsKey('id') && (!host.containsKey('id') || host['id'] == null)) {\n    host['id'] = agent['id'];\n  }\n  if (!host.containsKey('name') || host['name'] == null) {\n    if (agent.containsKey('name') && agent['name'] != null) {\n      host['name'] = agent['name'];\n    } else if (agent.containsKey('hostname') && agent['hostname'] != null) {\n      host['name'] = agent['hostname'];\n    }\n  }\n}\nif (!ctx.containsKey('m_26_14') || ctx.m_26_14 == null) {\n  ctx['m_26_14'] = new HashMap();\n}\nctx['m_26_14']['managed'] = true;\nctx['m_26_14']['hwam_source'] = 'osquery';"
+      }
+    },
+    {
+      "lowercase": {
+        "field": "host.name",
+        "ignore_missing": true,
+        "description": "Normalize host.name to lowercase for consistent entity resolution (Entity Store keys on host.name; case-sensitive keyword match)"
       }
     },
     {
@@ -36,7 +43,11 @@
     {
       "fingerprint": {
         "description": "Asset identity fingerprint for deduplication across HWAM/SWAM records",
-        "fields": ["host.name", "host.id", "m_26_14.hardware.serial"],
+        "fields": [
+          "host.name",
+          "host.id",
+          "m_26_14.hardware.serial"
+        ],
         "target_field": "m_26_14.asset_fingerprint",
         "method": "SHA-256",
         "ignore_missing": true
@@ -59,7 +70,9 @@
     {
       "fingerprint": {
         "description": "Deterministic asset.id from resolution key (same device = same ID regardless of source)",
-        "fields": ["_asset_resolution_key"],
+        "fields": [
+          "_asset_resolution_key"
+        ],
         "target_field": "asset.id",
         "method": "SHA-256",
         "ignore_missing": true
@@ -67,14 +80,23 @@
     },
     {
       "remove": {
-        "field": ["_asset_resolution_key", "asset._resolution_type", "asset._resolution_confidence"],
+        "field": [
+          "_asset_resolution_key",
+          "asset._resolution_type",
+          "asset._resolution_confidence"
+        ],
         "ignore_missing": true
       }
     },
     {
       "fingerprint": {
         "description": "Log integrity hash: asset identity + state + ingest time",
-        "fields": ["asset.id", "asset.os.version", "asset.hardware.serial_number", "@timestamp"],
+        "fields": [
+          "asset.id",
+          "asset.os.version",
+          "asset.hardware.serial_number",
+          "@timestamp"
+        ],
         "target_field": "m_26_14.integrity_hash",
         "method": "SHA-256",
         "ignore_missing": true
