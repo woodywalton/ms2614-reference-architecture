@@ -1,4 +1,4 @@
-# M-26-14 Compliance Pack — Self-Directed Walkthrough
+# M-26-14 Readiness Pack — Self-Directed Walkthrough
 
 **Time:** ~15 minutes · **Live cluster:** [m-26-14-7ae75d.kb.us-east-1.aws.found.io](https://m-26-14-7ae75d.kb.us-east-1.aws.found.io) (read-only)
 

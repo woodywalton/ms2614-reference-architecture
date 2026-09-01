@@ -876,7 +876,7 @@ function RequirementModal({ row, onClose }) {
             </div>
           )}
 
-          {/* Compliance Pack Assets */}
+          {/* Readiness Pack Assets */}
           {packAssets.length > 0 && (
             <div>
               <p className="text-sm font-semibold text-text-primary mb-3">Readiness Pack Assets</p>

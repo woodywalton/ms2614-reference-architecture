@@ -8,7 +8,9 @@ Continuous Event Monitoring (CEM): Real-time log ingestion and alerting, focused
 
 Threat Hunting, Investigation, Response, and Forensics (THIRF): Longer-horizon retention supporting forensic reconstruction, incident investigation, and threat hunting across extended time windows.
 
-M-26-14 establishes absolute minimum baseline requirements of six months searchable and twelve months retrievable (Appendix B). However, these baselines are reached progressively through a five-level maturity model (Appendix C) that governs the Data Retention element alongside inventory visibility, collection coverage, collection operations, and log management. Retention obligations scale with maturity level — from retrievable-only at six months at Level 1, through a combination of searchable and retrievable windows at Levels 3 and 4 — with the full six-month searchable and twelve-month retrievable requirement representing the Optimal (Level 4\) target. Agencies are required to achieve Level 1 within 120 days of the CISA Logging Reference Architecture publication, Level 2 within 180 days, and Level 3 within 320 days.
+M-26-14 establishes absolute minimum baseline requirements of six months searchable and twelve months retrievable (Appendix B). CISA’s Logging Reference Architecture clarifies how the five-level maturity model (Appendix C) relates to that baseline: the maturity levels govern reporting and progression across the Data Retention element alongside inventory visibility, collection coverage, collection operations, and log management, while the Appendix B six-month actively-searchable window binds at every level (LRA Section 5.3). A Level 3 posture of three months searchable satisfies maturity reporting, not the baseline itself. The practical consequence: deploy hot/frozen tiering from day one so the searchable baseline is met immediately, and let maturity progression govern coverage, operations, and governance rather than storage architecture. Agencies are required to achieve Level 1 within 120 days of the CISA Logging Reference Architecture publication (by December 18, 2026), Level 2 within 180 days (by February 16, 2027), and Level 3 within 320 days (by July 6, 2027).
+
+CISA's Logging Reference Architecture also situates enterprise logging within the Continuous Diagnostics and Mitigation (CDM) program: logging and log analysis fall under CDM's Manage Events (MNGEVT) capability (LRA Section 2.2). For agencies already reporting through CDM, the architecture in this document is the MNGEVT data layer: the same inventory, collection, and detection telemetry that drives the maturity metrics below also feeds the agency's CDM dashboard linkage, and the Agency Logging Plan should record that linkage explicitly.
 
 The tiered storage architecture described in this document is designed to support agencies at any point in that maturity progression — providing the retention depth and storage economics to meet current obligations while scaling to satisfy the Optimal threshold as agencies advance through the model.
 
@@ -16,7 +18,7 @@ The tiered storage architecture described in this document is designed to suppor
 
 The Elastic Search AI Platform is a distributed, real-time analytics engine purpose-built to ingest, store, search, and analyze structured and unstructured data at enterprise scale. At its core, Elasticsearch provides the indexing and query engine that powers the platform, while Kibana delivers interactive visualization and operational dashboards, Elastic Agent standardizes telemetry collection across diverse infrastructure, and a broad library of integrations accelerates onboarding from virtually any data source.
 
-A defining characteristic of the platform is its support for both schema-on-write and schema-on-read workflows, enabling teams to normalize data at ingest time via the Elastic Common Schema (ECS) or defer normalization to query time — a flexibility that significantly reduces the time required to operationalize new data sources and correlate events across domains.
+A defining characteristic of the platform is its support for both schema-on-write and schema-on-read workflows, enabling teams to normalize data at ingest time via the Elastic Common Schema (ECS) or defer normalization to query time — a flexibility that significantly reduces the time required to operationalize new data sources and correlate events across domains. CISA’s Logging Reference Architecture names the Elastic Common Schema among “validated, open source cybersecurity schemas” (Section 4.5, footnote 9, alongside OCSF and STIX/TAXII).
 
 The platform's tiered storage architecture — spanning hot, cold, and frozen data tiers — allows organizations to manage data economics alongside data volume. Frequently queried data is served from high-performance local storage, while older indices transition automatically to lower-cost tiers and ultimately to object storage via searchable snapshots, enabling long-term retention without proportional cost growth. Native machine learning capabilities, including anomaly detection, inference pipelines, and data frame analytics, are available as first-class platform features and can be isolated to dedicated node capacity to prevent contention with search and ingest workloads.
 
@@ -28,7 +30,7 @@ Elastic Cloud Hosted (ECH) extends these capabilities into a fully managed deplo
 
 ### **Flexible integration options**
 
-The reference architecture in Figure 1 depicts the Elastic Search AI platform providing the foundational search, retention, and retrieval functions across all M-26-14 categories of log data streams and required capabilities. The diagram includes the core Elastic platform components and a summary of the assets provided with the Elastic M-26-14 Compliance Pack; what’s not shown are the multiple flexible data collection, integration, deployment, and system monitoring options available within that architecture. 
+The reference architecture in Figure 1 depicts the Elastic Search AI platform providing the foundational search, retention, and retrieval functions across all M-26-14 categories of log data streams and required capabilities. The diagram includes the core Elastic platform components and a summary of the assets provided with the Elastic M-26-14 Readiness Pack; what’s not shown are the multiple flexible data collection, integration, deployment, and system monitoring options available within that architecture. 
 
 **Elastic deployment options**
 
@@ -63,7 +65,34 @@ While there are distinct advantages (such as automatic Elastic Common Schema (EC
 
 Elastic is a search-based platform, with flexible ways to configure data retention and search responsiveness to suit the organization’s mission requirements and cost constraints. Data is initially ingested into a fast data indexing and processing tier to perform normalizations, enrichments, and near real-time analytics. From there, depending on their use cases, many organizations will choose to either move the data into a slightly “colder” tier where data remains fully searchable and fast, but because the data is no longer being processed, only searched (and usually progressively less frequently over time), the main search tier can keep a longer searchable timeframe available. For use cases where data does not need to be near searchable to sub-second response times, Elastic offers a unique “frozen” (Searchable Snapshot) tier where the data is still fully searchable, but it’s kept on object storage at might higher densities. For long-term retention, Elastic also offers standard snapshot and restore operations that will greatly reduce the time and effort required to “rehydrate” data that is being stored in a retention-only state for evidentiary or compliance purposes.
 
-The Elastic M-26-14 reference architecture assumes that indexed data will flow automatically through Index Lifecycle Management (ILM) policies and move through the Ingest (hot), (optional) warm Search, and Storage (frozen, yet fully searchable) tiers according to M-26-14 retention standards — at Optimal (Level 4\) the requirement is ≥6 months of data remains searchable, and ≥12 months is retrievable. An added bonus of Elastic’s fully searchable frozen Storage tier is that all data remains fully searchable for the entire ≥12 month retention period.   
+The Elastic M-26-14 reference architecture assumes that indexed data will flow automatically through Index Lifecycle Management (ILM) policies and move through the Ingest (hot), (optional) warm Search, and Storage (frozen, yet fully searchable) tiers according to M-26-14 retention standards — at Optimal (Level 4\) the requirement is ≥6 months of data remains searchable, and ≥12 months is retrievable. An added bonus of Elastic’s fully searchable frozen Storage tier is that all data remains fully searchable for the entire ≥12 month retention period. Frozen-tier queries trade speed for storage density; agencies should define the query-latency thresholds the LRA’s searchability and timeliness measures call for (LRA Section 3.5) and validate them with periodic retrieval exercises.   
+
+### **LRA architecture patterns (Section 5.4)**
+
+CISA's Logging Reference Architecture names five enterprise logging architecture patterns (LRA Section 5.4). The Elastic reference architecture maps to all five; stating that mapping in the LRA's own vocabulary lets a reviewer place this design directly in CISA's taxonomy:
+
+* **Repository First (5.4.1)** is the recommended posture of this document. The Day-1 hot/frozen design makes Elasticsearch the authoritative, durable repository: data lands once, remains fully searchable across the entire retention window (frozen tier on object storage), and analytics run against the repository rather than against a separate ingest copy. The tradeoff the LRA notes for this pattern (stronger data engineering, indexing strategy, and governance) is exactly what the Readiness Pack pre-packages as ILM policies, index templates, and ingest pipelines.
+
+* **Dual Replication (5.4.2)** is supported where modernization or coexistence requires it, via cross-cluster replication (CCR) or dual Elastic Agent outputs feeding an incumbent platform and Elastic in parallel. The LRA's caveat for this pattern (keeping schemas, timestamps, and enrichment aligned across destinations) is mitigated by performing ECS normalization at collection time, before the split.
+
+* **Selective Feeds (5.4.3)** is implemented with reroute processors and selective forwarding: routing logic decides which data streams feed operational analytics and which go directly to lower-cost retention. The LRA's condition for this pattern working well is that routing criteria be explicit, well-governed, and periodically validated; here the criteria live in versioned pipeline configuration that is reviewable by design.
+
+* **SIEM First (5.4.4)** is the pattern the LRA cautions against for enterprise retention, noting practitioner guidance "warns against treating a SIEM as the central data store for all logs." We concur, and the reason is economic: per-GB analytical pricing becomes a visibility ceiling, and agencies respond by dropping sources. Searchable snapshots remove the cost tradeoff that produces the pattern in the first place.
+
+* **Segregated-Access Overlay (5.4.5)** is an access and policy pattern layered over any of the above: RBAC/ABAC roles, document- and field-level security for PII/CUI scoping, Kibana spaces for population separation, and cross-cluster search for shared analytics over segregated storage, so least-privilege access does not require duplicating pipelines.
+
+**LRA sub-optimal strategies and how this architecture avoids them**
+
+Section 8.3 of the LRA closes with six strategies agencies should avoid. Each maps to a specific design choice here:
+
+| LRA flags (Section 8.3) | Operational risk | How this architecture avoids it |
+|---|---|---|
+| Overreliance on direct point-to-point integrations | Fragile, unobservable data paths that fail silently | Agent + Fleet managed collection under centralized policy; pipeline health visible in Stack Monitoring |
+| Treating polling as the default where timeliness matters | Detection latency; short-lived events missed | Push-based Agent streams by default; polling reserved for sources offering nothing else, with timeliness measured |
+| Centralizing all telemetry into a single fragile pipeline | One choke point degrades all visibility | Distributed ingest paths (Agent direct, Logstash with persistent queues where durability demands it), multi-AZ deployment |
+| Normalization that discards investigative context | Reconstruction impossible when the parsed record is all that survives | ECS normalization alongside source-native context preservation (LRA Section 7.2) |
+| Unmanaged exceptions that bypass policy enforcement | Sensitive data routes around controls | Policy enforced in data (pipelines, DLS/FLS, namespaces); exceptions are documented plan entries, not silent routes |
+| Vendor-dependent handling that leaves essential telemetry outside agency control | Agency cannot independently produce, move, or validate its own evidence | Open schema (ECS), standard snapshot formats, portable NDJSON/CSV export; no proprietary lock on the stored record |
 
 **Additional required capabilities** 
 
@@ -78,7 +107,7 @@ In addition to the collection, retention, and retrieval/search on the logging da
   * NTP alignment and enforcement  
   * Log integrity hashing/veracity
 
-* Alignment with zero trust, as required by the OMB memo (Appendix A). M-26-14 requires this alignment but does not prescribe how it is implemented within the compliance framework; specific implementation guidance is expected with the forthcoming CISA Logging Reference Architecture (LRA).
+* Alignment with zero trust, as required by the OMB memo (Appendix A). M-26-14 requires this alignment but does not prescribe how it is implemented; CISA's Logging Reference Architecture (published August 20, 2026) supplies that guidance, aligning explicitly to the CISA Zero Trust Maturity Model (ZTMM) Version 2.0 and M-22-09 (LRA introduction and Appendix A).
 
 * Artificial Intelligence (AI) (and unsupervised machine learning) technologies for enhancing and automating analysis and detections.
 
@@ -90,7 +119,7 @@ Progression through the M-26-14 Maturity Levels are primarily measured based on 
 
 * **Inventory visibility**: the percentage of the Agency’s total IT/OT/IoT assets that have been captured in a centralized inventory (e.g., HWAM/SWAM)
 
-* **Collection coverage**: The percentage of inventory that is actively collected, searchable, and/or retrievable according to the Agency’s Logging Plan (due to CISA within 90 days after the LRA is published)
+* **Collection coverage**: The percentage of inventory that is actively collected, searchable, and/or retrievable according to the Agency’s Logging Plan (due to CISA within 90 days after the LRA is published, by November 18, 2026)
 
 * **Collection operations**: percentage of collected data that has active detection and alerting capabilities to support CEM and THIRF activities
 
@@ -100,15 +129,27 @@ Progression through the M-26-14 Maturity Levels are primarily measured based on 
 
 * **Log management**: Data storage and management standards increase with each maturity level, to include encryption (both at rest and in-transit), data integrity, JIT access, and gated deletion are required at Optimal (Level 4).
 
-The combination of the Elastic Search AI platform’s core features along with the Elastic M-26-14 Compliance Pack assets lets organizations jump almost immediately from a maturity rating of Ineffective (Level 0), to Advanced (Level 3\) and be well on their way towards the continuous operating state of Optimal (Level 4\) within a matter of weeks.
+### **Three stages, five levels, one picture (LRA Section 11.1)**
+
+The LRA describes agency maturity as three progression stages, while the memo's Appendix C measures five levels. Both vocabularies now appear in federal reviews, and they describe the same journey:
+
+| LRA stage (Section 11.1) | What it looks like | Memo Appendix C levels | Where the attestation dashboard shows it |
+|---|---|---|---|
+| **Stage 1**: fragmented, siloed, primarily compliance-driven | Uneven source coverage, weak cloud control-plane visibility, no working distinction between searchable and retrievable data | Level 0 (Ineffective) to Level 1 (Initial) | Element scores below Level 2; asset-coverage panels expose the inventory gaps |
+| **Stage 2**: emerging enterprise capability | Broad baseline coverage, consistent normalization, an operational search window, documented above-baseline decisions | Level 2 (Intermediate) to Level 3 (Advanced) | Element scores at Levels 2 and 3; retention panel shows the searchable window against the Appendix B baseline |
+| **Stage 3**: logging operated as an enterprise security function | Validated coverage and fidelity, resilient and observable pipelines, the logging plan functioning as a decision record | Sustained Level 3 into Level 4 (Optimal) | All elements at Level 3 or above with Level 4 controls (JIT access, gated retirement, integrity hashing) green |
+
+A reviewer fluent in either vocabulary lands on the same picture. Worth stating plainly: deploying this architecture on day one gives an agency Stage 3 mechanics (validated, enterprise-wide, resilient by design) even while its measured levels are still climbing; the maturity metrics then track data onboarding and operational adoption, not re-architecture.
+
+The combination of the Elastic Search AI platform’s core features along with the Elastic M-26-14 Readiness Pack assets lets organizations jump almost immediately from a maturity rating of Ineffective (Level 0), to Advanced (Level 3\) and be well on their way towards the continuous operating state of Optimal (Level 4\) within a matter of weeks.
 
 The concept of operations is for Elastic to initially deploy its search-based platform with capacity to Optimal (Level 4\) retention levels immediately, and progression through the Maturity Levels will proceed as data sources and detections are added to achieve compliance according to inventory, collection, and operational measures. For organizations that have existing functional systems in their ecosystem for data collection/retention, or for any of the additional required capabilities, the Elastic platform’s integration strategy easily adapts to suit those existing investments. 
 
-### **Elastic M-26-14 Compliance Pack**
+### **Elastic M-26-14 Readiness Pack**
 
-The Elastic M-26-14 Compliance Pack includes assets of various types that are meant as a “quick-start” showcase for demonstrating how organizations can meet M-26-14 data collection, inventory, retention, detection, alerting, and self-assessment requirements with the Elastic Search AI Platform. 
+The Elastic M-26-14 Readiness Pack includes assets of various types that are meant as a “quick-start” showcase for demonstrating how organizations can meet M-26-14 data collection, inventory, retention, detection, alerting, and self-assessment requirements with the Elastic Search AI Platform. 
 
-**Elastic M-26-14 Compliance Pack Asset Inventory**
+**Elastic M-26-14 Readiness Pack Asset Inventory**
 
 | Category | Count | Key Assets |
 | :---- | :---- | :---- |

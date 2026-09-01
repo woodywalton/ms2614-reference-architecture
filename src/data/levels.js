@@ -15,11 +15,11 @@ export const LEVELS = [
       logManagement: 'Stored',
     },
     summary:
-      'Establishes the foundational logging baseline. Agencies must collect logs across all required Appendix B event categories and retain them in a retrievable state for a minimum of 6 months. No searchable (CEM) requirement applies at this level. Agencies must also submit their Agency Logging Plan within 90 days of LRA publication.',
+      'Establishes the foundational logging baseline. Agencies must collect logs across all required Appendix B event categories and retain them in a retrievable state for a minimum of 6 months. No level-specific searchable (CEM) metric applies at this level, though the Appendix B six-month searchable baseline binds independently of maturity level (LRA Section 5.3). Agencies must also submit their Agency Logging Plan within 90 days of LRA publication.',
     keyPoints: [
       'Collect all Appendix B event categories from applicable log sources.',
       'Retain logs in a retrievable state for a minimum of 6 months.',
-      'No searchable (CEM) retention requirement at this level.',
+      'No level-specific searchable (CEM) metric at this level; the Appendix B six-month searchable baseline still binds independently (LRA Section 5.3).',
       'Agency Logging Plan must be submitted within 90 days of LRA publication.',
     ],
   },
@@ -37,12 +37,12 @@ export const LEVELS = [
       logManagement: 'Stored + encrypted at rest',
     },
     summary:
-      'Expands log source coverage and increases the retrievable retention window to 12 months. Agencies must achieve complete Appendix B log coverage and maintain a full asset and system inventory reflected in their logging pipeline. No searchable (CEM) retention requirement applies at this level.',
+      'Expands log source coverage and increases the retrievable retention window to 12 months. Agencies must achieve complete Appendix B log coverage and maintain a full asset and system inventory reflected in their logging pipeline. No level-specific searchable (CEM) metric applies at this level, though the Appendix B searchable baseline binds independently (LRA Section 5.3).',
     keyPoints: [
       'Full coverage of all Appendix B log categories with no gaps.',
       'Complete asset and system inventory must be reflected in collected logs.',
       'Retain logs in a retrievable state for a minimum of 12 months.',
-      'No searchable (CEM) retention requirement at this level.',
+      'No level-specific searchable (CEM) metric at this level; the Appendix B six-month searchable baseline still binds independently (LRA Section 5.3).',
     ],
   },
   {
@@ -61,7 +61,8 @@ export const LEVELS = [
     summary:
       'Introduces the CEM searchable requirement for the first time. Agencies must maintain at least 3 months of immediately searchable log data covering all Appendix B categories, and at least 12 months of retrievable log data. Agencies must also implement automated threat detection, anomaly detection, and sensitive data protections (e.g., PII masking) prior to log storage.',
     keyPoints: [
-      'Maintain ≥ 3 months of searchable log data (CEM requirement first applies).',
+      'Maintain ≥ 3 months of searchable log data (CEM metric first applies).',
+      'Three months searchable satisfies maturity reporting only; the Appendix B six-month searchable baseline binds regardless (LRA Section 5.3).',
       'Maintain ≥ 12 months of retrievable log data (THIRF).',
       'Implement automated threat detection and anomaly detection capabilities.',
       'Apply sensitive data protections (PII masking, field redaction) before storage.',

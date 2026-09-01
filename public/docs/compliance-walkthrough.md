@@ -55,7 +55,7 @@ The CEM objective requires agencies to achieve full-coverage log collection acro
 
 ### 2.2 Centralized Collection Architecture
 
-All telemetry flows through **Elastic Fleet**, which manages agent enrollment, policy distribution, and integration configuration from a central control plane. The collection architecture in this pack follows the ECS (Elastic Common Schema) model — all events are normalized to consistent field names regardless of source, enabling cross-platform correlation rules.
+All telemetry flows through **Elastic Fleet**, which manages agent enrollment, policy distribution, and integration configuration from a central control plane. The collection architecture in this pack follows the ECS (Elastic Common Schema) model — all events are normalized to consistent field names regardless of source, enabling cross-platform correlation rules. CISA's Logging Reference Architecture names ECS among "validated, open source cybersecurity schemas" (Section 4.5, footnote 9, alongside OCSF and STIX/TAXII).
 
 **Fleet deployment pattern for FCEB agencies:**
 

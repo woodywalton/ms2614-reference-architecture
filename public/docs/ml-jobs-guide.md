@@ -1,4 +1,4 @@
-# M-26-14 Compliance Pack — ML Jobs Guide
+# M-26-14 Readiness Pack — ML Jobs Guide
 
 This document describes all machine learning anomaly detection components in the M-26-14 compliance
 pack: seven custom readiness-health jobs (Component A) and fourteen Kibana detection rules that

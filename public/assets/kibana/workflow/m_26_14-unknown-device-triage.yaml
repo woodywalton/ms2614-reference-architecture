@@ -22,8 +22,8 @@
 # docs/runbooks/unknown-device-automation-examples.md. They are NOT wired here.
 #
 # Schema: github.com/elastic/workflows
-# Author: Elastic / M-26-14 Compliance Pack
-# Tags: M-26-14, Compliance, HWAM, Element 1, Asset Triage, Manual
+# Author: Elastic / M-26-14 Readiness Pack
+# Tags: M-26-14, Readiness, HWAM, Element 1, Asset Triage, Manual
 # =============================================================================
 version: "1"
 name: M-26-14 Unknown-Device Triage
@@ -37,7 +37,7 @@ description: >
 enabled: false
 tags:
   - M-26-14
-  - Compliance
+  - Readiness
   - HWAM
   - Element 1
   - Asset Triage

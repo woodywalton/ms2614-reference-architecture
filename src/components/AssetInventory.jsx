@@ -27,7 +27,7 @@ const TYPE_FILTERS = [
 function buildBundleReadme(files, filterLevel) {
   const typeLabel = (t) => (TYPE_FILTERS.find(x => x.type === t) || { label: t }).label
   const lines = []
-  lines.push('# M-26-14 Compliance Pack — Asset Bundle')
+  lines.push('# M-26-14 Readiness Pack — Asset Bundle')
   lines.push('')
   lines.push(filterLevel
     ? `Assets filtered for **Maturity Level ${filterLevel}**. ${files.length} files.`

@@ -5,7 +5,7 @@
 # Manual workflow for initiating a legal hold or regulatory preservation
 # copy. Asynchronously reindexes data from a source index into a named
 # retained index with a no-delete ILM policy, triggers an immediate
-# compliance snapshot, and opens a Kibana legal hold Case for audit
+# readiness snapshot, and opens a Kibana legal hold Case for audit
 # traceability. Run before the retirement lifecycle begins on an index.
 #
 #
@@ -18,7 +18,7 @@ name: M-26-14 Legal Hold — Selective Copy
 description: >
   Manual workflow for legal hold or regulatory data preservation. Reindexes
   a source index into a named retained index with no-delete ILM policy,
-  triggers compliance snapshot, and opens a Kibana legal hold Case with full
+  triggers readiness snapshot, and opens a Kibana legal hold Case with full
   audit trail. Satisfies M-26-14 forensic preservation requirements before
   the retirement lifecycle begins.
 enabled: false
@@ -174,7 +174,7 @@ steps:
 
         1. **Async reindex started** — `{{ inputs.source_index }}` → `{{ inputs.dest_index }}`
         2. **No-delete ILM applied** — `{{ inputs.no_delete_ilm_policy }}` (retained index cannot be deleted)
-        3. **Compliance snapshot triggered** — `m_26_14-readiness-snapshots` SLM policy executed
+        3. **Readiness snapshot triggered** — `m_26_14-readiness-snapshots` SLM policy executed
         4. **Audit record indexed** — `m_26_14-retirement-requests` (state: `legal_hold_initiated`)
 
         ---
@@ -223,7 +223,7 @@ steps:
             Retained Index: {{ inputs.dest_index }}
             Reason: {{ inputs.hold_reason }}
             Authorized By: {{ inputs.held_by }}
-            No-delete ILM applied. Compliance snapshot triggered.
+            No-delete ILM applied. Readiness snapshot triggered.
     on-failure:
       continue: true
 

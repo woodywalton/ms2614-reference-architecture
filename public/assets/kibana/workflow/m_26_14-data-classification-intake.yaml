@@ -15,8 +15,8 @@
 # m_26_14-data-classification-requests audit index after Case review.
 #
 # Schema: github.com/elastic/workflows
-# Author: Elastic / M-26-14 Compliance Pack
-# Tags: M-26-14, Compliance, Data Classification, Log Management, Manual
+# Author: Elastic / M-26-14 Readiness Pack
+# Tags: M-26-14, Readiness, Data Classification, Log Management, Manual
 # =============================================================================
 version: "1"
 name: M-26-14 Data Classification Intake
@@ -29,7 +29,7 @@ description: >
 enabled: false
 tags:
   - M-26-14
-  - Compliance
+  - Readiness
   - Data Classification
   - Log Management
   - Manual

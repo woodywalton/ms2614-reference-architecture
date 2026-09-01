@@ -9,8 +9,8 @@
 # requirements before any log data deletion.
 #
 # Schema: github.com/elastic/workflows
-# Author: Elastic / M-26-14 Compliance Pack
-# Tags: M-26-14, Compliance, Data Retirement, Scheduled
+# Author: Elastic / M-26-14 Readiness Pack
+# Tags: M-26-14, Readiness, Data Retirement, Scheduled
 # =============================================================================
 version: "1"
 name: M-26-14 Data Retirement — Gate 1 Detection
@@ -23,7 +23,7 @@ description: >
 enabled: false
 tags:
   - M-26-14
-  - Compliance
+  - Readiness
   - Data Retirement
   - Scheduled
 
