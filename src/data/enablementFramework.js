@@ -255,7 +255,7 @@ export const REQUIREMENTS = {
       },
       {
         title: 'Readiness timelines are tighter and tied to the LRA',
-        text: 'Under M-21-31, agencies had one year to reach EL1, 18 months for EL2, and two years for EL3, with timing measured from the memo\'s issuance date. M-26-14 resets that clock to the LRA publication date and compresses the window significantly: Level 1 within 120 days, Level 2 within 180 days, Level 3 within 320 days. Agencies also have 90 days from LRA publication to submit a formal Agency Logging Plan to both OMB and CISA.',
+        text: 'Under M-21-31, agencies had one year to reach EL1, 18 months for EL2, and two years for EL3, with timing measured from the memo\'s issuance date. M-26-14 resets that clock to the LRA publication date (August 20, 2026) and compresses the window significantly: Level 1 within 120 days (December 18, 2026), Level 2 within 180 days (February 16, 2027), Level 3 within 320 days (July 6, 2027). Agencies also have 90 days from LRA publication to submit a formal Agency Logging Plan to both OMB and CISA (November 18, 2026).',
         aeCallout: 'Customers have to move faster to hit these compressed deadlines, so position Elastic aggressively as the technology that gets them to M-26-14 readiness.',
       },
       {

@@ -69,7 +69,7 @@ export function OverviewContent() {
           <div>
             <dt className="font-semibold text-text-primary">Collection coverage</dt>
             <dd className="mt-1 text-text-muted leading-relaxed">
-              The percentage of inventory that is actively collected, searchable, and/or retrievable according to the agency's Logging Plan (due to CISA within 90 days after the LRA is published).
+              The percentage of inventory that is actively collected, searchable, and/or retrievable according to the agency's Logging Plan (due to OMB and CISA by November 18, 2026, 90 days after LRA publication).
             </dd>
           </div>
           <div>
@@ -153,8 +153,8 @@ function LevelCard({ level }) {
 
       <p className="mt-1 text-sm text-text-muted">
         Due:{' '}
-        <span className={`font-semibold ${lc.daysColor}`}>{level.days}</span>
-        {level.id < 4 && ' from LRA publication'}
+        <span className={`font-semibold ${lc.daysColor}`}>{level.dueDate ?? level.days}</span>
+        {level.dueDate && ` (${level.days} from LRA publication)`}
       </p>
 
       {/* Appendix C maturity measurements */}
@@ -208,11 +208,11 @@ const MARKER_STYLES = {
 
 function Timeline() {
   const markers = [
-    { pct: 14, label: 'Submit Logging Plan', detail: '90 days',  color: 'gray'        },
-    { pct: 30, label: 'L1',                  detail: '120 days', color: 'accent-teal'  },
-    { pct: 50, label: 'L2',                  detail: '180 days', color: 'accent-blue'  },
-    { pct: 76, label: 'L3',                  detail: '320 days', color: 'pink'         },
-    { pct: 90, label: 'L4',                  detail: 'ongoing',  color: 'accent-coral' },
+    { pct: 14, label: 'Submit Logging Plan', detail: 'Nov 18, 2026 · 90 days',  color: 'gray'         },
+    { pct: 30, label: 'L1',                  detail: 'Dec 18, 2026 · 120 days', color: 'accent-teal'  },
+    { pct: 50, label: 'L2',                  detail: 'Feb 16, 2027 · 180 days', color: 'accent-blue'  },
+    { pct: 76, label: 'L3',                  detail: 'Jul 6, 2027 · 320 days',  color: 'pink'         },
+    { pct: 90, label: 'L4',                  detail: 'ongoing',                 color: 'accent-coral' },
   ]
   return (
     <div className="relative pt-2 pb-10">
@@ -227,7 +227,8 @@ function Timeline() {
           <polyline points="10,4 16,10 10,16"/>
         </svg>
         <div className="mt-1 text-center">
-          <p className="text-xs text-text-muted whitespace-nowrap">LRA publication</p>
+          <p className="text-xs text-text-muted whitespace-nowrap">LRA published</p>
+          <p className="text-xs text-text-muted whitespace-nowrap">Aug 20, 2026</p>
         </div>
       </div>
 

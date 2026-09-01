@@ -416,7 +416,7 @@ const MATRIX_ROWS = [
 const OBLIGATIONS = [
   {
     title: 'Agency Logging Plan',
-    when: 'Within 90 days of LRA',
+    when: 'By November 18, 2026 (LRA + 90 days)',
     desc: 'A documented plan identifying every log source in scope, current coverage gaps, and your inventory methodology. Writing and submitting the plan is your agency\'s obligation — no platform can do it for you.',
     assist: 'Fleet enrollment auto-builds and continuously maintains the asset inventory that populates your Logging Plan. The Asset Coverage dashboard exports a ready-to-attach evidence report with per-source coverage status, enrollment gaps, and Appendix B category mapping.',
   },

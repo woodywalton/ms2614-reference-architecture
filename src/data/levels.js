@@ -1,10 +1,18 @@
 // Per-level metadata: deadlines, retention requirements, narrative.
+//
+// Deadlines are exact (LRA published August 20, 2026; decisions doc F-1):
+// Agency Logging Plan November 18, 2026 (+90d), Level 1 December 18, 2026
+// (+120d), Level 2 February 16, 2027 (+180d), Level 3 July 6, 2027 (+320d).
+
+export const LRA_PUBLISHED = 'August 20, 2026'
+export const LOGGING_PLAN_DUE = 'November 18, 2026'
 
 export const LEVELS = [
   {
     id: 1,
     name: 'Initial (Level 1)',
-    deadline: '120 days from LRA publication',
+    deadline: 'December 18, 2026 (LRA + 120 days)',
+    dueDate: 'December 18, 2026',
     days: '120 days',
     searchable: null,
     retrievable: '≥ 6 months',
@@ -15,18 +23,19 @@ export const LEVELS = [
       logManagement: 'Stored',
     },
     summary:
-      'Establishes the foundational logging baseline. Agencies must collect logs across all required Appendix B event categories and retain them in a retrievable state for a minimum of 6 months. No level-specific searchable (CEM) metric applies at this level, though the Appendix B six-month searchable baseline binds independently of maturity level (LRA Section 5.3). Agencies must also submit their Agency Logging Plan within 90 days of LRA publication.',
+      'Establishes the foundational logging baseline. Agencies must collect logs across all required Appendix B event categories and retain them in a retrievable state for a minimum of 6 months. No level-specific searchable (CEM) metric applies at this level, though the Appendix B six-month searchable baseline binds independently of maturity level (LRA Section 5.3). Agencies must also submit their Agency Logging Plan by November 18, 2026 (90 days from the August 20, 2026 LRA publication).',
     keyPoints: [
       'Collect all Appendix B event categories from applicable log sources.',
       'Retain logs in a retrievable state for a minimum of 6 months.',
       'No level-specific searchable (CEM) metric at this level; the Appendix B six-month searchable baseline still binds independently (LRA Section 5.3).',
-      'Agency Logging Plan must be submitted within 90 days of LRA publication.',
+      'Agency Logging Plan due November 18, 2026 (90 days from LRA publication).',
     ],
   },
   {
     id: 2,
     name: 'Intermediate (Level 2)',
-    deadline: '180 days from LRA publication',
+    deadline: 'February 16, 2027 (LRA + 180 days)',
+    dueDate: 'February 16, 2027',
     days: '180 days',
     searchable: null,
     retrievable: '≥ 12 months',
@@ -48,7 +57,8 @@ export const LEVELS = [
   {
     id: 3,
     name: 'Advanced (Level 3)',
-    deadline: '320 days from LRA publication',
+    deadline: 'July 6, 2027 (LRA + 320 days)',
+    dueDate: 'July 6, 2027',
     days: '320 days',
     searchable: '≥ 3 months',
     retrievable: '≥ 12 months',
@@ -71,7 +81,8 @@ export const LEVELS = [
   {
     id: 4,
     name: 'Optimal (Level 4)',
-    deadline: 'Ongoing',
+    deadline: 'Ongoing (no mandatory deadline)',
+    dueDate: null,
     days: 'Ongoing',
     searchable: '≥ 6 months',
     retrievable: '≥ 12 months',

@@ -103,31 +103,8 @@ export default function AssetViewer({ assetId, onClose }) {
     })
   }, [rawText])
 
-  const handleDownload = useCallback(() => {
-    if (!rawText || !asset) return
-    const filename = asset.file.split('/').pop()
-    const blob = new Blob([rawText], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    setTimeout(() => URL.revokeObjectURL(url), 500)
-  }, [rawText, asset])
-
   const openDocExternal = useCallback((doc) => {
     window.open(doc.file, '_blank', 'noopener')
-  }, [])
-
-  const downloadDoc = useCallback((doc) => {
-    const a = document.createElement('a')
-    a.href = doc.file
-    a.download = doc.file.split('/').pop()
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
   }, [])
 
   const typeMeta = asset ? (ASSET_TYPE_META[asset.type] ?? { label: asset.type, color: 'text-text-muted', bg: 'bg-ink-700 border-line' }) : null
@@ -242,15 +219,6 @@ export default function AssetViewer({ assetId, onClose }) {
                     <><CopyIcon /> Copy</>
                   )}
                 </button>
-                <button
-                  onClick={handleDownload}
-                  disabled={!rawText}
-                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-line text-text-muted hover:text-text-primary hover:border-accent-blue/50 disabled:opacity-40 transition-colors"
-                  style={{ borderStyle: 'solid' }}
-                >
-                  <DownloadIcon /> Download
-                </button>
-
                 {/* Live demo cluster deep link */}
                 {liveClusterUrl(asset) && (
                   <a
@@ -276,20 +244,12 @@ export default function AssetViewer({ assetId, onClose }) {
                         if (doc.file.endsWith('.pdf')) openDocExternal(doc)
                         else setDocView(doc)
                       }}
-                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-l border border-accent-teal/30 text-accent-teal hover:bg-accent-teal/10 transition-colors"
-                      style={{ borderStyle: 'solid', borderRightWidth: 0 }}
+                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-accent-teal/30 text-accent-teal hover:bg-accent-teal/10 transition-colors"
+                      style={{ borderStyle: 'solid' }}
                       title={doc.label}
                     >
                       <DocIcon isPdf={doc.file.endsWith('.pdf')} />
                       <span className="truncate max-w-[120px]">{doc.label}</span>
-                    </button>
-                    <button
-                      onClick={() => downloadDoc(doc)}
-                      className="flex items-center px-2 py-1.5 rounded-r border border-accent-teal/30 text-accent-teal/70 hover:bg-accent-teal/10 hover:text-accent-teal transition-colors"
-                      style={{ borderStyle: 'solid' }}
-                      title={`Download ${doc.label}`}
-                    >
-                      <DownloadIcon size={11} />
                     </button>
                   </div>
                 ))}
@@ -420,15 +380,6 @@ function ExternalLinkIcon() {
     <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
       <path d="M6.5 3.5H3.8A1.3 1.3 0 002.5 4.8v7.4a1.3 1.3 0 001.3 1.3h7.4a1.3 1.3 0 001.3-1.3V9.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
       <path d="M9.5 2.5h4v4M13.2 2.8L7.5 8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
-
-function DownloadIcon({ size = 13 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
-      <path d="M8 2v8M5 7l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M2 12v1.5A1.5 1.5 0 003.5 15h9a1.5 1.5 0 001.5-1.5V12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
     </svg>
   )
 }

@@ -167,7 +167,7 @@ const PRINTABLES = [
   {
     title: 'Live Demo Cluster — Kibana (Read-Only)',
     description: 'Every readiness pack asset running live on Elastic Cloud. Read-only — credentials from the Elastic team on request.',
-    detail: 'Web · Live Elastic Cluster · Kibana 9.4',
+    detail: 'Web · Live Elastic Cluster · Kibana 9.5',
     href: 'https://m-26-14-7ae75d.kb.us-east-1.aws.found.io',
   },
   {

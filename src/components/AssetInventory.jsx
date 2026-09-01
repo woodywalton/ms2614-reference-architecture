@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import JSZip from 'jszip'
+import { Link } from 'react-router-dom'
 import { ASSET_FILES, ASSET_COLUMNS, ASSET_TYPE_META } from '../data/assets.js'
 import AssetViewer from './AssetViewer.jsx'
+import { LIVE_KIBANA_BASE } from '../data/liveLinks.js'
 
 const LEVELS = [1, 2, 3, 4]
 
@@ -22,55 +23,10 @@ const TYPE_FILTERS = [
   { type: 'fleet-pack',        label: 'Fleet Pack' },
 ]
 
-// Build a README.md manifest for the downloaded bundle from asset metadata:
-// what each file is, which maturity levels it serves, where it lives, and how to deploy.
-function buildBundleReadme(files, filterLevel) {
-  const typeLabel = (t) => (TYPE_FILTERS.find(x => x.type === t) || { label: t }).label
-  const lines = []
-  lines.push('# M-26-14 Readiness Pack — Asset Bundle')
-  lines.push('')
-  lines.push(filterLevel
-    ? `Assets filtered for **Maturity Level ${filterLevel}**. ${files.length} files.`
-    : `Complete asset bundle — all maturity levels. ${files.length} files.`)
-  lines.push('')
-  lines.push('Each asset below is listed with its type, the maturity levels it serves, its path inside this bundle, and a description of where and how it is intended to be used.')
-  lines.push('')
-  lines.push('## Deployment')
-  lines.push('')
-  lines.push('Deploy order (the compliance pack repository ships `scripts/deploy.py`, which automates all of this with token substitution for `__ES_HOST__` / `__KIBANA_HOST__` / `__AUTH_HEADER__` placeholders found in watcher files):')
-  lines.push('')
-  lines.push('1. **Elasticsearch foundations** — index templates, ILM policies, SLM policy, ingest pipelines, enrich policies')
-  lines.push('2. **Processing** — transforms, watchers (substitute the `__…__` tokens first), ML jobs + datafeeds')
-  lines.push('3. **Kibana** — dashboards (`POST /api/saved_objects/_import`), detection rules (`POST /api/detection_engine/rules/_import`), Elastic Workflows (bulk API), Agent Builder agents + tools')
-  lines.push('')
-  lines.push('See `docs/maturity-progression-checklist.md` (included in this bundle) for the level-by-level deployment checklist describing exactly which assets to deploy at each maturity level and how to verify them.')
-  lines.push('')
-  for (const col of ASSET_COLUMNS) {
-    const colFiles = files.filter(f => f.column === col)
-    if (!colFiles.length) continue
-    lines.push(`## ${col}`)
-    lines.push('')
-    for (const f of colFiles) {
-      lines.push(`### ${f.label}`)
-      lines.push('')
-      lines.push(`- **Type:** ${typeLabel(f.type)} · **Levels:** ${f.levels.join(', ')} · **File:** \`${f.file.replace('/assets/', '')}\``)
-      lines.push('')
-      lines.push(f.desc)
-      lines.push('')
-    }
-  }
-  lines.push('---')
-  lines.push('')
-  lines.push('Generated from the Elastic M-26-14 Reference Architecture asset inventory.')
-  lines.push('')
-  return lines.join('\n')
-}
-
 export default function AssetInventory() {
   const [filterLevel, setFilterLevel] = useState(null)
   const [filterType, setFilterType] = useState(null)
   const [viewerAssetId, setViewerAssetId] = useState(null)
-  const [downloading, setDownloading] = useState(false)
 
   const visible = ASSET_FILES
     .filter(f => !filterLevel || f.levels.includes(filterLevel))
@@ -83,42 +39,6 @@ export default function AssetInventory() {
 
   const total = visible.length
 
-  async function handleDownloadBundle() {
-    setDownloading(true)
-    const zip = new JSZip()
-    const label = filterLevel ? `L${filterLevel}` : 'all'
-    const folder = zip.folder(`m_26_14-compliance-pack-${label}`)
-    // Bundle documentation: generated manifest + maturity progression checklist
-    folder.file('README.md', buildBundleReadme(visible, filterLevel))
-    try {
-      const res = await fetch('/docs/maturity-progression-checklist.md')
-      if (res.ok) folder.file('docs/maturity-progression-checklist.md', await res.text())
-    } catch (_) { /* skip if unavailable */ }
-    await Promise.all(
-      visible.map(async f => {
-        try {
-          const res = await fetch(f.file)
-          if (!res.ok) return
-          const text = await res.text()
-          const filename = f.file.split('/').pop()
-          // Recreate subdirectory structure inside zip
-          const subpath = f.file.replace('/assets/', '')
-          folder.file(subpath, text)
-        } catch (_) { /* skip failed fetch */ }
-      })
-    )
-    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/zip' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `m_26_14-compliance-pack-${label}.zip`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    setTimeout(() => URL.revokeObjectURL(url), 500)
-    setDownloading(false)
-  }
-
   return (
     <main className="mx-auto max-w-[1800px] px-8 py-10 space-y-8">
       <header>
@@ -129,11 +49,16 @@ export default function AssetInventory() {
           Pre-built Elastic assets for each maturity level, organized by architecture layer.
           Assets are deployed into Kibana, Elasticsearch, and Fleet — each mapped to the
           M-26-14 element it fulfils. Click <span className="text-accent-blue font-medium">View</span> to
-          inspect file contents, or download the full bundle for your level.
+          inspect file contents and open the same object in the live demo cluster.
+        </p>
+        <p className="mt-3 text-sm text-text-muted leading-relaxed">
+          Asset files are not downloadable from this viewer. To deploy the pack, use the Readiness Pack
+          source repository; to see every asset running against live data, use the read-only demo
+          cluster and the <Link to="/demo-guide" className="text-accent-teal hover:underline">self-guided walkthrough</Link>.
         </p>
       </header>
 
-      {/* Filter + download bar — single row */}
+      {/* Filter bar — single row */}
       <div className="flex items-center gap-3 flex-wrap">
         {/* Level buttons */}
         <span className="text-xs text-text-muted shrink-0">Level</span>
@@ -175,18 +100,20 @@ export default function AssetInventory() {
 
         <div className="flex-1" />
         <span className="text-xs text-text-muted">{total} assets</span>
-        <button
-          onClick={handleDownloadBundle}
-          disabled={downloading}
-          className="flex items-center gap-2 text-sm px-4 py-2 rounded border border-accent-blue/50 bg-accent-blue/10 text-accent-blue hover:bg-accent-blue/20 disabled:opacity-50 transition-colors"
+        <a
+          href={LIVE_KIBANA_BASE}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 text-sm px-4 py-2 rounded border border-accent-blue/50 bg-accent-blue/10 text-accent-blue hover:bg-accent-blue/20 transition-colors"
           style={{ borderStyle: 'solid' }}
+          title="Open the read-only live demo cluster (Kibana)"
         >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <path d="M8 2v8M5 7l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M2 12v1.5A1.5 1.5 0 003.5 15h9a1.5 1.5 0 001.5-1.5V12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+            <path d="M6.5 3.5H3.8A1.3 1.3 0 002.5 4.8v7.4a1.3 1.3 0 001.3 1.3h7.4a1.3 1.3 0 001.3-1.3V9.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            <path d="M9.5 2.5h4v4M13.2 2.8L7.5 8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          {downloading ? 'Preparing…' : `Download ${filterLevel ? `L${filterLevel}` : 'full'} bundle`}
-        </button>
+          Open live demo cluster
+        </a>
       </div>
 
       {/* Column sections */}
@@ -337,49 +264,8 @@ function AssetCard({ asset, onView }) {
         >
           View
         </button>
-        <DownloadButton asset={asset} />
       </div>
     </div>
   )
 }
 
-function DownloadButton({ asset }) {
-  const [busy, setBusy] = useState(false)
-
-  async function handle() {
-    setBusy(true)
-    try {
-      const res = await fetch(asset.file)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const text = await res.text()
-      const filename = asset.file.split('/').pop()
-      const blob = new Blob([text], { type: 'text/plain' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      setTimeout(() => URL.revokeObjectURL(url), 500)
-    } catch (_) { /* silently fail */ }
-    setBusy(false)
-  }
-
-  return (
-    <button
-      onClick={handle}
-      disabled={busy}
-      className="text-xs px-3 py-1.5 rounded border border-line text-text-muted hover:border-accent-blue/40 hover:text-text-primary disabled:opacity-40 transition-colors"
-      style={{ borderStyle: 'solid' }}
-      title={`Download ${asset.file.split('/').pop()}`}
-    >
-      {busy ? '…' : (
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-          <path d="M8 2v8M5 7l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M2 12v1.5A1.5 1.5 0 003.5 15h9a1.5 1.5 0 001.5-1.5V12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-        </svg>
-      )}
-    </button>
-  )
-}
