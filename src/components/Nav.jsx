@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { EuiToolTip } from '@elastic/eui'
 import { useTheme } from '../ThemeContext.jsx'
+import { ENABLEMENT_ON } from '../flags.js'
 import logoColor from '../img/logo-elastic-horizontal-color.svg'
 import logoReverse from '../img/logo-elastic-horizontal-color-reverse.svg'
 
@@ -62,8 +63,9 @@ export default function Nav() {
       <div className="mx-auto max-w-[1800px] px-8 py-4 flex items-center gap-6">
         {/* Logo + title */}
         <div className="flex items-center gap-3 shrink-0">
-          {/* Hidden entry point to field enablement — logo doubles as the door. */}
-          <Link to="/enablement" aria-label="Field enablement" title="" className="shrink-0">
+          {/* Hidden entry point to field enablement — logo doubles as the door,
+              only in a build with VITE_ENABLEMENT=on (DC-8); otherwise the logo is home. */}
+          <Link to={ENABLEMENT_ON ? '/enablement' : '/'} aria-label={ENABLEMENT_ON ? 'Field enablement' : 'Home'} title="" className="shrink-0">
             <img
               src={theme === 'dark' ? logoReverse : logoColor}
               alt="Elastic"
@@ -143,25 +145,31 @@ const PRINTABLES = [
   {
     title: 'From M-21-31 to M-26-14: What CISOs Need to Do Now',
     description: 'CISO briefing on the shift from M-21-31 to M-26-14 — what changed, readiness deadlines, and how to build a prioritized action plan with Elastic.',
-    detail: 'PDF · CISO Briefing',
+    detail: 'PDF · CISO Briefing · print edition, predates the August 2026 LRA',
     href: '/docs/Elastic%20M-26-14%20for%20CISOs.pdf',
   },
   {
     title: 'CXO — Elastic M-26-14 Reference Architecture',
     description: 'Executive briefing deck for agency CXO and leadership audiences.',
-    detail: 'PDF · Executive Briefing',
+    detail: 'PDF · Executive Briefing · print edition, predates the August 2026 LRA',
     href: '/docs/CXO%20-%20Elastic%20M-26-14%20Reference%20Architectures.pdf',
   },
   {
     title: 'Elastic M-26-14 Reference Architecture',
     description: 'Architecture diagrams and deployment guidance across all five maturity levels.',
-    detail: 'PDF · Reference Architecture · July 2026',
+    detail: 'PDF · Reference Architecture · July 2026 print (marketing-approved; predates the August 2026 LRA, see the living document for LRA sections)',
     href: '/docs/Elastic%20M-26-14%20Reference%20Architectures.pdf',
+  },
+  {
+    title: 'Reference Architecture (living document)',
+    description: 'The current text of the reference architecture, including the LRA pattern and maturity-stage sections added after the July print.',
+    detail: 'Web · Rendered in this app',
+    href: '/reference-architecture',
   },
   {
     title: 'M-26-14 Level 2 Readiness',
     description: 'M-26-14 Level 2 Readiness deck.',
-    detail: 'PDF · Level 2 Readiness',
+    detail: 'PDF · Level 2 Readiness · print edition, predates the August 2026 LRA',
     href: '/docs/Elastic%20M-26-14%20Level%202%20Readiness.pdf',
   },
   {

@@ -83,6 +83,8 @@ Review this output against the integration requirements table in `docs/detection
 
 > **Note:** CEM requires collection from *all* asset types. An agency that has deployed Elastic Defend on Windows endpoints but has not yet integrated Okta or Azure AD has a partial CEM posture. The Element 1 ML job (`m_26_14-ml-element1-asset-coverage`) monitors coverage ratios and fires when a whole asset type stops reporting. See [Section 5.1](#51-element-1--asset-coverage).
 
+> **Note (failure store):** Every pack data stream ships with its failure store enabled. A document the ingest pipeline or the mapping rejects is kept in `logs-m_26_14*::failures` with the pipeline name, the failing processor tag and the error, counted on the `M-26-14 - Pipeline Health (D-04)` dashboard and alerted on by `m_26_14-pipeline-failure-spike`. Those documents are stored **as they arrived, before the policy enforcement point ran** (no redaction, no minimization, no sharing-class tag), so treat the failure store as raw evidence: only the pack-generated `m_26_14-failure-store-reader` role can read it, and it should be granted to named investigators, not to general analyst roles or a shared demo user.
+
 ---
 
 ## 3. THIRF Objective — Threat Hunt / Intelligence / Risk / Forensics
@@ -583,25 +585,28 @@ M-26-14 establishes minimum retention requirements by maturity level. All Append
 
 | Maturity Level | Minimum Retention | This Pack's ILM Policy |
 |---|---|---|
-| Level 2 | 6 months searchable | `m_26_14-logs-l3-hot-frozen` (hot 30d, warm 6mo, cold 12mo) — meets L2 and L3 |
-| Level 3 | 12 months | `m_26_14-logs-l3-hot-frozen` — same policy; 12-month cold phase satisfies L3 |
-| Level 4 | 24 months | `m_26_14-logs-l4-hot-frozen` (hot 7d, warm 1mo, cold 24mo) |
-| Audit logs (all levels) | No deletion | `m_26_14-logs-l3-no-delete` / `m_26_14-logs-l4-no-delete` — cold phase: indefinite |
-| HWAM/SWAM asset inventory | 90 days | `m_26_14-asset-inventory` (90d, no archive) |
+| Level 2 | 6 months searchable | `m_26_14-logs-l3-no-delete` (hot 90d, then frozen, no delete phase) — the shipped default; meets L2 and L3 |
+| Level 3 | 12 months retrievable | `m_26_14-logs-l3-no-delete` — same policy; retirement past 365 days only through the two-gate chain, which switches the index to `m_26_14-logs-l3-hot-frozen` |
+| Level 4 | 6 months searchable | `m_26_14-logs-l4-no-delete` (hot 180d, then frozen, no delete phase); two-gate retirement switches to `m_26_14-logs-l4-hot-frozen` |
+| HVA-tagged streams | Extended | `m_26_14-logs-hva-extended` (not switchable by the retirement chain) |
+| Legal-hold retained copies | No deletion | `m_26_14-hold-no-delete` (no rollover, frozen at 90d, no delete phase) |
 
 ### 6.2 ILM Policy Definitions
 
-This pack deploys five ILM policies:
+The pack ships 13 ILM policies. The six that govern the pack's own log streams and retained copies:
 
-| Policy Name | Hot | Warm | Cold / Frozen | Delete | Applicable To |
-|---|---|---|---|---|---|
-| `m_26_14-logs-l3-hot-frozen` | 30 days | 6 months, read-only, forcemerge | 12 months (searchable) | None | General L3 log streams — all Appendix B categories |
-| `m_26_14-logs-l3-no-delete` | 30 days | 6 months | Indefinite | None | Audit logs, investigation-grade evidence, legal hold |
-| `m_26_14-logs-l4-hot-frozen` | 7 days | 1 month | 24 months | None | L4 enhanced retention environments |
-| `m_26_14-logs-l4-no-delete` | 7 days | 1 month | Indefinite | None | L4 + FIPS audit log permanence |
-| `m_26_14-asset-inventory` | 90 days | — | — | 90 days | HWAM/SWAM asset inventory indices |
+| Policy Name | Hot | Frozen (searchable snapshot) | Delete | Applicable To |
+|---|---|---|---|---|
+| `m_26_14-logs-l3-no-delete` | rollover, 90 days | from day 90, indefinite | None | Default for every `logs-m_26_14.*` stream at L3 |
+| `m_26_14-logs-l3-hot-frozen` | rollover, 90 days | from day 90 | day 365, behind `wait_for_snapshot` on `m_26_14-readiness-snapshots` | Applied only by Gate 2 of the retirement chain |
+| `m_26_14-logs-l4-no-delete` | rollover, 180 days | from day 180, indefinite | None | Default at L4 |
+| `m_26_14-logs-l4-hot-frozen` | rollover, 180 days | from day 180 | day 365, behind `wait_for_snapshot` | Applied only by Gate 2 |
+| `m_26_14-logs-hva-extended` | rollover, 365 days | from day 365, indefinite | None | HVA-tagged streams and the AI audit store (`docs/hva-uplift.md`) |
+| `m_26_14-hold-no-delete` | no rollover | from day 90, indefinite | None | Legal-hold retained indices |
 
-**Frozen tier note**: The production frozen tier uses Elasticsearch searchable snapshots — stored in a snapshot repository (S3, GCS, Azure Blob, or on-prem NFS) at dramatically reduced storage cost while maintaining full query capability. The demo cluster uses hot/warm/cold (no frozen tier) because a snapshot repository is not configured. For production deployments, configure a snapshot repository and update the ILM policies to use the frozen phase.
+Three more (`m_26_14-retention-l1`, `-l2`, `-l3`) are the COMPAT maturity ladder of decision D-08, applied by an agency choosing a dated exception below the L3 default. The remaining four (`m_26_14-asset-inventory`, `m_26_14-asset-inventory-hot-only`, `m_26_14-metrics-store`, `m_26_14-derived-store`) govern the pack's inventory and evidence stores, not agency logs.
+
+**Frozen tier note**: The frozen phase mounts each backing index as a searchable snapshot from the snapshot repository (S3, GCS, Azure Blob, or on-prem NFS) at reduced storage cost with full query capability; ILM renames the mounted index `partial-.ds-<stream>-<generation>`, and the retirement chain and legal-hold guard account for that name. The demo cluster of record (`pubsec-m2614`) has a frozen tier; a cluster without one keeps indices on hot and the frozen phase waits.
 
 **Frozen tier setup**:
 ```

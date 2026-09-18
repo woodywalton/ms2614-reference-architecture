@@ -24,16 +24,16 @@ const MD_COMPONENTS = {
   img: ({ src, alt }) => <ScreenshotImage src={src} alt={alt} />,
 }
 
-export default function DemoGuide() {
+export default function DemoGuide({ src = '/docs/demo-guide.md' }) {
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/docs/demo-guide.md')
+    fetch(src)
       .then(r => r.text())
       .then(t => { setText(t); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [])
+  }, [src])
 
   if (loading) {
     return (

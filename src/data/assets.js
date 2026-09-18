@@ -672,7 +672,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [1],
     file: '/assets/elasticsearch/ilm_policy/m_26_14-retention-l1.json',
-    desc: 'Entry-maturity retention tier: hot → frozen at 30 days, delete at 180 days. Applied to M-26-14 data streams at maturity Level 1.',
+    desc: 'Entry-maturity retention tier: hot → frozen at 30 days, delete at 365 days (the Appendix B retrievable floor; raised from 180 on 2026-09-18). Applied to M-26-14 data streams at maturity Level 1.',
   },
   {
     id: 'ilm-retention-l2',
@@ -1438,7 +1438,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [1, 2, 3, 4],
     file: '/assets/elasticsearch/watcher/m_26_14-gate1-detect-frozen-aged.json',
-    desc: 'Daily scan (6am UTC) detecting m_26_14 frozen indices older than the retention threshold with no active retirement request. Opens Gate 1 Kibana Case and creates pending_gate1 audit record per candidate.',
+    desc: 'Daily scan (06:00 UTC) of ILM explain for m_26_14 frozen indices whose lifecycle age has reached the 365-day retention floor with no open ledger request. Writes one pending_gate1 ledger record per candidate (append-only, time-suffixed id) and opens the Gate 1 Kibana Case. Nothing changes at Gate 1.',
   },
   {
     id: 'watcher-gate1-approve',
@@ -1448,7 +1448,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [1, 2, 3, 4],
     file: '/assets/elasticsearch/watcher/m_26_14-gate1-approval-advance.json',
-    desc: 'Hourly check for approved_gate1 retirement requests. Switches index ILM to deletion-enabled policy, creates pending_gate2 audit record, opens Gate 2 Kibana Case (high severity) for final approval.',
+    desc: 'Hourly check for indices whose newest ledger record is approved_gate1. Writes a pending_gate2 record and opens the Gate 2 Kibana Case (high severity) for a second, different approver. No ILM change happens at Gate 1: the index stays on its no-delete policy until Gate 2.',
   },
   {
     id: 'watcher-gate2-execute',
@@ -1458,7 +1458,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [1, 2, 3, 4],
     file: '/assets/elasticsearch/watcher/m_26_14-gate2-execute-deletion.json',
-    desc: 'Hourly check for approved_gate2 retirement requests. Advances ILM past wait_for_snapshot to execute deletion. Creates scheduled_for_deletion audit record.',
+    desc: 'Hourly check for indices whose newest ledger record is approved_gate2. Applies the scope guard and the legal-hold guard (ILM mount prefix partial- stripped, holds by data stream name honoured), then switches the index from its no-delete ILM policy to the delete-enabled variant and writes scheduled_for_deletion. ILM then takes the compliance snapshot (wait_for_snapshot) before deleting; the watcher never bypasses that step.',
   },
   {
     id: 'watcher-legal-hold-copy',
@@ -1468,7 +1468,7 @@ export const ASSET_FILES = [
     format: 'json',
     levels: [1, 2, 3, 4],
     file: '/assets/elasticsearch/watcher/m_26_14-selective-copy-legal-hold.json',
-    desc: 'Manual-trigger watcher: async reindexes a query-scoped subset from a frozen/source index into a named retained index (no-delete ILM), triggers readiness snapshot, and opens a Kibana legal hold Case. Customize metadata.params before executing.',
+    desc: 'Registered inactive; executed by hand after setting metadata.params. Async reindexes a source (data stream name or pattern) into a named retained index under m_26_14-hold-no-delete, requests a readiness snapshot, writes a legal_hold_initiated ledger record whose source_index the Gate 2 guard reads, and opens a Kibana legal hold Case. A cancelled record on the retained index releases the hold.',
   },
   {
     id: 'watcher-jit-expiry',
@@ -1512,7 +1512,7 @@ export const ASSET_FILES = [
     format: 'yaml',
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/workflow/m_26_14-data-retirement-gate1-detect.yaml',
-    desc: 'Scheduled daily Elastic Workflow: AI Agent scans frozen m_26_14 indices older than threshold, creates Gate 1 Kibana Case for human approval, indexes pending_gate1 audit records, and sends Slack/email notification.',
+    desc: 'Scheduled daily Elastic Workflow (ships disabled): AI Agent scans frozen m_26_14 indices past the 365-day retention floor, opens the Gate 1 Kibana Case, writes a detection-run ledger record and sends a notification. Same detection as the Gate 1 watcher on the Workflows control plane; run one plane, not both.',
   },
   {
     id: 'workflow-gate1-approval',
@@ -1522,7 +1522,7 @@ export const ASSET_FILES = [
     format: 'yaml',
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/workflow/m_26_14-data-retirement-gate1-approval.yaml',
-    desc: 'Manual Elastic Workflow: switches index ILM to deletion-enabled policy after Gate 1 approval, records approved_gate1 and pending_gate2 audit states, opens Gate 2 Kibana Case, and sends notification.',
+    desc: 'Manual Elastic Workflow: records approved_gate1 and pending_gate2 ledger states after Gate 1 approval, opens the Gate 2 Kibana Case and sends a notification. Deliberately makes no ILM change; the index keeps its no-delete policy until Gate 2.',
   },
   {
     id: 'workflow-gate2-execute',
@@ -1532,7 +1532,7 @@ export const ASSET_FILES = [
     format: 'yaml',
     levels: [1, 2, 3, 4],
     file: '/assets/kibana/workflow/m_26_14-data-retirement-gate2-execute.yaml',
-    desc: 'Manual Elastic Workflow: advances ILM past wait_for_snapshot to execute final deletion after Gate 2 authorization. Records scheduled_for_deletion audit state. Requires verified snapshot before running.',
+    desc: 'Manual Elastic Workflow: after Gate 2 authorization, surfaces active legal holds, switches the index from its no-delete ILM policy to the delete-enabled variant and records scheduled_for_deletion. ILM then waits for a compliance snapshot (wait_for_snapshot) before deleting; nothing here bypasses that step.',
   },
   {
     id: 'workflow-legal-hold',

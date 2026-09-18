@@ -120,14 +120,14 @@ THIRF requires at least six months of log retention. Level 3 requires three mont
 
 The bars show each index's searchable days (hot tier — immediate query, no latency) versus its full retention window including frozen tier. The ILM policies ship pre-configured with the pack: `m_26_14-logs-l3-hot-frozen` keeps 90 days on hot then transitions to frozen for a 1-year total window; `m_26_14-logs-l4-hot-frozen` keeps 180 days hot then transitions to frozen for a 1-year total.
 
-When an index reaches the end of its retention window, it can't be deleted automatically. The pack enforces a two-gate human approval workflow:
+When an index reaches the end of its retention window, it can't be deleted automatically. The pack enforces a two-gate human approval chain:
 
-1. The `m_26_14-gate1-detect-frozen-aged` watcher identifies aged frozen indices and creates a pending retirement request.
-2. A Kibana Workflow (`m_26_14-data-retirement-gate1-detect`) surfaces it for ISSO review. Gate 1 approval unlocks the next step.
-3. The `m_26_14-gate1-approval-advance` watcher verifies that an SLM snapshot exists before allowing deletion.
-4. A second Kibana Workflow (`m_26_14-data-retirement-gate2-execute`) and watcher (`m_26_14-gate2-execute-deletion`) complete the deletion only after both humans have approved.
+1. The `m_26_14-gate1-detect-frozen-aged` watcher scans ILM daily and proposes frozen indices whose lifecycle age has reached the 365-day floor, writing a `pending_gate1` record and opening a Gate 1 Case. Nothing changes.
+2. A first approver writes an `approved_gate1` record from the Case. The `m_26_14-gate1-approval-advance` watcher writes `pending_gate2` and opens the Gate 2 Case. The index is still on its no-delete ILM policy.
+3. A second, different approver checks that no legal hold covers the index and that the readiness SLM policy is healthy, then writes `approved_gate2`.
+4. The `m_26_14-gate2-execute-deletion` watcher applies the scope and legal-hold guards, switches the index to its delete-enabled ILM policy and records `scheduled_for_deletion`. ILM then takes a compliance snapshot (`wait_for_snapshot`) before it deletes; no watcher or workflow bypasses that step.
 
-Every retirement action is recorded in `m_26_14-retirement-requests` — a complete, auditable trail.
+Every decision is a new record in `m_26_14-retirement-requests`, an append-only ledger where the newest record per index is its current state. The bottom row of this dashboard reads it: open requests, active legal holds, current state per index. The same four steps exist as Kibana Workflows for teams that prefer that control plane; run one, not both.
 
 ---
 
@@ -169,7 +169,10 @@ Behind this view:
 They enter a live triage loop, not a manual queue. A continuous transform correlates each network-discovered device against the asset registry and recent Security alerts, an enrich step resolves its hardware vendor from the MAC address (OUI lookup), and a classification pipeline assigns a disposition: `new_uninventoried`, `shadow_it`, `rogue`, `decommissioned`, `needs_review`, or `inventoried` once resolved. Every disposition lands in the `m_26_14-asset-triage` ledger with a recommended action and the evidence that drove it, and high-risk dispositions route to a Kibana Workflow for analyst review before any action fires. M-26-14 requires documented disposition for anything network-discovered; the ledger is that documentation.
 
 **What's the two-gate retirement workflow protecting against?**
-It ensures no compliance log can be deleted by a single person or an automated process. Gate 1 requires ISSO review and a confirmed snapshot. Gate 2 requires a second human approval. The snapshot requirement means even if someone approves deletion, the data still exists in the snapshot repository until the snapshot itself expires — a separate, independent retention control.
+It ensures no compliance log can be deleted by a single person or an automated process. Gate 1 is a first human review; it changes nothing on the index. Gate 2 is a second, different human's authorization, and only then does the index move to an ILM policy that has a delete phase. Even then ILM waits for a compliance snapshot newer than the delete-phase entry (`wait_for_snapshot`) before deleting, so the data still exists in the snapshot repository until that snapshot expires, a separate, independent retention control. A legal hold blocks the chain mechanically for whatever it names, including frozen indices ILM has renamed with a `partial-` prefix.
+
+**What happens to a record the ingest pipeline cannot parse?**
+It is kept, not dropped. Every pack data stream has its failure store enabled, so a rejected document lands in `logs-m_26_14*::failures` with the pipeline name, the failing step and the error; the Pipeline Health dashboard counts it and the `m_26_14-pipeline-failure-spike` rule alerts on a burst. One caution before opening that store in a demo: failure-store documents are stored as they arrived, before redaction and minimization ran, so they can carry values the live stream would have removed. Reading them needs the `m_26_14-failure-store-reader` role, which the read-only demo user does not hold.
 
 **Is this real agency data?**
 No — this is a synthetic fleet with realistic composition and posture spread. The pack deploys identically against real Elastic Agent data. The dashboards, rules, pipelines, and ML jobs are environment-agnostic; only the index patterns and configuration change.

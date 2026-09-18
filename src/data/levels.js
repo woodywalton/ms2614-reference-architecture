@@ -1,6 +1,14 @@
 // Per-level metadata: deadlines, retention requirements, narrative.
 //
-// Deadlines are exact (LRA published August 20, 2026; decisions doc F-1):
+// Threshold percentages (inventory, coverage, operations) are the canonical
+// set shared with the Readiness Pack: elasticsearch/seed/m_26_14-config-seed.ndjson
+// (runtime source of truth), the m_26_14-score-rollup-pipeline fallback and
+// m-26-14-score.py, lint-checked by the pack build (review finding R-52).
+// Change them there first; this file mirrors. Retention months are the memo's.
+//
+// Deadlines are exact (decisions doc F-1). The day counts are M-26-14's own
+// deadline table; the start date is CISA's publication of the LRA on
+// August 20, 2026 (the LRA carries no calendar dates itself):
 // Agency Logging Plan November 18, 2026 (+90d), Level 1 December 18, 2026
 // (+120d), Level 2 February 16, 2027 (+180d), Level 3 July 6, 2027 (+320d).
 
