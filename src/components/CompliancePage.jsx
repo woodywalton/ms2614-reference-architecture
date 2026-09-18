@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { ASSET_TYPE_META, ASSET_FILE_MAP } from '../data/assets.js'
 import { OverviewContent } from './Overview.jsx'
-import AssetViewer from './AssetViewer.jsx'
 
 // ─── Tab definitions ──────────────────────────────────────────────────────────
 
@@ -16,14 +14,6 @@ const TABS = [
 const CheckIcon = ({ size = 16, className = '' }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 16 16" className={className} aria-hidden="true" fill="currentColor">
     <path fillRule="evenodd" d="M15.354 4.354 6.5 13.207 1.646 8.354l.708-.708L6.5 11.793l8.146-8.147.708.708Z" clipRule="evenodd"/>
-  </svg>
-)
-
-const InspectIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
-    <path d="M2 2h11v4c.379.284.716.62 1 1V2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h5a5.029 5.029 0 0 1-1-1H2V2Z"/>
-    <path d="M3.5 4a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1Zm0 2a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1ZM4 7.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0ZM3.5 10a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1Zm.5 1.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0ZM5.5 4a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1ZM6 5.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0ZM7.5 4a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1Zm2.5-.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Zm1.5.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1Z"/>
-    <path fillRule="evenodd" d="M6 10a4 4 0 1 1 7.16 2.453l2.194 2.193-.707.707-2.194-2.193A4 4 0 0 1 6 10Zm4-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" clipRule="evenodd"/>
   </svg>
 )
 
@@ -118,7 +108,6 @@ const MATRIX_ROWS = [
     cap: 'ILM policies + S3 snapshots',
     capDesc: 'Pre-configured ILM policies roll data from hot to frozen, then snapshot to S3-compatible object storage with a configurable retention floor.',
     modalHow: 'Elastic ILM (Index Lifecycle Management) is configured at platform deployment, automatically rolling log data from hot through frozen tier, then snapshotting to S3-compatible object storage. The Level 1 ILM variant maintains snapshots for 180 days before expiry. Frozen-tier data is recoverable on demand via Elasticsearch Searchable Snapshots, satisfying the M-26-14 definition of "retrievable" — accessible after one or more intermediary steps. Because ILM is configured on Day 1, this requirement is addressed before any data is collected.',
-    modalAssetIds: ['ilm-logs-l3-hot-frozen', 'ilm-logs-l3-no-delete', 'dash-log-management', 'dash-retention-compliance'],
     modalCapabilities: [
       { name: 'Index Lifecycle Management (ILM)', type: 'platform', desc: 'Automated hot → cold → frozen tier transitions and snapshot scheduling.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/index-lifecycle-management.html' },
       { name: 'Elasticsearch Snapshot & Restore', type: 'platform', desc: 'Point-in-time backups to S3-compatible storage. Frozen-tier snapshots satisfy THIRF retrievable retention.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshot-restore.html' },
@@ -133,7 +122,6 @@ const MATRIX_ROWS = [
     cap: 'ILM policies + S3 snapshots (L2+ variant)',
     capDesc: 'L2/L3/L4 ILM variants extend the frozen/snapshot tier to 12 months before deletion. No-delete variants available for NARA-scoped agencies.',
     modalHow: 'The same ILM + snapshot architecture used for Level 1 satisfies Levels 2 through 4 by adjusting the snapshot retention window. The L2/L3/L4 policy variants extend frozen-tier snapshots to 365 days before deletion. For agencies with NARA obligations, no-delete policy variants disable automatic expiry entirely, maintaining an indefinite retrievable window without changing the underlying ILM mechanism. Configured on Day 1 — no follow-on action needed when the agency achieves Level 2.',
-    modalAssetIds: ['ilm-logs-l3-no-delete', 'ilm-logs-l4-hot-frozen', 'ilm-logs-l4-no-delete'],
     modalCapabilities: [
       { name: 'ILM Snapshot Retention Policies', type: 'platform', desc: 'Configurable retention schedules on snapshot repositories — L2+ variants extend to 12 months, no-delete variants for NARA-scoped agencies.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshot-lifecycle-management.html' },
     ],
@@ -146,7 +134,6 @@ const MATRIX_ROWS = [
     cap: 'Hot/frozen ILM policy — L3 variant',
     capDesc: 'The L3 ILM policy keeps data on hot nodes for 90+ days before tiering, maintaining a 3-month search-available window.',
     modalHow: 'The Level 3 ILM policy variant delays the hot → frozen tier transition until day 90+, keeping 3 months of data on high-performance hot nodes where it is immediately queryable with no restore latency. This satisfies the M-26-14 "searchable" definition and enables real-time CEM alerting and dashboard queries across the full 90-day window. The policy is configured on Day 1 and automatically satisfies the searchable retention requirement once the agency reaches Level 3 attestation — no reconfiguration needed.',
-    modalAssetIds: ['ilm-logs-l3-hot-frozen', 'ilm-logs-l3-no-delete'],
     modalCapabilities: [
       { name: 'Elasticsearch Hot Tier', type: 'platform', desc: 'High-performance, immediately queryable storage — no restore step. Used for the CEM searchable retention window.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/data-tiers.html' },
     ],
@@ -159,7 +146,6 @@ const MATRIX_ROWS = [
     cap: 'Hot/frozen ILM policy — L4 variant',
     capDesc: 'The L4 ILM policy extends the hot retention to 180+ days. The extended frozen-tier window satisfies the full L4 THIRF requirement simultaneously.',
     modalHow: 'The Level 4 ILM variant extends the hot tier retention floor to 180 days, doubling the searchable window from Level 3. This enables 6-month behavioral correlation, cross-event investigation, and threat hunting — all without snapshot restore latency. The same policy simultaneously satisfies the L4 THIRF requirement by keeping the frozen snapshot window at 12+ months, ensuring both CEM and THIRF obligations are met by a single ILM policy configuration already deployed on Day 1.',
-    modalAssetIds: ['ilm-logs-l4-hot-frozen', 'ilm-logs-l4-no-delete'],
     modalCapabilities: [
       { name: 'ILM — L4 Hot Tier Floor', type: 'platform', desc: 'Hot retention extended to 180 days — satisfies both L4 CEM searchable and THIRF retrievable requirements from a single policy.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/index-lifecycle-management.html' },
     ],
@@ -172,7 +158,6 @@ const MATRIX_ROWS = [
     cap: 'Kibana Workflows + SLM policy + Kibana Cases + Audit Index',
     capDesc: 'Automated two-gate workflow: daily scan identifies aged frozen indices → Gate 1 Kibana Case for human approval → ILM wait_for_snapshot ensures backup exists → Gate 2 Case for final deletion authorization. Manual Kibana Workflows execute each gate transition with full audit trail.',
     modalHow: 'The M-26-14 readiness pack deploys a complete two-gate data retirement system built on Kibana Workflows, Kibana Cases, SLM, and an append-only audit index (m_26_14-retirement-requests). Detection alerts (Kibana Rules) fire when frozen indices exceed the configurable age threshold and open a Gate 1 Kibana Case for human review — no data is touched until a human approves. Once approved, the Gate 1 Kibana Workflow switches the index to a deletion-enabled ILM policy. ILM wait_for_snapshot then acts as a technical safeguard: deletion is blocked until the SLM policy confirms a durable snapshot exists in S3. Gate 2 requires a second explicit human approval before the Gate 2 Execution Workflow advances ILM past the snapshot gate to execute deletion. Every state transition — detect, approve, snapshot, delete — is recorded in the append-only m_26_14-retirement-requests audit index. The Legal Hold Workflow enables selective data preservation to a permanent no-delete retained index before retirement begins.',
-    modalAssetIds: ['slm-compliance-snapshots', 'template-retirement-requests', 'watcher-gate1-detect', 'watcher-gate1-approve', 'watcher-gate2-execute', 'watcher-legal-hold-copy', 'rule-dm-gate1-pending', 'rule-dm-gate2-pending', 'workflow-gate1-detect', 'workflow-gate1-approval', 'workflow-gate2-execute', 'workflow-legal-hold'],
     modalCapabilities: [
       { name: 'Kibana Workflows', type: 'platform', desc: 'YAML-defined automation engine executing each gate transition: Gate 1 approval switches ILM policy; Gate 2 execution advances ILM past the snapshot gate; Legal Hold workflow reindexes data to a no-delete retained index. Each workflow records a full audit trail in the retirement audit index and opens a Kibana Case.', href: 'https://www.elastic.co/guide/en/kibana/current/workflows.html' },
       { name: 'Elasticsearch Snapshot Lifecycle Management (SLM)', type: 'platform', desc: 'Automated daily snapshots of all m_26_14-* indices to S3. Used as the technical gate before deletion — ILM wait_for_snapshot blocks deletion until SLM confirms a durable backup exists.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshot-lifecycle-management.html' },
@@ -190,7 +175,6 @@ const MATRIX_ROWS = [
     cap: 'Kibana Workflow — Data Classification Intake',
     capDesc: 'Manual Kibana Workflow opens a Kibana Case for data steward review when a new unclassified data stream is discovered, records classification_pending in audit index, and notifies the responsible team.',
     modalHow: 'The M-26-14 readiness pack includes a Data Classification Intake Kibana Workflow that initiates a formal classification review whenever a new index or data stream is discovered without an assigned sensitivity label. The workflow opens a Kibana Case assigned to the data steward with M-26-14 sensitivity tier guidance (public → restricted), instructions for inspecting the index and applying the appropriate ILM policy, and records a classification_pending state in the m_26_14-data-classification-requests audit index. The M-26-14 POA&M Drafting Agent can query this index to surface unclassified data streams as open readiness findings. Classification must be completed before default retention policies or broad access roles are applied to the new data stream.',
-    modalAssetIds: ['workflow-data-classification', 'agent-poam-drafting', 'agent-tool-compliance-posture'],
     modalCapabilities: [
       { name: 'Kibana Workflows', type: 'platform', desc: 'YAML-defined automation that opens a classification review Case, records audit state, and notifies the data steward team. No code required — operators update consts before running.', href: 'https://www.elastic.co/guide/en/kibana/current/workflows.html' },
       { name: 'Kibana Cases', type: 'platform', desc: 'Traceable review interface for data steward classification decisions. Each case includes M-26-14 sensitivity tier matrix and step-by-step classification instructions.', href: 'https://www.elastic.co/guide/en/kibana/current/cases-overview.html' },
@@ -220,7 +204,6 @@ const MATRIX_ROWS = [
       { id: 'K', name: 'Category K — DNS Activity',            desc: 'Full DNS query/response logs, DNS-over-HTTPS, DNS tunneling indicators',                          cap: 'Packetbeat · Zeek · Elastic Defend · network syslog',                capDesc: 'DNS query/response via Packetbeat and Zeek; DNS-over-HTTPS and DNS-over-TLS detection via Elastic Defend; legacy DNS appliance logs via Logstash syslog input.' },
     ],
     modalHow: 'Elastic Agent, managed through Fleet Server, provides a single enrollment point covering all 11 Appendix B log source categories. A single agent on an endpoint simultaneously activates Categories A, D, F, J, and K via Elastic Defend. Zeek handles Categories B and K for network infrastructure. Cloud integrations (AWS, Azure, GCP) cover Categories C and E. Categories G, H, and I are not collected from external sources — they are produced by Elastic\'s Threat Intel rules, Detection Engine, and ML jobs respectively, which are installed as part of the readiness pack. Logstash inputs bridge legacy OT/ICS sources and mainframes that cannot run native agents.',
-    modalAssetIds: ['fleet-osquery-pack', 'template-logs-data-streams'],
     modalCapabilities: [
       { name: 'Elastic Agent + Fleet Server', type: 'platform', desc: 'Central enrollment and policy management for all Appendix B log sources. Single agent binary covers Categories A, D, F, J, K via Elastic Defend.', href: 'https://www.elastic.co/guide/en/fleet/current/fleet-overview.html' },
       { name: 'Elastic Integrations (20+)', type: 'platform', desc: 'Pre-built integrations for Okta, Azure AD, AWS, Zeek, Suricata, CrowdStrike, SentinelOne, and more — all mapped to Appendix B categories.', href: 'https://www.elastic.co/integrations' },
@@ -243,7 +226,6 @@ const MATRIX_ROWS = [
       { id: '4', name: 'Shadow-IT',          desc: 'Unmanaged consumer / BYOD device, no alerts. A policy decision, not a technical one.',                            cap: 'exception (gated: allow-list/removal)' },
       { id: '5', name: 'Needs-review',       desc: 'Signals ambiguous or conflicting — identity must be established before routing.',                                  cap: 'identify first' },
     ],
-    modalAssetIds: ['fleet-osquery-pack', 'dash-asset-coverage', 'template-osquery-hardware', 'template-osquery-network', 'template-osquery-software', 'pipeline-osquery-normalize', 'ilm-asset-inventory'],
     modalCapabilities: [
       { name: 'Fleet Server Enrollment', type: 'platform', desc: 'Every agent enrollment writes a host inventory record including identity, OS, and network state — auto-builds the asset inventory.', href: 'https://www.elastic.co/guide/en/fleet/current/install-fleet-managed-elastic-agent.html' },
       { name: 'Osquery Manager Integration', type: 'platform', desc: 'Scheduled SQL-like queries against endpoint hardware, software, user account, and network state — populates HWAM/SWAM inventory.', href: 'https://docs.elastic.co/integrations/osquery_manager' },
@@ -259,21 +241,20 @@ const MATRIX_ROWS = [
     capDesc: '12 Appendix B detection rule sets (A–L) containing 20+ individual rules, each mapped to a specific category and MITRE ATT&CK technique.',
     subsLabel: 'Detection Rules by Appendix B Category',
     subs: [
-      { id: 'A', name: 'Identity Events (4 rules)',           desc: 'Credential stuffing (Windows/Okta), Azure auth failure chain, Linux SSH brute force',                         cap: 'rule-appendixb-a' },
-      { id: 'B', name: 'C2 Beaconing (1 rule)',               desc: 'Periodic outbound connection pattern consistent with command-and-control beaconing',                           cap: 'rule-appendixb-b' },
-      { id: 'C', name: 'Mass File Access (1 rule)',            desc: 'High-volume file access events consistent with ransomware staging or bulk exfiltration',                       cap: 'rule-appendixb-c' },
-      { id: 'D', name: 'Privilege Escalation (1 rule)',        desc: 'Token manipulation and local privilege escalation sequences',                                                   cap: 'rule-appendixb-d' },
-      { id: 'E', name: 'Infrastructure Changes (3 rules)',     desc: 'Rogue device detection + unexpected OT/ICS engineering workstation activity',                                  cap: 'rule-appendixb-e-ot' },
-      { id: 'F', name: 'EDR Tamper (1 rule)',                  desc: 'Elastic Agent process termination or service disable — indicates defense evasion',                             cap: 'rule-appendixb-f' },
-      { id: 'G', name: 'IoC Monitoring (1 custom + 5 prebuilt)', desc: 'Custom domain-match rule plus five Elastic prebuilt Threat Intel rules matching IP, hash, URL, email, and registry indicators', cap: 'rule-appendixb-g' },
-      { id: 'H', name: 'Off-Hours Execution (1 rule)',         desc: 'Privileged process execution during non-business hours on sensitive hosts',                                    cap: 'rule-appendixb-h' },
-      { id: 'I', name: 'Exfiltration Volume (1 rule)',         desc: 'Anomalous outbound data volume spike above rolling 30-day baseline',                                          cap: 'rule-appendixb-i' },
-      { id: 'J', name: 'APT Kill Chain (2 rules)',             desc: 'Multi-stage attack correlating recon, initial access, and lateral movement events',                           cap: 'rule-appendixb-j' },
-      { id: 'K', name: 'Coverage Gap Meta-Rule (2 rules)',     desc: 'Fires when any Appendix B log category stops receiving events — readiness degradation early warning',        cap: 'rule-appendixb-k' },
-      { id: 'L', name: 'New/Rogue OT Device + Egress (2 rules)', desc: 'Passive detection of a new device on a network segment plus OT-protocol egress to an unexpected destination — catches unmanaged OT/IoT that never runs an agent', cap: 'rule-appendixb-l-ot-device' },
+      { id: 'A', name: 'Identity Events (4 rules)',           desc: 'Credential stuffing (Windows/Okta), Azure auth failure chain, Linux SSH brute force',                         cap: 'AppB-A: Identity & Authentication Events', capDesc: '4 rules: Windows credential stuffing, Okta credential stuffing, Azure/Entra ID auth failure chain, Linux SSH brute force.' },
+      { id: 'B', name: 'C2 Beaconing (1 rule)',               desc: 'Periodic outbound connection pattern consistent with command-and-control beaconing',                           cap: 'AppB-B: C2 Beaconing', capDesc: '1 rule: periodic outbound connection pattern indicative of C2 beaconing.' },
+      { id: 'C', name: 'Mass File Access (1 rule)',            desc: 'High-volume file access events consistent with ransomware staging or bulk exfiltration',                       cap: 'AppB-C: Mass File Access', capDesc: '1 rule: high-volume file access events consistent with ransomware staging or bulk exfiltration.' },
+      { id: 'D', name: 'Privilege Escalation (1 rule)',        desc: 'Token manipulation and local privilege escalation sequences',                                                   cap: 'AppB-D: Privilege Escalation', capDesc: '1 rule: token manipulation and local privilege escalation sequences.' },
+      { id: 'E', name: 'Infrastructure Changes (3 rules)',     desc: 'Rogue device detection + unexpected OT/ICS engineering workstation activity',                                  cap: 'AppB-E: OT/ICS Infrastructure Changes', capDesc: '2 rules: unexpected OT/ICS configuration changes and engineering workstation activity.' },
+      { id: 'F', name: 'EDR Tamper (1 rule)',                  desc: 'Elastic Agent process termination or service disable — indicates defense evasion',                             cap: 'AppB-F: EDR Tamper', capDesc: '1 rule: Elastic Agent process termination or service disable indicating defense evasion.' },
+      { id: 'G', name: 'IoC Monitoring (1 custom + 5 prebuilt)', desc: 'Custom domain-match rule plus five Elastic prebuilt Threat Intel rules matching IP, hash, URL, email, and registry indicators', cap: 'AppB-G: IOC Monitoring (Threat Intel)', capDesc: '1 custom domain-match rule; IP/hash/URL/email/registry matching handled by 5 Elastic prebuilt Threat Intel rules (see rule guide).' },
+      { id: 'H', name: 'Off-Hours Execution (1 rule)',         desc: 'Privileged process execution during non-business hours on sensitive hosts',                                    cap: 'AppB-H: Off-Hours Execution', capDesc: '1 rule: privileged process execution during non-business hours on sensitive hosts.' },
+      { id: 'I', name: 'Exfiltration Volume (1 rule)',         desc: 'Anomalous outbound data volume spike above rolling 30-day baseline',                                          cap: 'AppB-I: Data Exfiltration Volume', capDesc: '1 rule: anomalous outbound data volume spike above rolling baseline.' },
+      { id: 'J', name: 'APT Kill Chain (2 rules)',             desc: 'Multi-stage attack correlating recon, initial access, and lateral movement events',                           cap: 'AppB-J: APT Kill Chain', capDesc: '2 rules: multi-stage attack sequence correlating recon, initial access, and lateral movement events.' },
+      { id: 'K', name: 'Coverage Gap Meta-Rule (2 rules)',     desc: 'Fires when any Appendix B log category stops receiving events — readiness degradation early warning',        cap: 'AppB-K: Coverage Gap Meta-Rule', capDesc: '2 rules: alert when any required Appendix B log category stops receiving events, an early warning of readiness degradation.' },
+      { id: 'L', name: 'New/Rogue OT Device + Egress (2 rules)', desc: 'Passive detection of a new device on a network segment plus OT-protocol egress to an unexpected destination — catches unmanaged OT/IoT that never runs an agent', cap: 'AppB-L: New/Rogue OT Device + Egress', capDesc: '2 rules: AppA-L flags a new or rarely-seen device on a network segment (passive, ML-backed by new-network-device); AppB-L flags OT-protocol egress to an unexpected destination (non-standard port / C2). Covers unmanaged OT/IoT that never runs an agent.' },
     ],
     modalHow: 'The readiness pack installs 20+ pre-built Kibana Security detection rules organized into 12 category-specific rule sets (A–L). Each rule set maps to a specific Appendix B event category and MITRE ATT&CK technique, enabling immediate CEM coverage from the moment rules are enabled. Rules are ECS-normalized and work across all Appendix B log sources out of the box. The Category K meta-rules provide automated readiness monitoring — alerting when any category stops receiving events, giving teams early warning before CEM attestation breaks. Category L extends coverage to passively-observed OT/IoT devices that never run an agent.',
-    modalAssetIds: ['dash-alert-coverage', 'dash-appendix-b-coverage', 'template-alert-coverage'],
     modalCapabilities: [
       { name: 'Kibana Security Detection Engine', type: 'platform', desc: 'Rule evaluation engine for KQL, EQL, ML, and threshold-based detection. Writes to .alerts-security.* index for dashboard consumption.', href: 'https://www.elastic.co/guide/en/security/current/detection-engine-overview.html' },
       { name: 'MITRE ATT&CK Framework Mapping', type: 'platform', desc: 'All readiness pack rules include MITRE ATT&CK tactic and technique metadata for threat framework alignment and audit evidence.', href: 'https://www.elastic.co/guide/en/security/current/prebuilt-rules.html' },
@@ -287,7 +268,6 @@ const MATRIX_ROWS = [
     cap: 'Elastic ML anomaly jobs (7)',
     capDesc: '7 custom ML jobs (DNS entropy, five M-26-14 element monitors, new network device) plus 7 Elastic Security ML module jobs prefix-installed for behavioral detection.',
     modalHow: 'The readiness pack runs two ML job families. Seven custom jobs ship with the pack: DNS entropy anomalies (Categories B/G), the five M-26-14 element monitors (asset-coverage drops, ingestion-rate dips, rule silence, ILM/retention anomalies, hash-coverage gaps), and new or rarely-seen devices per network segment (Element 1 / Appendix A HWAM, backing Category L). Seven Elastic Security ML module jobs are prefix-installed with the m_26_14_ job-id prefix to power the behavioral detection rules: authentication anomalies and rare IP access patterns (Category A), suspicious login activity, host-went-silent, rare process execution on Linux and Windows hosts, and rare destination countries (Category B). Each job includes its datafeed and builds behavioral baselines automatically from historical log data. ML-generated anomaly records constitute Appendix B Category I events.',
-    modalAssetIds: ['ml-job-catb-dns', 'ml-job-element1', 'ml-job-element1-new-network-device', 'ml-job-element2', 'ml-job-element3', 'ml-job-element4', 'ml-job-element5'],
     modalCapabilities: [
       { name: 'Elastic Machine Learning — Anomaly Detection', type: 'platform', desc: 'Unsupervised behavioral baselines with automatic scoring — no labeled training data required. Covers auth, network, process, and readiness metrics.', href: 'https://www.elastic.co/guide/en/machine-learning/current/ml-ad-overview.html' },
     ],
@@ -300,7 +280,6 @@ const MATRIX_ROWS = [
     cap: 'Threat Intel rules (AppB-G, 5 prebuilt + 1 custom)',
     capDesc: 'Five Elastic prebuilt Threat Intel Indicator Match rules (IP, hash, URL, email, registry) plus the pack\'s custom domain-match rule, all matching STIX/TAXII feeds and the CISA KEV catalog.',
     modalHow: 'Elastic\'s Threat Intelligence integration ingests STIX/TAXII feeds and the CISA KEV catalog into the Elasticsearch threat-indicator index. Five Elastic Security prebuilt Indicator Match rules continuously match that index against live event streams — network connections against IP IoCs, file and process events against hash IoCs, URL events against malicious URL IoCs, plus email-sender and Windows-registry indicators. The pack adds one custom rule, m_26_14-appendixb-g-ioc-domain-match, for DNS/domain indicators the prebuilt set does not yet cover (earlier pack revisions shipped custom hash/IP/URL rules; those were retired in favor of the prebuilts). New indicators automatically apply to future events without rule changes. This produces the Category G events required by Appendix B.',
-    modalAssetIds: ['rule-appendixb-g'],
     modalCapabilities: [
       { name: 'Threat Intelligence Integration (MISP/STIX/TAXII)', type: 'platform', desc: 'Ingests STIX/TAXII indicator feeds and MISP events into the Elasticsearch threat-indicator index for real-time matching.', href: 'https://docs.elastic.co/integrations/ti_misp' },
       { name: 'CISA KEV Integration', type: 'platform', desc: 'Pulls the CISA Known Exploited Vulnerabilities catalog for continuous indicator matching against all log streams.', href: 'https://www.elastic.co/guide/en/security/current/threat-intelligence-integrations.html' },
@@ -314,7 +293,6 @@ const MATRIX_ROWS = [
     cap: 'Kibana dashboards (5) + transforms',
     capDesc: '5 pre-built dashboards: Maturity Overview, Asset Coverage, Alert Coverage (Appendix B), Appendix B Log Coverage, and Readiness Attestation.',
     modalHow: 'The readiness pack installs five pre-built Kibana dashboards providing real-time visibility into all M-26-14 readiness dimensions. The Readiness Attestation dashboard is the primary ATO evidence artifact — it summarizes coverage percentages, retention windows, and detection status across all required Appendix B categories in an exportable format. Alert Coverage and Appendix B Log Coverage dashboards give granular per-category visibility for gap identification. All dashboards are export-ready via Kibana\'s built-in PDF/PNG reporting for inclusion in audit submissions and ATO packages.',
-    modalAssetIds: ['dash-maturity-overview', 'dash-asset-coverage', 'dash-alert-coverage', 'dash-appendix-b-coverage', 'dash-compliance-attestation'],
     modalCapabilities: [
       { name: 'Kibana Reporting (PDF/PNG)', type: 'platform', desc: 'Export dashboards as formatted PDFs or PNGs for ATO evidence packages and audit submissions.', href: 'https://www.elastic.co/guide/en/kibana/current/reporting-getting-started.html' },
     ],
@@ -328,7 +306,6 @@ const MATRIX_ROWS = [
     cap: 'Elastic Agent Builder — 3 AI readiness agents',
     capDesc: 'Three pre-configured AI agents automate the most time-intensive readiness documentation tasks: threat investigation summaries, POA&M entry drafting from live findings, and after-action report generation from closed cases.',
     modalHow: 'The M-26-14 readiness pack ships three Elastic Agent Builder agents, each pre-configured with M-26-14 context, the appropriate built-in Elastic tools, and custom ES|QL tools scoped to the readiness indices. The Threat Investigation Agent autonomously investigates security alerts — querying entity risk scores, asset inventory, related logs, and attack discoveries — and produces a structured investigation summary with M-26-14 element impact mapping, ready to attach to the Kibana Case. The POA&M Drafting Agent queries open cases, unclassified data streams, retirement audit gaps, and recurring unresolved alerts, then drafts FISMA-compliant POA&M entries with proper control references, risk ratings, milestones, and completion dates. The After-Action Report Agent reconstructs incident timelines from closed cases and log data, calculates detection gaps, maps affected assets to M-26-14 elements, and drafts a formal AAR document — reducing a 2–4 hour manual task to under 2 minutes. All three agents use custom ES|QL tools scoped to m_26_14-* indices for data-grounded, verifiable output. Agents are deployed via the included shell script using the Agent Builder REST API.',
-    modalAssetIds: ['agent-threat-investigation', 'agent-poam-drafting', 'agent-aar', 'agent-tool-asset-inventory', 'agent-tool-retirement-audit', 'agent-tool-compliance-posture'],
     modalCapabilities: [
       { name: 'Elastic Agent Builder', type: 'platform', desc: 'Custom AI agent platform with built-in tools for Elasticsearch, Kibana Cases, security alerts, entity risk scores, and Elastic Workflows. Agents are deployed via REST API with configurable system instructions and tool scoping.', href: 'https://www.elastic.co/docs/explore-analyze/ai-features/elastic-agent-builder' },
       { name: 'Agent Builder Built-in Security Tools', type: 'platform', desc: 'security.alerts, security.entity_risk_scores, security.attack_discoveries, security.get_entity — built-in tools giving agents direct access to the Elastic Security data model.', href: 'https://www.elastic.co/docs/explore-analyze/ai-features/agent-builder/tools/builtin-tools-reference' },
@@ -345,7 +322,6 @@ const MATRIX_ROWS = [
     cap: 'Ingest pipeline processors',
     capDesc: 'The alert category enrichment pipeline includes configurable redact/hash processors. Agencies configure which fields are sensitive per their data classification policy.',
     modalHow: 'Elastic ingest pipelines are deployed with the readiness pack and include pre-configured redact, hash, and drop processors that apply at indexing time — before data reaches searchable storage. Agencies configure which fields are classified as sensitive per their data classification policy, which is typically defined before Level 3 attestation. Field-level security in Elasticsearch then enforces role-based access to any residual sensitive fields post-index. The sensitive data configuration can be updated without redeploying the pipeline, only changing which fields the existing processors target.',
-    modalAssetIds: ['pipeline-alert-category', 'pipeline-osquery-normalize', 'pipeline-log-integrity-hash'],
     modalCapabilities: [
       { name: 'Elasticsearch Ingest Pipelines', type: 'platform', desc: 'Pipeline processors: redact (field removal), hash (SHA-256 masking), and drop (record suppression) applied before indexing.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html' },
       { name: 'Elasticsearch Field-Level Security', type: 'platform', desc: 'Role-based access control at the field level — restricts which users and roles can read sensitive fields post-index.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/field-level-security.html' },
@@ -359,7 +335,6 @@ const MATRIX_ROWS = [
     cap: 'Risk-score transforms (2)',
     capDesc: 'Two Elasticsearch Transforms — daily rollup and latest-value — compute per-category coverage scores and readiness posture metrics in real time.',
     modalHow: 'The readiness pack deploys two Elasticsearch Transforms that continuously aggregate individual detection rule alerts into risk-scored, per-entity summaries. The daily rollup transform computes coverage percentage scores per Appendix B category, tracking posture over time. The latest-value transform maintains current readiness state for the Maturity Overview dashboard. These transforms feed Kibana Security\'s entity risk scoring mechanism, enabling SOC analysts to triage high-confidence multi-alert entities before working low-signal individual alerts.',
-    modalAssetIds: ['transform-alert-coverage-daily', 'transform-alert-coverage-latest'],
     modalCapabilities: [
       { name: 'Elasticsearch Transforms', type: 'platform', desc: 'Continuous aggregation pipelines summarizing alert index data into pivot tables and risk-scored entity summaries.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/transforms.html' },
       { name: 'Kibana Security Entity Risk Scoring', type: 'platform', desc: 'Aggregates detection rule alerts into per-host and per-user risk scores for analyst triage prioritization.', href: 'https://www.elastic.co/guide/en/security/current/entity-risk-scoring.html' },
@@ -375,7 +350,6 @@ const MATRIX_ROWS = [
     cap: 'Cross-Cluster Search (CCS)',
     capDesc: 'Elasticsearch CCS enables a central Kibana to query remote clusters across any network topology — no data movement, full Kibana query support.',
     modalHow: 'Elasticsearch Cross-Cluster Search (CCS) allows a central Kibana instance to issue federated queries across any number of remote Elasticsearch clusters — without copying data to a central repository. Each agency log store remains in-place under the agency\'s control; the central SOC cluster issues queries that fan out to remote clusters and aggregate results. CCS supports full Kibana query syntax including KQL, EQL, and ML scoring, enabling the federal-level SIEM console required at Level 4. No data movement occurs; only query results transit the network.',
-    modalAssetIds: [],
     modalCapabilities: [
       { name: 'Cross-Cluster Search (CCS)', type: 'platform', desc: 'Federated query across multiple Elasticsearch clusters — no data movement, full Kibana and KQL/EQL support.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-cross-cluster-search.html' },
       { name: 'Cross-Cluster Replication (CCR)', type: 'platform', desc: 'Optional active replication for geo-redundancy or disaster recovery — not required for M-26-14 federated query readiness.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/xpack-ccr.html' },
@@ -389,7 +363,6 @@ const MATRIX_ROWS = [
     cap: 'Elastic BYOK / KMS integration',
     capDesc: 'Elastic supports BYOK via AWS KMS, Azure Key Vault, and GCP KMS integration, giving agencies full key custody over indexed log data.',
     modalHow: 'Elasticsearch integrates with external KMS providers — AWS KMS, Azure Key Vault, and GCP Cloud KMS — to support bring-your-own-key (BYOK) encryption at rest. Agency key material never leaves the agency KMS; Elasticsearch uses DEK (Data Encryption Key) wrapping via the KMS API. This satisfies the Level 4 requirement that stored log data be cryptographically protected under agency-controlled key custody, not solely reliant on cloud provider-managed encryption. TLS 1.2/1.3 is enforced for all inter-node and client-node communication within the cluster.',
-    modalAssetIds: [],
     modalCapabilities: [
       { name: 'Elasticsearch BYOK Encryption at Rest', type: 'platform', desc: 'DEK wrapping via AWS KMS, Azure Key Vault, or GCP KMS — agency holds key custody, not the platform.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/security-basic-setup-https.html' },
       { name: 'TLS Encryption in Transit', type: 'platform', desc: 'TLS 1.2/1.3 enforced for all inter-node and client communication within the Elastic cluster.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/security-basic-setup.html' },
@@ -403,7 +376,6 @@ const MATRIX_ROWS = [
     cap: 'Log integrity pipeline + NTP agent config',
     capDesc: 'Log integrity hash pipeline computes SHA-256 event fingerprints at ingest time. NTP configuration applied via Fleet agent policy to all enrolled hosts.',
     modalHow: 'The log integrity ingest pipeline computes a SHA-256 fingerprint of each event at indexing time, creating a tamper-evident record independently verifiable against the original source. Fleet agent policies enforce NTP synchronization to USNO/NIST time servers on all enrolled endpoints, ensuring event timestamps are authoritatively traceable. These two controls together satisfy the Level 4 forensic-quality audit trail requirement: immutable integrity fingerprints paired with verifiable, USNO-synchronized timestamp provenance on every log record.',
-    modalAssetIds: ['pipeline-log-integrity-hash', 'template-log-integrity'],
     modalCapabilities: [
       { name: 'Elasticsearch Fingerprint Processor', type: 'platform', desc: 'Computes SHA-256 hash of event records at ingest time — stored alongside the event for independent tamper-evidence verification.', href: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/fingerprint-processor.html' },
       { name: 'Fleet NTP Policy Configuration', type: 'platform', desc: 'Enforces NTP sync to USNO/NIST time servers across all Fleet-enrolled endpoints via agent policy — USNO-traceable timestamps.', href: 'https://www.elastic.co/guide/en/fleet/current/agent-policy.html' },
@@ -739,20 +711,11 @@ function CoverageAssetsTab() {
 // ─── Requirement detail modal ──────────────────────────────────────────────────
 
 function RequirementModal({ row, onClose }) {
-  const [viewerAssetId, setViewerAssetId] = useState(null)
-
   useEffect(() => {
-    const handler = (e) => {
-      if (e.key === 'Escape') {
-        if (viewerAssetId) setViewerAssetId(null)
-        else onClose()
-      }
-    }
+    const handler = (e) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [onClose, viewerAssetId])
-
-  const packAssets = (row.modalAssetIds || []).map(id => ASSET_FILE_MAP[id]).filter(Boolean)
+  }, [onClose])
 
   return (
     <div
@@ -761,9 +724,6 @@ function RequirementModal({ row, onClose }) {
     >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
-
-      {/* Asset viewer — rendered inside this stacking context so it layers above the modal */}
-      <AssetViewer assetId={viewerAssetId} onClose={() => setViewerAssetId(null)} />
 
       {/* Panel */}
       <div
@@ -815,7 +775,6 @@ function RequirementModal({ row, onClose }) {
                   </thead>
                   <tbody>
                     {row.subs.map((sub, si) => {
-                      const assetRef = ASSET_FILE_MAP[sub.cap]
                       return (
                         <tr key={sub.id} className={`border-b border-line/20 last:border-0 ${si % 2 === 0 ? 'bg-ink-800/50' : ''}`}>
                           <td className="py-4 pl-5 pr-3 align-top">
@@ -827,27 +786,8 @@ function RequirementModal({ row, onClose }) {
                             <p className="text-xs text-text-muted leading-relaxed mt-0.5">{sub.desc}</p>
                           </td>
                           <td className="py-4 pr-5 align-top">
-                            {assetRef ? (
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-semibold text-text-primary leading-snug">{assetRef.label}</p>
-                                  <p className="text-xs text-text-muted leading-relaxed mt-0.5">{assetRef.desc}</p>
-                                </div>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); setViewerAssetId(assetRef.id) }}
-                                  className="p-1.5 rounded hover:bg-ink-700 text-text-muted hover:text-accent-blue transition-colors shrink-0"
-                                  title={`Inspect ${assetRef.label}`}
-                                  aria-label={`Inspect ${assetRef.label}`}
-                                >
-                                  <InspectIcon />
-                                </button>
-                              </div>
-                            ) : (
-                              <>
-                                <p className="text-xs font-semibold text-text-primary">{sub.cap}</p>
-                                {sub.capDesc && <p className="text-xs text-text-muted mt-0.5 leading-relaxed">{sub.capDesc}</p>}
-                              </>
-                            )}
+                            <p className="text-xs font-semibold text-text-primary">{sub.cap}</p>
+                            {sub.capDesc && <p className="text-xs text-text-muted mt-0.5 leading-relaxed">{sub.capDesc}</p>}
                           </td>
                         </tr>
                       )
@@ -876,69 +816,9 @@ function RequirementModal({ row, onClose }) {
             </div>
           )}
 
-          {/* Readiness Pack Assets */}
-          {packAssets.length > 0 && (
-            <div>
-              <p className="text-sm font-semibold text-text-primary mb-3">Readiness Pack Assets</p>
-              <div className="rounded-lg border border-line/50 overflow-hidden" style={{ borderStyle: 'solid' }}>
-                <table className="w-full border-collapse">
-                  <colgroup>
-                    <col style={{ width: '32%' }} />
-                    <col style={{ width: '18%' }} />
-                    <col />
-                    <col style={{ width: '48px' }} />
-                  </colgroup>
-                  <thead>
-                    <tr className="bg-ink-700/80 border-b border-line/40">
-                      <th className="py-3 pl-6 pr-4 text-left text-xs font-semibold text-text-muted">Asset</th>
-                      <th className="py-3 pr-4 text-left text-xs font-semibold text-text-muted">Type</th>
-                      <th className="py-3 pr-4 text-left text-xs font-semibold text-text-muted">Description</th>
-                      <th className="py-3 pr-4" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {packAssets.map((asset, ai) => (
-                      <tr key={asset.id} className={`border-b border-line/20 last:border-0 ${ai % 2 === 0 ? 'bg-ink-800/40' : ''}`}>
-                        <td className="py-4 pl-6 pr-4 align-top">
-                          <p className="text-sm font-semibold text-text-primary leading-snug">{asset.label}</p>
-                        </td>
-                        <td className="py-4 pr-4 align-top">
-                          <AssetTypeBadge type={asset.type} />
-                        </td>
-                        <td className="py-4 pr-4 align-top">
-                          <p className="text-xs text-text-muted leading-relaxed">{asset.desc}</p>
-                        </td>
-                        <td className="py-4 pr-4 align-middle text-center">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setViewerAssetId(asset.id) }}
-                            className="p-1.5 rounded hover:bg-ink-700 text-text-muted hover:text-accent-blue transition-colors"
-                            title={`Inspect ${asset.label}`}
-                            aria-label={`Inspect ${asset.label}`}
-                          >
-                            <InspectIcon />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
         </div>
       </div>
     </div>
-  )
-}
-
-function AssetTypeBadge({ type }) {
-  const meta = ASSET_TYPE_META[type] ?? { label: type, color: 'text-text-muted', bg: 'bg-ink-700 border-line' }
-  return (
-    <span className={`mt-1.5 inline-block text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${meta.bg} ${meta.color}`}
-      style={{ borderStyle: 'solid' }}>
-      {meta.label}
-    </span>
   )
 }
 

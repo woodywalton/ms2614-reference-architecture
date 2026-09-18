@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import Nav from './components/Nav.jsx'
 import LevelView from './components/LevelView.jsx'
 import MaturityView from './components/MaturityView.jsx'
-import AssetInventory from './components/AssetInventory.jsx'
+import Capabilities from './components/Capabilities.jsx'
 import CompliancePage from './components/CompliancePage.jsx'
 import DemoGuide from './components/DemoGuide.jsx'
 import EnablementHub from './components/EnablementHub.jsx'
@@ -40,7 +40,9 @@ export default function App() {
         <Route path="/level/:id/:size" element={<LevelView />} />
 
         {/* Browse nav stub pages */}
-        <Route path="/asset-inventory" element={<AssetInventory />} />
+        <Route path="/capabilities" element={<Capabilities />} />
+        {/* Legacy redirect: the mirrored asset browser was retired (design call D-31). */}
+        <Route path="/asset-inventory" element={<Navigate to="/capabilities" replace />} />
         <Route path="/demo-guide" element={<DemoGuide />} />
         {/* Living reference-architecture document (markdown, same file the PDF was printed from; the PDF stays the marketing-approved July 2026 copy). */}
         <Route path="/reference-architecture" element={<DemoGuide src="/docs/Elastic%20M-26-14%20Reference%20Architectures.md" />} />

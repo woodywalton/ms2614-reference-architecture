@@ -35,8 +35,9 @@ const SunIcon = () => (
 )
 
 const NAV_ITEMS = [
-  { label: 'Maturity Levels', to: '/maturity/small/1', matchPrefix: '/maturity' },
-  { label: 'Asset Inventory', to: '/asset-inventory',  matchPrefix: '/asset-inventory' },
+  { label: 'Maturity Levels',        to: '/maturity/small/1',       matchPrefix: '/maturity' },
+  { label: 'Reference Architecture', to: '/reference-architecture', matchPrefix: '/reference-architecture' },
+  { label: 'Capabilities',           to: '/capabilities',           matchPrefix: '/capabilities' },
 ]
 
 export default function Nav() {
@@ -174,7 +175,7 @@ const PRINTABLES = [
   },
   {
     title: 'Live Demo Cluster — Kibana (Read-Only)',
-    description: 'Every readiness pack asset running live on Elastic Cloud. Read-only — credentials from the Elastic team on request.',
+    description: 'Every Readiness Pack asset running live on Elastic Cloud. Read-only demo environment; access is arranged through your Elastic account team.',
     detail: 'Web · Live Elastic Cluster · Kibana 9.5',
     href: 'https://m-26-14-7ae75d.kb.us-east-1.aws.found.io',
   },
@@ -245,7 +246,7 @@ function PrintablesFlyout({ onClose }) {
         </div>
 
         <p className="px-6 pt-4 pb-2 text-sm text-text-muted leading-relaxed">
-          Reference guides, architecture docs, and live resources for the Elastic M-26-14 readiness pack.
+          Reference guides, architecture docs, and live resources for the Elastic M-26-14 Readiness Pack.
         </p>
 
         {/* Doc cards */}
@@ -284,15 +285,6 @@ function PrintablesFlyout({ onClose }) {
                   </svg>
                 </div>
                 <p className="text-sm text-text-muted leading-relaxed">{p.description}</p>
-                {p.credentials && (
-                  <div
-                    className="mt-1 rounded-md bg-ink-900/70 border border-line/40 px-3 py-2 font-mono text-xs text-text-primary flex flex-col gap-1 cursor-text select-text"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
-                  >
-                    <div><span className="text-text-muted">username&nbsp;</span>{p.credentials.username}</div>
-                    <div><span className="text-text-muted">password&nbsp;</span>{p.credentials.password}</div>
-                  </div>
-                )}
                 <p className="text-xs text-text-muted/60 italic">{p.detail}</p>
               </a>
             )
