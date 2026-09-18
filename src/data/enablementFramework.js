@@ -103,7 +103,7 @@ export const PILLARS = [
       talkTrack:
         'Click a gap tile, it opens Discover filtered to exactly those devices with names and last-seen times. This is what you hand the ISO instead of a spreadsheet. Then show drift: the system caught the change, not a quarterly audit.',
       technical:
-        'osquery reports disk_encryption and installed software; Intune supplies MDM enrollment. m_26_14-asset-canonical-enrich recomputes each live fingerprint, then calls the m_26_14-asset-drift sub-pipeline, which compares it to the certified one via the m_26_14-asset-baseline-lookup enrich policy and sets m_26_14.drift_detected. The m_26_14-ws7-r3-unauth-software rule enforces the authorized catalog; m_26_14-ws7-r1/r2 rules watch OS and encryption drift.',
+        'osquery reports disk_encryption and installed software; Intune supplies MDM enrollment. m_26_14-asset-canonical-enrich recomputes each live fingerprint, then calls the m_26_14-asset-drift sub-pipeline, which compares it to the certified one via the m_26_14-asset-baseline-lookup enrich policy and sets m_26_14.drift_detected. The m_26_14-asset-unauthorized-software rule enforces the authorized catalog; m_26_14-asset-baseline-drift and m_26_14-asset-encryption-disabled watch OS and encryption drift.',
       live: [
         { label: 'HWAM Coverage Gaps', url: dash('m_26_14-hwam-gaps') },
         { label: 'SWAM Software Inventory', url: dash('m_26_14-swam-software') },
