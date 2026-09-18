@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -20,20 +20,47 @@ function ScreenshotImage({ src, alt }) {
   )
 }
 
-const MD_COMPONENTS = {
-  img: ({ src, alt }) => <ScreenshotImage src={src} alt={alt} />,
+// Table of contents: the h2 headings of the rendered markdown, linked to
+// anchors that the h2 renderer below stamps with the same slug.
+function slug(s) {
+  return s.toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-')
 }
 
-export default function DemoGuide() {
+function textOf(node) {
+  if (typeof node === 'string' || typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(textOf).join('')
+  if (node && node.props) return textOf(node.props.children)
+  return ''
+}
+
+function tocOf(md) {
+  const lines = md.split('\n').filter(l => !l.includes('!['))
+  const hashes = lines.some(l => /^##\s+\S/.test(l)) ? '##' : '###'
+  const re = new RegExp(`^${hashes}\\s+(\\S.*)$`)
+  return lines
+    .map(l => l.match(re))
+    .filter(Boolean)
+    .map(m => m[1].replace(/[`*]/g, '').trim())
+    .map(t => ({ text: t, id: slug(t) }))
+}
+
+const MD_COMPONENTS = {
+  img: ({ src, alt }) => <ScreenshotImage src={src} alt={alt} />,
+  h2: ({ children }) => <h2 id={slug(textOf(children))} className="scroll-mt-24">{children}</h2>,
+  h3: ({ children }) => <h3 id={slug(textOf(children))} className="scroll-mt-24">{children}</h3>,
+}
+
+export default function DemoGuide({ src = '/docs/demo-guide.md' }) {
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
+  const toc = useMemo(() => tocOf(text), [text])
 
   useEffect(() => {
-    fetch('/docs/demo-guide.md')
+    fetch(src)
       .then(r => r.text())
       .then(t => { setText(t); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [])
+  }, [src])
 
   if (loading) {
     return (
@@ -45,6 +72,18 @@ export default function DemoGuide() {
 
   return (
     <main className="mx-auto max-w-5xl px-8 py-12">
+      {toc.length > 2 && (
+        <nav className="mb-10 rounded-lg border border-line bg-ink-800 px-6 py-5" style={{ borderStyle: 'solid' }}>
+          <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">On this page</p>
+          <ul className="grid gap-1.5 sm:grid-cols-2 list-none pl-0">
+            {toc.map((h, i) => (
+              <li key={`${h.id}-${i}`} className="text-sm">
+                <a href={`#${h.id}`} className="text-accent-teal hover:underline">{h.text}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
       <div className="
         [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:mt-0 [&_h1]:mb-4 [&_h1]:text-text-primary [&_h1]:leading-tight
         [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-14 [&_h2]:mb-4 [&_h2]:text-text-primary [&_h2]:leading-snug

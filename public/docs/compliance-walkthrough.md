@@ -55,7 +55,7 @@ The CEM objective requires agencies to achieve full-coverage log collection acro
 
 ### 2.2 Centralized Collection Architecture
 
-All telemetry flows through **Elastic Fleet**, which manages agent enrollment, policy distribution, and integration configuration from a central control plane. The collection architecture in this pack follows the ECS (Elastic Common Schema) model — all events are normalized to consistent field names regardless of source, enabling cross-platform correlation rules.
+All telemetry flows through **Elastic Fleet**, which manages agent enrollment, policy distribution, and integration configuration from a central control plane. The collection architecture in this pack follows the ECS (Elastic Common Schema) model — all events are normalized to consistent field names regardless of source, enabling cross-platform correlation rules. CISA's Logging Reference Architecture names ECS among "validated, open source cybersecurity schemas" (Section 4.5, footnote 9, alongside OCSF and STIX/TAXII).
 
 **Fleet deployment pattern for FCEB agencies:**
 
@@ -82,6 +82,8 @@ GET /_cat/indices/logs-*?v&h=index,docs.count,store.size&s=index
 Review this output against the integration requirements table in `docs/detection-rules/README.md`. Every required data stream must show a non-zero `docs.count` with a recent write timestamp before enabling detection rules.
 
 > **Note:** CEM requires collection from *all* asset types. An agency that has deployed Elastic Defend on Windows endpoints but has not yet integrated Okta or Azure AD has a partial CEM posture. The Element 1 ML job (`m_26_14-ml-element1-asset-coverage`) monitors coverage ratios and fires when a whole asset type stops reporting. See [Section 5.1](#51-element-1--asset-coverage).
+
+> **Note (failure store):** Every pack data stream ships with its failure store enabled. A document the ingest pipeline or the mapping rejects is kept in `logs-m_26_14*::failures` with the pipeline name, the failing processor tag and the error, counted on the `M-26-14 - Pipeline Health (D-04)` dashboard and alerted on by `m_26_14-pipeline-failure-spike`. Those documents are stored **as they arrived, before the policy enforcement point ran** (no redaction, no minimization, no sharing-class tag), so treat the failure store as raw evidence: only the pack-generated `m_26_14-failure-store-reader` role can read it, and it should be granted to named investigators, not to general analyst roles or a shared demo user.
 
 ---
 
@@ -481,7 +483,7 @@ M-26-14 Appendix C defines a five-element maturity model. Each element has multi
 
 **Baseline period**: 14 days minimum before anomaly scores are reliable. Monitor job status in Kibana → Machine Learning → Anomaly Detection during the warm-up period.
 
-**Dashboard**: `m_26_14-retention-compliance` — shows ILM policy matrix with per-data-stream retention status. The element2 anomaly data feeds into the retention compliance view.
+**Dashboard**: `m_26_14-retention-readiness` — shows ILM policy matrix with per-data-stream retention status. The element2 anomaly data feeds into the retention compliance view.
 
 **Key documentation links**:
 - [ML anomaly detection jobs](https://www.elastic.co/guide/en/machine-learning/current/ml-ad-run-jobs.html)
@@ -583,25 +585,28 @@ M-26-14 establishes minimum retention requirements by maturity level. All Append
 
 | Maturity Level | Minimum Retention | This Pack's ILM Policy |
 |---|---|---|
-| Level 2 | 6 months searchable | `m_26_14-logs-l3-hot-frozen` (hot 30d, warm 6mo, cold 12mo) — meets L2 and L3 |
-| Level 3 | 12 months | `m_26_14-logs-l3-hot-frozen` — same policy; 12-month cold phase satisfies L3 |
-| Level 4 | 24 months | `m_26_14-logs-l4-hot-frozen` (hot 7d, warm 1mo, cold 24mo) |
-| Audit logs (all levels) | No deletion | `m_26_14-logs-l3-no-delete` / `m_26_14-logs-l4-no-delete` — cold phase: indefinite |
-| HWAM/SWAM asset inventory | 90 days | `m_26_14-asset-inventory` (90d, no archive) |
+| Level 2 | 6 months searchable | `m_26_14-logs-l3-no-delete` (hot 90d, then frozen, no delete phase) — the shipped default; meets L2 and L3 |
+| Level 3 | 12 months retrievable | `m_26_14-logs-l3-no-delete` — same policy; retirement past 365 days only through the two-gate chain, which switches the index to `m_26_14-logs-l3-hot-frozen` |
+| Level 4 | 6 months searchable | `m_26_14-logs-l4-no-delete` (hot 180d, then frozen, no delete phase); two-gate retirement switches to `m_26_14-logs-l4-hot-frozen` |
+| HVA-tagged streams | Extended | `m_26_14-logs-hva-extended` (not switchable by the retirement chain) |
+| Legal-hold retained copies | No deletion | `m_26_14-hold-no-delete` (no rollover, frozen at 90d, no delete phase) |
 
 ### 6.2 ILM Policy Definitions
 
-This pack deploys five ILM policies:
+The pack ships 13 ILM policies. The six that govern the pack's own log streams and retained copies:
 
-| Policy Name | Hot | Warm | Cold / Frozen | Delete | Applicable To |
-|---|---|---|---|---|---|
-| `m_26_14-logs-l3-hot-frozen` | 30 days | 6 months, read-only, forcemerge | 12 months (searchable) | None | General L3 log streams — all Appendix B categories |
-| `m_26_14-logs-l3-no-delete` | 30 days | 6 months | Indefinite | None | Audit logs, investigation-grade evidence, legal hold |
-| `m_26_14-logs-l4-hot-frozen` | 7 days | 1 month | 24 months | None | L4 enhanced retention environments |
-| `m_26_14-logs-l4-no-delete` | 7 days | 1 month | Indefinite | None | L4 + FIPS audit log permanence |
-| `m_26_14-asset-inventory` | 90 days | — | — | 90 days | HWAM/SWAM asset inventory indices |
+| Policy Name | Hot | Frozen (searchable snapshot) | Delete | Applicable To |
+|---|---|---|---|---|
+| `m_26_14-logs-l3-no-delete` | rollover, 90 days | from day 90, indefinite | None | Default for every `logs-m_26_14.*` stream at L3 |
+| `m_26_14-logs-l3-hot-frozen` | rollover, 90 days | from day 90 | day 365, behind `wait_for_snapshot` on `m_26_14-readiness-snapshots` | Applied only by Gate 2 of the retirement chain |
+| `m_26_14-logs-l4-no-delete` | rollover, 180 days | from day 180, indefinite | None | Default at L4 |
+| `m_26_14-logs-l4-hot-frozen` | rollover, 180 days | from day 180 | day 365, behind `wait_for_snapshot` | Applied only by Gate 2 |
+| `m_26_14-logs-hva-extended` | rollover, 365 days | from day 365, indefinite | None | HVA-tagged streams and the AI audit store (`docs/hva-uplift.md`) |
+| `m_26_14-hold-no-delete` | no rollover | from day 90, indefinite | None | Legal-hold retained indices |
 
-**Frozen tier note**: The production frozen tier uses Elasticsearch searchable snapshots — stored in a snapshot repository (S3, GCS, Azure Blob, or on-prem NFS) at dramatically reduced storage cost while maintaining full query capability. The demo cluster uses hot/warm/cold (no frozen tier) because a snapshot repository is not configured. For production deployments, configure a snapshot repository and update the ILM policies to use the frozen phase.
+Three more (`m_26_14-retention-l1`, `-l2`, `-l3`) are the COMPAT maturity ladder of decision D-08, applied by an agency choosing a dated exception below the L3 default. The remaining four (`m_26_14-asset-inventory`, `m_26_14-asset-inventory-hot-only`, `m_26_14-metrics-store`, `m_26_14-derived-store`) govern the pack's inventory and evidence stores, not agency logs.
+
+**Frozen tier note**: The frozen phase mounts each backing index as a searchable snapshot from the snapshot repository (S3, GCS, Azure Blob, or on-prem NFS) at reduced storage cost with full query capability; ILM renames the mounted index `partial-.ds-<stream>-<generation>`, and the retirement chain and legal-hold guard account for that name. The demo cluster of record (`pubsec-m2614`) has a frozen tier; a cluster without one keeps indices on hot and the frozen phase waits.
 
 **Frozen tier setup**:
 ```
@@ -642,7 +647,7 @@ GET /_data_stream/logs-endpoint.events.process-default/_settings?filter_path=*.s
 
 ### 6.4 Retention Compliance Dashboard
 
-The `m_26_14-retention-compliance` Kibana dashboard (ID: `m_26_14-retention-compliance`) provides a visual ILM policy matrix:
+The `m_26_14-retention-readiness` Kibana dashboard (ID: `m_26_14-retention-readiness`) provides a visual ILM policy matrix:
 - Green: meets L3 target (12 months)
 - Yellow: meets L2 (6 months), needs upgrade for L3
 - Red: non-compliant
@@ -688,7 +693,7 @@ Raw inventory from osquery and Intune lands as multiple per-source documents in 
 
 **Representative live fleet** (deterministic seed): **60** canonical assets — **55 managed** (25 macOS laptops, 20 Windows workstations, 10 Linux servers) and **5 unmanaged** network-discovered devices (`UNKNOWN-001…005`). Posture gaps are pinned to named devices for a stable demo: **5 unencrypted** managed devices and **4 not enrolled in MDM** (`WKSTN-004`, `WKSTN-016`, `LAPTOP-022`, `SERVER-006`). **55** certified baselines (one per managed asset).
 
-**Config drift (derived, stable)**: `m_26_14.drift_detected` (the field the drift dashboard counts; also mirrored to `asset.compliance.drift_detected`) is **not** a manually stamped flag and is **not** written by a watcher (an earlier design referenced a "WS3 drift watcher" that was never built). It is derived in `m_26_14-asset-canonical-enrich`: after computing the live `baseline_hash`, an `enrich` processor (policy `m_26_14-asset-baseline-lookup`, keyed on `asset.id`) fetches the certified hash from the frozen `m_26_14-asset-baselines`, and a script sets `drift_detected = (live_hash != certified_hash)`. Because it runs on **every** transform checkpoint, the count is stable across re-enrichment. The demo fleet has **2 drifted assets** — `WKSTN-003` and `WKSTN-013` (OS-version drift from their certified baseline). The `m_26_14-ws7-r1-os-version-changed` and `m_26_14-ws7-r2-encryption-disabled` detection rules provide the real-time alerting complement on the same fields.
+**Config drift (derived, stable)**: `m_26_14.drift_detected` (the field the drift dashboard counts; also mirrored to `asset.compliance.drift_detected`) is **not** a manually stamped flag and is **not** written by a watcher (an earlier design planned a drift watcher that was never built). It is derived in `m_26_14-asset-canonical-enrich`: after computing the live `baseline_hash`, an `enrich` processor (policy `m_26_14-asset-baseline-lookup`, keyed on `asset.id`) fetches the certified hash from the frozen `m_26_14-asset-baselines`, and a script sets `drift_detected = (live_hash != certified_hash)`. Because it runs on **every** transform checkpoint, the count is stable across re-enrichment. The demo fleet has **2 drifted assets** — `WKSTN-003` and `WKSTN-013` (OS-version drift from their certified baseline). The `m_26_14-asset-baseline-drift` and `m_26_14-asset-encryption-disabled` detection rules provide the real-time alerting complement on the same fields.
 
 > **Operational note for SAs:** drift stability depends on the `m_26_14-asset-baseline-snapshot` transform staying **stopped**. If it is restarted it will re-snapshot current (drifted) state, the baselines move to match, and the drift count collapses to 0. To re-establish a drift story: stop the snapshot transform, re-execute the `m_26_14-asset-baseline-lookup` enrich policy, change a fingerprint field (OS version or encryption) on a few devices in the inventory stream, then let the entity-resolution transform re-checkpoint.
 
@@ -798,7 +803,7 @@ Follow the procedure in `docs/ml-jobs-guide.md` Section 6. Allow 14-day baseline
 Open Kibana → Dashboards → search "M-26-14". Validate:
 - `m_26_14-maturity-overview`: Element score gauges showing coverage percentages
 - `m_26_14-alert-coverage`: All 11 categories showing at least yellow status
-- `m_26_14-retention-compliance`: All Appendix B data streams meeting L3 retention (green)
+- `m_26_14-retention-readiness`: All Appendix B data streams meeting L3 retention (green)
 
 ---
 

@@ -3,12 +3,13 @@ import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import Nav from './components/Nav.jsx'
 import LevelView from './components/LevelView.jsx'
 import MaturityView from './components/MaturityView.jsx'
-import AssetInventory from './components/AssetInventory.jsx'
+import Capabilities from './components/Capabilities.jsx'
 import CompliancePage from './components/CompliancePage.jsx'
 import DemoGuide from './components/DemoGuide.jsx'
 import EnablementHub from './components/EnablementHub.jsx'
 import SalesEnablement from './components/SalesEnablement.jsx'
 import SAEnablement from './components/SAEnablement.jsx'
+import { ENABLEMENT_ON } from './flags.js'
 
 function MaturitySizeRedirect() {
   const { size } = useParams()
@@ -39,13 +40,19 @@ export default function App() {
         <Route path="/level/:id/:size" element={<LevelView />} />
 
         {/* Browse nav stub pages */}
-        <Route path="/asset-inventory" element={<AssetInventory />} />
+        <Route path="/capabilities" element={<Capabilities />} />
+        {/* Legacy redirect: the mirrored asset browser was retired (design call D-31). */}
+        <Route path="/asset-inventory" element={<Navigate to="/capabilities" replace />} />
         <Route path="/demo-guide" element={<DemoGuide />} />
+        {/* Living reference-architecture document (markdown, same file the PDF was printed from; the PDF stays the marketing-approved July 2026 copy). */}
+        <Route path="/reference-architecture" element={<DemoGuide src="/docs/Elastic%20M-26-14%20Reference%20Architectures.md" />} />
 
-        {/* Field enablement — reached via the hidden logo link */}
-        <Route path="/enablement" element={<EnablementHub />} />
-        <Route path="/enablement/sales" element={<SalesEnablement />} />
-        <Route path="/enablement/sa" element={<SAEnablement />} />
+        {/* Field enablement — reached via the hidden logo link. Internal-only:
+            mounted when the build sets VITE_ENABLEMENT=on (design call DC-8);
+            the deployed customer build leaves it out and these paths fall to "/". */}
+        {ENABLEMENT_ON && <Route path="/enablement" element={<EnablementHub />} />}
+        {ENABLEMENT_ON && <Route path="/enablement/sales" element={<SalesEnablement />} />}
+        {ENABLEMENT_ON && <Route path="/enablement/sa" element={<SAEnablement />} />}
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

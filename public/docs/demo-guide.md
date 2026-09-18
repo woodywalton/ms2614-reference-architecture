@@ -1,4 +1,4 @@
-# M-26-14 Compliance Pack — Self-Directed Walkthrough
+# M-26-14 Readiness Pack — Self-Directed Walkthrough
 
 **Time:** ~15 minutes · **Live cluster:** [m-26-14-7ae75d.kb.us-east-1.aws.found.io](https://m-26-14-7ae75d.kb.us-east-1.aws.found.io) (read-only)
 
@@ -58,7 +58,7 @@ The approved software list for this environment has six titles: CrowdStrike Falc
 
 Click either unauthorized title to drill into which specific endpoints are affected. This is a live, continuously-updated view — not a point-in-time scan.
 
-> **Where this data comes from:** The same Elastic Agent osquery integration that collects hardware inventory also executes osquery's `programs` and `apps` table queries on every enrolled endpoint — returning every installed application, version, publisher, and install date. On macOS this covers `.app` bundles; on Windows, MSI/EXE packages from the registry; on Linux, packages from apt/rpm/dnf. Those records flow through the `m_26_14-osquery-normalize` pipeline, which standardizes the schema and **reroutes them into a single, source-agnostic stream: `logs-m_26_14.software_inventory-*`**. Software from any other collector — a customer CMDB or EDR feed via `m_26_14-asset-normalize` — lands in that same stream, so the SWAM picture is collector-independent rather than tied to osquery. As each record arrives, the stream's default pipeline `m_26_14-software-enrich` matches its `package.name` against the **`m_26_14-authorized-software` enrich catalog** (the six approved titles) and stamps `m_26_14.software.authorized`. The `m_26_14-ws7-r3-unauth-software` detection rule then simply fires on `m_26_14.software.authorized: false` — the allowlist lives in the catalog, not the rule, so approving a new title is a catalog edit, not a rule change. No scheduled batch scan, no manual comparison.
+> **Where this data comes from:** The same Elastic Agent osquery integration that collects hardware inventory also executes osquery's `programs` and `apps` table queries on every enrolled endpoint — returning every installed application, version, publisher, and install date. On macOS this covers `.app` bundles; on Windows, MSI/EXE packages from the registry; on Linux, packages from apt/rpm/dnf. Those records flow through the `m_26_14-osquery-normalize` pipeline, which standardizes the schema and **reroutes them into a single, source-agnostic stream: `logs-m_26_14_asset.software_inventory-*`**. Software from any other collector — a customer CMDB or EDR feed via `m_26_14-asset-normalize` — lands in that same stream, so the SWAM picture is collector-independent rather than tied to osquery. As each record arrives, the stream's default pipeline `m_26_14-software-enrich` matches its `package.name` against the **`m_26_14-authorized-software` enrich catalog** (the six approved titles) and stamps `m_26_14.software.authorized`. The `m_26_14-asset-unauthorized-software` detection rule then simply fires on `m_26_14.software.authorized: false` — the allowlist lives in the catalog, not the rule, so approving a new title is a catalog edit, not a rule change. No scheduled batch scan, no manual comparison.
 
 ---
 
@@ -74,7 +74,7 @@ You'll see a set of **drifted assets** flagged on this dashboard — 2 in the cu
 
 These could be routine OS updates, intentional policy changes, or something to investigate. The important thing is the system caught them — not a quarterly audit.
 
-> **How this works:** At certification, the baseline-snapshot transform captures each device's `m_26_14.baseline_hash` — a SHA-256 fingerprint of its OS version, build, serial, and encryption status — into the frozen `m_26_14-asset-baselines` index. On every subsequent update, the `m_26_14-asset-canonical-enrich` pipeline recomputes the live fingerprint and looks up the certified one (via the `m_26_14-asset-baseline-lookup` enrich policy); when they differ it sets `m_26_14.drift_detected: true`. That field is what the dashboard tile counts, and it is recomputed on every entity-resolution checkpoint, so the count is stable rather than a one-shot stamp. The `m_26_14-ws7-r1-os-version-changed` and `m_26_14-ws7-r2-encryption-disabled` detection rules watch the same fields and raise a Kibana alert the moment a specific field drifts.
+> **How this works:** At certification, the baseline-snapshot transform captures each device's `m_26_14.baseline_hash` — a SHA-256 fingerprint of its OS version, build, serial, and encryption status — into the frozen `m_26_14-asset-baselines` index. On every subsequent update, the `m_26_14-asset-canonical-enrich` pipeline recomputes the live fingerprint and looks up the certified one (via the `m_26_14-asset-baseline-lookup` enrich policy); when they differ it sets `m_26_14.drift_detected: true`. That field is what the dashboard tile counts, and it is recomputed on every entity-resolution checkpoint, so the count is stable rather than a one-shot stamp. The `m_26_14-asset-baseline-drift` and `m_26_14-asset-encryption-disabled` detection rules watch the same fields and raise a Kibana alert the moment a specific field drifts.
 
 ---
 
@@ -106,13 +106,13 @@ The coverage matrix is what you bring to the auditor. Each row is an Appendix B 
 
 Green means all three. Yellow means partial. Red means a gap that needs to be addressed before attestation. Use this view to prioritize what to work on next — or to show the auditor what's already covered.
 
-> **How this works:** If you need to document a gap formally, the `m_26_14-poam-drafting-agent` in Elastic Agent Builder can query this coverage data directly using the `m_26_14-compliance-posture-esql-tool` and draft a Plan of Action & Milestones document. It reads the same data as this dashboard — no export needed. The `m_26_14-threat-investigation-agent` can triage specific alerts, and `m_26_14-aar-agent` generates after-action reports from alert history.
+> **How this works:** If you need to document a gap formally, the `m_26_14-poam-drafting-agent` in Elastic Agent Builder can query this coverage data directly using the `m_26_14-readiness-posture-esql-tool` and draft a Plan of Action & Milestones document. It reads the same data as this dashboard — no export needed. The `m_26_14-threat-investigation-agent` can triage specific alerts, and `m_26_14-aar-agent` generates after-action reports from alert history.
 
 ---
 
 ## 4 — Can you prove data is retained and hasn't been tampered with?
 
-**[Open: Retention Compliance →](https://m-26-14-7ae75d.kb.us-east-1.aws.found.io/app/dashboards#/view/m_26_14-retention-compliance?_g=(time:(from:now-30d,to:now)))**
+**[Open: Retention Compliance →](https://m-26-14-7ae75d.kb.us-east-1.aws.found.io/app/dashboards#/view/m_26_14-retention-readiness?_g=(time:(from:now-30d,to:now)))**
 
 ![Retention Compliance](/screenshots/04-retention-compliance.png)
 
@@ -120,14 +120,14 @@ THIRF requires at least six months of log retention. Level 3 requires three mont
 
 The bars show each index's searchable days (hot tier — immediate query, no latency) versus its full retention window including frozen tier. The ILM policies ship pre-configured with the pack: `m_26_14-logs-l3-hot-frozen` keeps 90 days on hot then transitions to frozen for a 1-year total window; `m_26_14-logs-l4-hot-frozen` keeps 180 days hot then transitions to frozen for a 1-year total.
 
-When an index reaches the end of its retention window, it can't be deleted automatically. The pack enforces a two-gate human approval workflow:
+When an index reaches the end of its retention window, it can't be deleted automatically. The pack enforces a two-gate human approval chain:
 
-1. The `m_26_14-gate1-detect-frozen-aged` watcher identifies aged frozen indices and creates a pending retirement request.
-2. A Kibana Workflow (`m_26_14-data-retirement-gate1-detect`) surfaces it for ISSO review. Gate 1 approval unlocks the next step.
-3. The `m_26_14-gate1-approval-advance` watcher verifies that an SLM snapshot exists before allowing deletion.
-4. A second Kibana Workflow (`m_26_14-data-retirement-gate2-execute`) and watcher (`m_26_14-gate2-execute-deletion`) complete the deletion only after both humans have approved.
+1. The `m_26_14-gate1-detect-frozen-aged` watcher scans ILM daily and proposes frozen indices whose lifecycle age has reached the 365-day floor, writing a `pending_gate1` record and opening a Gate 1 Case. Nothing changes.
+2. A first approver writes an `approved_gate1` record from the Case. The `m_26_14-gate1-approval-advance` watcher writes `pending_gate2` and opens the Gate 2 Case. The index is still on its no-delete ILM policy.
+3. A second, different approver checks that no legal hold covers the index and that the readiness SLM policy is healthy, then writes `approved_gate2`.
+4. The `m_26_14-gate2-execute-deletion` watcher applies the scope and legal-hold guards, switches the index to its delete-enabled ILM policy and records `scheduled_for_deletion`. ILM then takes a compliance snapshot (`wait_for_snapshot`) before it deletes; no watcher or workflow bypasses that step.
 
-Every retirement action is recorded in `m_26_14-retirement-requests` — a complete, auditable trail.
+Every decision is a new record in `m_26_14-retirement-requests`, an append-only ledger where the newest record per index is its current state. The bottom row of this dashboard reads it: open requests, active legal holds, current state per index. The same four steps exist as Kibana Workflows for teams that prefer that control plane; run one, not both.
 
 ---
 
@@ -169,7 +169,10 @@ Behind this view:
 They enter a live triage loop, not a manual queue. A continuous transform correlates each network-discovered device against the asset registry and recent Security alerts, an enrich step resolves its hardware vendor from the MAC address (OUI lookup), and a classification pipeline assigns a disposition: `new_uninventoried`, `shadow_it`, `rogue`, `decommissioned`, `needs_review`, or `inventoried` once resolved. Every disposition lands in the `m_26_14-asset-triage` ledger with a recommended action and the evidence that drove it, and high-risk dispositions route to a Kibana Workflow for analyst review before any action fires. M-26-14 requires documented disposition for anything network-discovered; the ledger is that documentation.
 
 **What's the two-gate retirement workflow protecting against?**
-It ensures no compliance log can be deleted by a single person or an automated process. Gate 1 requires ISSO review and a confirmed snapshot. Gate 2 requires a second human approval. The snapshot requirement means even if someone approves deletion, the data still exists in the snapshot repository until the snapshot itself expires — a separate, independent retention control.
+It ensures no compliance log can be deleted by a single person or an automated process. Gate 1 is a first human review; it changes nothing on the index. Gate 2 is a second, different human's authorization, and only then does the index move to an ILM policy that has a delete phase. Even then ILM waits for a compliance snapshot newer than the delete-phase entry (`wait_for_snapshot`) before deleting, so the data still exists in the snapshot repository until that snapshot expires, a separate, independent retention control. A legal hold blocks the chain mechanically for whatever it names, including frozen indices ILM has renamed with a `partial-` prefix.
+
+**What happens to a record the ingest pipeline cannot parse?**
+It is kept, not dropped. Every pack data stream has its failure store enabled, so a rejected document lands in `logs-m_26_14*::failures` with the pipeline name, the failing step and the error; the Pipeline Health dashboard counts it and the `m_26_14-pipeline-failure-spike` rule alerts on a burst. One caution before opening that store in a demo: failure-store documents are stored as they arrived, before redaction and minimization ran, so they can carry values the live stream would have removed. Reading them needs the `m_26_14-failure-store-reader` role, which the read-only demo user does not hold.
 
 **Is this real agency data?**
 No — this is a synthetic fleet with realistic composition and posture spread. The pack deploys identically against real Elastic Agent data. The dashboards, rules, pipelines, and ML jobs are environment-agnostic; only the index patterns and configuration change.

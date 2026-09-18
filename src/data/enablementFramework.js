@@ -103,7 +103,7 @@ export const PILLARS = [
       talkTrack:
         'Click a gap tile, it opens Discover filtered to exactly those devices with names and last-seen times. This is what you hand the ISO instead of a spreadsheet. Then show drift: the system caught the change, not a quarterly audit.',
       technical:
-        'osquery reports disk_encryption and installed software; Intune supplies MDM enrollment. m_26_14-asset-canonical-enrich recomputes each live fingerprint, then calls the m_26_14-asset-drift sub-pipeline, which compares it to the certified one via the m_26_14-asset-baseline-lookup enrich policy and sets m_26_14.drift_detected. The m_26_14-ws7-r3-unauth-software rule enforces the authorized catalog; m_26_14-ws7-r1/r2 rules watch OS and encryption drift.',
+        'osquery reports disk_encryption and installed software; Intune supplies MDM enrollment. m_26_14-asset-canonical-enrich recomputes each live fingerprint, then calls the m_26_14-asset-drift sub-pipeline, which compares it to the certified one via the m_26_14-asset-baseline-lookup enrich policy and sets m_26_14.drift_detected. The m_26_14-asset-unauthorized-software rule enforces the authorized catalog; m_26_14-asset-baseline-drift and m_26_14-asset-encryption-disabled watch OS and encryption drift.',
       live: [
         { label: 'HWAM Coverage Gaps', url: dash('m_26_14-hwam-gaps') },
         { label: 'SWAM Software Inventory', url: dash('m_26_14-swam-software') },
@@ -166,7 +166,7 @@ export const PILLARS = [
       talkTrack:
         'Walk the bars, then pivot to the matrix. Green means data plus rules plus alerts. That matrix is what the SA brings to the auditor. The ML claim is provable in the alerts list: the demo dataset stages an intrusion chain (a cryptominer on a Linux bastion, credential-dump tools on a Windows workstation, flows to never-seen countries, an off-baseline login surge) and every stage produced a live anomaly (record scores 93-99.9) and a real detection-engine alert. Then show the POA&M agent drafting a gap document from the same data.',
       technical:
-        'Alerts pass through m_26_14-alert-category-pipeline for tagging; m_26_14-alert-coverage-daily rolls per-day counts. ML detection rules reinforce Cat A (auth anomalies, UEBA login), Cat B (DNS entropy, rare destination country), and Cat H (rare process, host-went-silent); seven of the eight wrap m_26_14_-prefixed Elastic Security ML module jobs. The m_26_14-poam-drafting-agent in Agent Builder queries coverage via the m_26_14-compliance-posture-esql-tool.',
+        'Alerts pass through m_26_14-alert-category-pipeline for tagging; m_26_14-alert-coverage-daily rolls per-day counts. ML detection rules reinforce Cat A (auth anomalies, UEBA login), Cat B (DNS entropy, rare destination country), and Cat H (rare process, host-went-silent); seven of the eight wrap m_26_14_-prefixed Elastic Security ML module jobs. The m_26_14-poam-drafting-agent in Agent Builder queries coverage via the m_26_14-readiness-posture-esql-tool.',
       live: [
         { label: 'Alert Coverage (Appendix B)', url: dash('m_26_14-alert-coverage', 'now-30d') },
         { label: 'Appendix B Coverage Matrix', url: dash('m_26_14-appendix-b-coverage', 'now-30d') },
@@ -202,7 +202,7 @@ export const PILLARS = [
       technical:
         'ILM m_26_14-logs-l3-hot-frozen keeps 90 days hot then frozen to a 1-year window; m_26_14-logs-l4-hot-frozen keeps 180 days hot to a 1-year window. Retirement runs through gate1/gate2 watchers and Kibana Workflows, logging every action to m_26_14-retirement-requests.',
       live: [
-        { label: 'Retention Readiness', url: dash('m_26_14-retention-compliance', 'now-30d') },
+        { label: 'Retention Readiness', url: dash('m_26_14-retention-readiness', 'now-30d') },
       ],
       demo: { title: 'Retention & retirement click-through', status: 'planned', url: null },
       docs: [
@@ -255,7 +255,7 @@ export const REQUIREMENTS = {
       },
       {
         title: 'Readiness timelines are tighter and tied to the LRA',
-        text: 'Under M-21-31, agencies had one year to reach EL1, 18 months for EL2, and two years for EL3, with timing measured from the memo\'s issuance date. M-26-14 resets that clock to the LRA publication date and compresses the window significantly: Level 1 within 120 days, Level 2 within 180 days, Level 3 within 320 days. Agencies also have 90 days from LRA publication to submit a formal Agency Logging Plan to both OMB and CISA.',
+        text: 'Under M-21-31, agencies had one year to reach EL1, 18 months for EL2, and two years for EL3, with timing measured from the memo\'s issuance date. M-26-14 resets that clock to the LRA publication date (August 20, 2026) and compresses the window significantly: Level 1 within 120 days (December 18, 2026), Level 2 within 180 days (February 16, 2027), Level 3 within 320 days (July 6, 2027). Agencies also have 90 days from LRA publication to submit a formal Agency Logging Plan to both OMB and CISA (November 18, 2026).',
         aeCallout: 'Customers have to move faster to hit these compressed deadlines, so position Elastic aggressively as the technology that gets them to M-26-14 readiness.',
       },
       {
