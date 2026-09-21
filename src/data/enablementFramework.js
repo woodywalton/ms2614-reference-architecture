@@ -12,7 +12,7 @@
 // published Elastic docs. Values that are data-driven (counts) are described
 // qualitatively so a reseed does not make this page wrong.
 
-const KB = 'https://m-26-14-7ae75d.kb.us-east-1.aws.found.io'
+const KB = 'https://pubsec-m2614-63e0e0.kb.us-east4.gcp.elastic-cloud.com'
 const DOCS = 'https://www.elastic.co'
 
 const dash = (id, g = 'now-90d') =>

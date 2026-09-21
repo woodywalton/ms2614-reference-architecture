@@ -42,7 +42,7 @@ export default function App() {
         {/* Browse nav stub pages */}
         <Route path="/capabilities" element={<Capabilities />} />
         {/* Legacy redirect: the mirrored asset browser was retired (design call D-31). */}
-        <Route path="/asset-inventory" element={<Navigate to="/capabilities" replace />} />
+        <Route path="/asset-inventory" element={<Navigate to="/capabilities#inventory" replace />} />
         <Route path="/demo-guide" element={<DemoGuide />} />
         {/* Living reference-architecture document (markdown, same file the PDF was printed from; the PDF stays the marketing-approved July 2026 copy). */}
         <Route path="/reference-architecture" element={<DemoGuide src="/docs/Elastic%20M-26-14%20Reference%20Architectures.md" />} />
@@ -57,7 +57,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <footer className="fixed bottom-0 inset-x-0 z-10 border-t border-line bg-ink-900/90 backdrop-blur py-1.5 text-center text-[11px] text-text-muted/60">
-        © 2026 Elastic · Reference architecture viewer · Static UI · No data is collected or transmitted.
+        © 2026 Elastic · M-26-14 Logging Readiness Package · Static UI · No data is collected or transmitted.
       </footer>
     </div>
   )
