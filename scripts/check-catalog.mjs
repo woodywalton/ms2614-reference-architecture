@@ -2,6 +2,7 @@
 //   - every asset id a capability lists exists in the catalog
 //   - every screenshot id a capability lists is a dashboard with a PNG and a thumbnail
 //   - every catalog asset is claimed by at least one capability
+//   - every capability is in exactly one CAPABILITY_GROUPS entry
 // Fails the build on any of these so the page can never describe assets that
 // do not ship, or ship assets the page does not describe.
 import { readFileSync, existsSync } from 'node:fs'
@@ -10,7 +11,7 @@ import { dirname, join } from 'node:path'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const catalog = JSON.parse(readFileSync(join(root, 'src/data/assetCatalog.json'), 'utf8'))
-const { CAPABILITIES } = await import(join(root, 'src/data/capabilities.js'))
+const { CAPABILITIES, CAPABILITY_GROUPS } = await import(join(root, 'src/data/capabilities.js'))
 
 const ids = new Set(catalog.assets.map(a => `${a.type}/${a.id}`))
 const byId = new Map()
@@ -39,6 +40,15 @@ for (const cap of CAPABILITIES) {
     if (!existsSync(join(root, 'public/screenshots/thumbs', `${s}.jpg`))) errors.push(`${cap.id}: public/screenshots/thumbs/${s}.jpg missing`)
   }
 }
+// Every capability sits in exactly one reading-order group.
+const grouped = new Map()
+for (const g of CAPABILITY_GROUPS) for (const id of g.ids) {
+  if (!capIds.has(id)) errors.push(`group ${g.id}: "${id}" is not a capability`)
+  if (grouped.has(id)) errors.push(`capability ${id} is in groups ${grouped.get(id)} and ${g.id}`)
+  grouped.set(id, g.id)
+}
+for (const id of capIds) if (!grouped.has(id)) errors.push(`capability ${id} is in no group`)
+
 const unclaimed = [...ids].filter(k => !claimed.has(k))
 for (const k of unclaimed) errors.push(`catalog asset ${k} is claimed by no capability`)
 

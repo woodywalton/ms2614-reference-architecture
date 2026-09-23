@@ -1,6 +1,6 @@
 {
  "pack_version": "0.3.0",
- "generated": "2026-09-21",
+ "generated": "2026-09-23",
  "generator": "tools/gen-asset-catalog.py",
  "types": [
   {
@@ -70,7 +70,7 @@
   {
    "key": "role",
    "label": "Security roles",
-   "count": 6,
+   "count": 7,
    "delivery": "Bootstrap",
    "list_path": "/app/management/security/roles",
    "stack_management": true
@@ -2597,6 +2597,41 @@
     ]
    },
    "live_path": "/app/management/security/roles/edit/m_26_14_production_officer"
+  },
+  {
+   "id": "m_26_14_viewer",
+   "type": "role",
+   "name": "m_26_14_viewer",
+   "description": "R-102: read-only demo viewer for Kibana anonymous access. No write, no failure store, no Stack Management apps that need manage privileges. Pair with a native user and the anonymous authentication provider in kibana.yml.",
+   "delivery": "bootstrap",
+   "facts": {
+    "cluster": [
+     "monitor_ml",
+     "monitor_transform",
+     "monitor_watcher",
+     "read_ilm",
+     "read_pipeline",
+     "read_slm"
+    ],
+    "indices": [
+     {
+      "names": [
+       "logs-*",
+       "metrics-*",
+       "logs-m_26_14*",
+       "m_26_14-*",
+       ".alerts-security.alerts-*",
+       ".lists-*",
+       ".items-*"
+      ],
+      "privileges": [
+       "read",
+       "view_index_metadata"
+      ]
+     }
+    ]
+   },
+   "live_path": "/app/management/security/roles/edit/m_26_14_viewer"
   },
   {
    "id": "m_26_14-ml-catb-dns-entropy",

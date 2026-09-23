@@ -628,7 +628,7 @@ export default function CompliancePage() {
               View reference architecture diagrams →
             </Link>
             <Link
-              to="/asset-inventory"
+              to="/capabilities/assets"
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-accent-blue/50 bg-accent-blue/10 text-accent-blue font-semibold hover:bg-accent-blue/20 transition-colors text-sm whitespace-nowrap"
               style={{ borderStyle: 'solid' }}
             >

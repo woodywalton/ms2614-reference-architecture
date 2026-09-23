@@ -1,10 +1,23 @@
 # M-26-14 Readiness Pack — Self-Directed Walkthrough
 
-**Time:** ~15 minutes · **Live cluster:** [pubsec-m2614-63e0e0.kb.us-east4.gcp.elastic-cloud.com](https://pubsec-m2614-63e0e0.kb.us-east4.gcp.elastic-cloud.com) (read-only)
+**Time:** ~15 minutes · **Live cluster:** [pubsec-m2614-63e0e0.kb.us-east4.gcp.elastic-cloud.com](https://pubsec-m2614-63e0e0.kb.us-east4.gcp.elastic-cloud.com) (read-only, no login needed)
 
-This walkthrough takes you through the M-26-14 Elastic readiness pack deployed on a live cluster. Click any dashboard link to open it directly — you're in a read-only session, so feel free to explore. The data is synthetic but realistic: a 60-endpoint federal agency fleet at Maturity Level 2, actively working toward Level 3 attestation.
+This walkthrough takes you through the M-26-14 Elastic readiness pack deployed on a live cluster. Click any dashboard link to open it directly: the cluster signs you in as a read-only demo viewer, so there is nothing to log in to and nothing you can break. To explore from scratch, open the cluster link above and choose **Continue as demo viewer** on the login page. The data is synthetic but realistic: a 60-endpoint federal agency fleet at Maturity Level 2, actively working toward Level 3 attestation.
 
 The pack answers five questions auditors actually ask. The first four come from the memo; the fifth, whether the logging pipeline itself can be shown to work, comes from CISA's Logging Reference Architecture (LRA, August 20, 2026), which turns readiness into measures an agency reports on.
+
+The five questions are also the maturity ladder in walking order. Each section says which level the evidence on screen belongs to, so you can read the walkthrough as "where this agency stands, and what the pack already has in place for the next level."
+
+| Section | Question | Level it evidences |
+|---|---|---|
+| 1 | [Do you know everything on your network?](#1-do-you-know-everything-on-your-network) | Level 1 inventory floor (70% visibility), Level 2 complete inventory reflected in logs |
+| 2 | [Is every device healthy and authorized?](#2-is-every-device-healthy-and-authorized) | Level 2 posture and software inventory; drift is the Level 2 "kept current" test |
+| 3 | [Are you watching for threats across all Appendix B categories?](#3-are-you-watching-for-threats-across-all-appendix-b-categories) | Level 2 full category coverage; Level 3 automated threat and anomaly detection |
+| 4 | [Can you prove data is retained and hasn't been tampered with?](#4-can-you-prove-data-is-retained-and-hasnt-been-tampered-with) | Level 1 and 2 retrievable retention; Level 3 searchable window and regular hashing; Level 4 two-gate retirement and NTP-traceable time |
+| 5 | [Can you prove the pipeline itself works?](#5-can-you-prove-the-pipeline-itself-works) | The LRA readiness measures every level reports on, and the Level 4 operational bar |
+| 6 | [The full picture](#6-the-full-picture) | Where this agency stands today: Level 2 attested, Level 3 in reach |
+| 7 | [From Level 2 to Level 3, and what Level 4 adds](#7-from-level-2-to-level-3-and-what-level-4-adds) | What Level 3 requires, what the pack already runs for it, and what Level 4 adds on top |
+| 8 | [Questions you might have](#8-questions-you-might-have) | Common questions from the walk, answered against the live cluster |
 
 ---
 
@@ -167,7 +180,7 @@ Two of the readiness measures are demonstrations rather than dashboards, and bot
 
 ---
 
-## The full picture
+## 6 — The full picture
 
 **[Open: Maturity Overview →](https://pubsec-m2614-63e0e0.kb.us-east4.gcp.elastic-cloud.com/app/dashboards#/view/m_26_14-maturity-overview?_g=(time:(from:now-30d,to:now)))**
 
@@ -187,7 +200,31 @@ Behind this view:
 
 ---
 
-## Questions you might have
+## 7 — From Level 2 to Level 3, and what Level 4 adds
+
+The fleet you just walked through is attested at Level 2: every Appendix B category is collected, the inventory is reflected in the logging pipeline, and logs are retrievable for twelve months on the `m_26_14-retention-l1` policy. The Maturity Overview scores it that way from the thresholds in the `m_26_14-config` document, the same ones printed on the [Maturity Levels](/maturity/small/1) page of this site.
+
+**Level 3 asks for four new things, and the pack already carries each of them; the agency's work is to turn them on for its own streams and let the scores prove it.**
+
+- **Three months searchable.** Move the streams that carry Appendix B data from the Level 1 policy to `m_26_14-logs-l3-hot-frozen` (90 days hot, then frozen). The dataset-retention transform measures the realized searchable horizon per stream, so the Retention Readiness bars in section 4 change on their own; nothing is asserted.
+- **Automated threat and anomaly detection.** Section 3 is the evidence: the Appendix B rules and the ML detection rules behind them are enabled on this cluster now. For a real agency the step is coverage, not installation: every category green on the Coverage Matrix, and the rule-silence ML job quiet.
+- **Sensitive-data protection before storage.** The policy enforcement point runs inside `m_26_14-final` before the integrity hash: pattern-bank redaction, per-dataset minimization, sensitivity and sharing-class tags, restricted routing. It is on for pack-owned streams already; agency streams managed by Fleet pick it up through the `logs@custom` hook the pack ships, which is the one binding step an agency does by hand.
+- **Regular hashing.** Section 4 again: the hash is computed on every document at ingest, the hash-coverage rollup measures it per stream, and the Element 5 ML job alerts when a stream's coverage drops.
+
+**Level 4 is governance and context rather than more collection.** The pieces are installed and demonstrated here, with the ones that change data left inactive by design:
+
+- **Six months searchable**: `m_26_14-logs-l4-hot-frozen` (180 days hot).
+- **Just-in-time privileged access**: the two JIT watchers are the only active watchers on this cluster; grants expire and are revoked mechanically.
+- **Two-gate retirement**: the four-step chain in section 4, human-approved twice, with legal hold as a mechanical block.
+- **NTP-traceable timestamps**: the NTP attestation on every asset score and the offset rule in section 4.
+- **A tested procedure for producing logs to CISA and the FBI**: the Authorized Production workflow makes each production a Case, a redaction profile and a manifest in the production ledger.
+- **ML and AI in operations**: the readiness-health ML jobs and the three Agent Builder agents, every trace copied to the AI audit store.
+
+Read the Maturity Overview last with that list in hand: the element scores tell you which of these the agency has evidence for today, and the gaps are the Plan of Action the POA&M agent can draft.
+
+---
+
+## 8 — Questions you might have
 
 **What happens to the 5 unmanaged devices?**
 They enter a live triage loop, not a manual queue. A continuous transform correlates each network-discovered device against the asset registry and recent Security alerts, an enrich step resolves its hardware vendor from the MAC address (OUI lookup), and a classification pipeline assigns a disposition: `new_uninventoried`, `shadow_it`, `rogue`, `decommissioned`, `needs_review`, or `inventoried` once resolved. Every disposition lands in the `m_26_14-asset-triage` ledger with a recommended action and the evidence that drove it, and opens a disposition-specific Kibana Case with the next step pre-filled; every enforcement step (isolate, enroll, allow-list, retire) stays human-gated. The `M-26-14 Unknown-Device Triage` workflow that writes the ledger runs on demand, so an operator triggers it after a discovery sweep rather than on a schedule; the read-only demo user can view the ledger but not run the workflow. M-26-14 requires documented disposition for anything network-discovered; the ledger is that documentation.

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { EuiToolTip } from '@elastic/eui'
 import { useTheme } from '../ThemeContext.jsx'
 import { ENABLEMENT_ON } from '../flags.js'
+import { liveUrl } from '../data/liveLinks.js'
 import logoColor from '../img/logo-elastic-horizontal-color.svg'
 import logoReverse from '../img/logo-elastic-horizontal-color-reverse.svg'
 
@@ -207,15 +208,15 @@ const DOC_GROUPS = [
     items: [
       {
         title: 'Live Demo Cluster (Kibana, read-only)',
-        description: 'The pack installed end to end on Elastic Cloud with synthetic agency data. Read-only demo environment; access is arranged through your Elastic account team.',
+        description: 'The pack installed end to end on Elastic Cloud with synthetic agency data. Opens as a read-only demo viewer; no login needed.',
         detail: 'Web · Elastic Cloud · Kibana 9.5',
-        href: 'https://pubsec-m2614-63e0e0.kb.us-east4.gcp.elastic-cloud.com',
+        href: liveUrl('/app/home'),
       },
       {
         title: 'Self-Guided Demo Walkthrough',
         description: 'Dashboard-by-dashboard tour of the live cluster: what each view proves, and how the data gets there.',
         detail: 'Web · Rendered in this app',
-        href: '/demo-guide',
+        href: '/capabilities/walkthrough',
         internal: true,
       },
     ],

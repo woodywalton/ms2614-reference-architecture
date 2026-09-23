@@ -1,3 +1,4 @@
+import { LIVE_KIBANA_BASE, withAnonHint } from './liveLinks.js'
 // M-26-14 enablement framework.
 //
 // Single source of truth for the Sales and SA enablement pages. The structure
@@ -12,11 +13,11 @@
 // published Elastic docs. Values that are data-driven (counts) are described
 // qualitatively so a reseed does not make this page wrong.
 
-const KB = 'https://pubsec-m2614-63e0e0.kb.us-east4.gcp.elastic-cloud.com'
+const KB = LIVE_KIBANA_BASE
 const DOCS = 'https://www.elastic.co'
 
 const dash = (id, g = 'now-90d') =>
-  `${KB}/app/dashboards#/view/${id}?_g=(time:(from:${g},to:now))`
+  withAnonHint(`${KB}/app/dashboards#/view/${id}?_g=(time:(from:${g},to:now))`)
 
 export const HUB = {
   title: 'M-26-14 Enablement',
@@ -42,7 +43,7 @@ export const HUB = {
     },
     {
       id: 'walkthrough',
-      to: '/demo-guide',
+      to: '/capabilities/walkthrough',
       label: 'Self-Guided Walkthrough',
       tagline: 'The live cluster, dashboard by dashboard',
       for: 'Customers exploring on their own',
@@ -137,7 +138,7 @@ export const PILLARS = [
       technical:
         'Entity Store engines (host/user/service) run continuously and are enabled on this cluster. Risk scoring aggregates anomaly and alert contributions per entity. Asset readiness fields (hwam_source, drift_detected, element*_covered) enrich the host entity, so M-26-14 posture becomes a risk input.',
       live: [
-        { label: 'Entity Analytics (risk scores)', url: `${KB}/app/security/entity_analytics` },
+        { label: 'Entity Analytics (risk scores)', url: withAnonHint(`${KB}/app/security/entity_analytics`) },
       ],
       demo: { title: 'Entity & risk scoring click-through', status: 'planned', url: null },
       docs: [
@@ -170,7 +171,7 @@ export const PILLARS = [
       live: [
         { label: 'Alert Coverage (Appendix B)', url: dash('m_26_14-alert-coverage', 'now-30d') },
         { label: 'Appendix B Coverage Matrix', url: dash('m_26_14-appendix-b-coverage', 'now-30d') },
-        { label: 'Agent Builder (POA&M agent)', url: `${KB}/app/agent_builder/agents` },
+        { label: 'Agent Builder (POA&M agent)', url: withAnonHint(`${KB}/app/agent_builder/agents`) },
       ],
       demo: { title: 'Detection coverage click-through', status: 'planned', url: null },
       docs: [

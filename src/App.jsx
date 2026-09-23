@@ -39,11 +39,11 @@ export default function App() {
         <Route path="/level/:id" element={<Navigate to="small" replace />} />
         <Route path="/level/:id/:size" element={<LevelView />} />
 
-        {/* Browse nav stub pages */}
-        <Route path="/capabilities" element={<Capabilities />} />
-        {/* Legacy redirect: the mirrored asset browser was retired (design call D-31). */}
-        <Route path="/asset-inventory" element={<Navigate to="/capabilities#inventory" replace />} />
-        <Route path="/demo-guide" element={<DemoGuide />} />
+        {/* Readiness Pack: three tabs (capabilities, asset inventory, walkthrough) */}
+        <Route path="/capabilities/:tab?" element={<Capabilities />} />
+        {/* Legacy redirects: the mirrored asset browser was retired (design call D-31); the walkthrough is now a tab. */}
+        <Route path="/asset-inventory" element={<Navigate to="/capabilities/assets" replace />} />
+        <Route path="/demo-guide" element={<Navigate to="/capabilities/walkthrough" replace />} />
         {/* Living reference-architecture document (markdown, same file the PDF was printed from; the PDF stays the marketing-approved July 2026 copy). */}
         <Route path="/reference-architecture" element={<DemoGuide src="/docs/Elastic%20M-26-14%20Reference%20Architectures.md" />} />
 

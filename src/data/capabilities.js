@@ -247,12 +247,12 @@ export const CAPABILITIES = [
       'One policy enforcement point runs inside the final pipeline, before the integrity hash, so the hash covers the stored form. It checks the managed-exceptions register, redacts a pattern bank of secrets and identifiers, minimizes the fields a dataset\'s policy row says not to retain, tags sensitivity, sharing class and HVA status, and sets the restricted-routing marker.',
       'Exceptions are managed, not ad hoc: each has a rule, a reason, an approver and an expiry, and a rule alerts while an expired exception is still present. Four roles express the sharing classes: analyst (restricted classes excluded, raw payload hidden), auditor (ledgers and scores only), forensic (raw data and failure store) and production officer. New indices enter through a classification-intake workflow that opens a Case for the data steward.',
     ],
-    contributes: 'The policy-enforcement pipeline and its five stages, the pep-policy store with its two enrich policies, the expired-exception rule, the classification-intake workflow with its request ledger and audit-query tool, the store-ingested default pipeline for API-written stores, and the analyst, auditor and forensic roles.',
+    contributes: 'The policy-enforcement pipeline and its five stages, the pep-policy store with its two enrich policies, the expired-exception rule, the classification-intake workflow with its request ledger and audit-query tool, the store-ingested default pipeline for API-written stores, and the analyst, auditor, forensic and demo-viewer roles.',
     assets: [
       'm_26_14-policy-enforcement', 'm_26_14-pep-exceptions', 'm_26_14-pep-redact', 'm_26_14-pep-minimize', 'm_26_14-pep-tag', 'm_26_14-pep-route',
       'm_26_14-pep-policy', 'm_26_14-pep-policy-lookup', 'm_26_14-pep-exception-lookup', 'm_26_14-pep-expired-exception',
       'm-26-14-data-classification-intake', 'm_26_14-data-classification-requests', 'm_26_14-classification-audit-query', 'm_26_14-store-ingested',
-      'm_26_14_analyst', 'm_26_14_auditor', 'm_26_14_forensic',
+      'm_26_14_analyst', 'm_26_14_auditor', 'm_26_14_viewer', 'm_26_14_forensic',
     ],
     shots: [],
   },
@@ -359,5 +359,51 @@ export const CAPABILITIES = [
     contributes: 'The final and estate-hook pipelines, the log-integrity-settings component template, the general and seeded-telemetry data-stream templates, the enrich-refresh workflow, and the transform-operator role the continuous transforms run under.',
     assets: ['m_26_14-final', 'm_26_14-estate-hook', 'm_26_14-log-integrity-settings', 'm_26_14-logs-data-streams', 'm_26_14-ea-telemetry', 'm-26-14-enrich-refresh', 'm_26_14-transform-operator'],
     shots: [],
+  },
+]
+
+// Reading order for the Package Capabilities tab. Groups follow the memo's
+// Appendix C ladder as src/data/levels.js states it: what each level asks
+// for, and which capabilities carry it. A capability that ships on day one
+// but whose control is asked for at a later level sits at the level that
+// asks for it (two-gate retirement is a Level 4 control, but the retention
+// policies it rides on install with the pack), so the placement is where the
+// capability earns its keep, not when it is installed. scripts/check-catalog.mjs
+// fails the build if a capability is in no group or in two.
+export const CAPABILITY_GROUPS = [
+  {
+    id: 'baseline',
+    label: 'Start here: the baseline',
+    level: 'All levels',
+    blurb: 'Every level below is scored the same way, from the cluster\'s own data. Read this first; it is the initial assessment the package uses to measure and report on progress at every level.',
+    ids: ['readiness-scoring'],
+  },
+  {
+    id: 'level-1',
+    label: 'Initial (Level 1)',
+    level: 'Bind the pipeline, know the estate, keep the logs',
+    blurb: 'Level 1 asks an agency to collect every Appendix B category, hold logs retrievable for six months and reflect at least 70% of its inventory in the logging pipeline. These capabilities are the foundation everything else is measured against.',
+    ids: ['ingest-chain', 'asset-inventory', 'unknown-devices', 'retention'],
+  },
+  {
+    id: 'level-2',
+    label: 'Intermediate (Level 2)',
+    level: 'Complete coverage, and proof that it keeps flowing',
+    blurb: 'Level 2 closes the gaps: full Appendix B coverage, the complete inventory reflected in collected logs, twelve months retrievable. The measures here are how an agency knows a source has gone quiet, arrived thin or drifted from its certified state before an auditor does.',
+    ids: ['coverage', 'timeliness', 'config-drift', 'failure-handling', 'canary'],
+  },
+  {
+    id: 'level-3',
+    label: 'Advanced (Level 3)',
+    level: 'Detect, protect, hash, and produce on demand',
+    blurb: 'Level 3 is where searchable retention, automated threat and anomaly detection, sensitive-data protection before storage and regular hashing first apply. These capabilities are the evidence for that attestation.',
+    ids: ['detection-coverage', 'attack-coverage', 'policy', 'log-integrity', 'retrieval-drill'],
+  },
+  {
+    id: 'level-4',
+    label: 'Optimal (Level 4)',
+    level: 'Governed access, decision context, priority and value',
+    blurb: 'Level 4 adds just-in-time access, two-gate retirement, NTP-traceable time, a tested procedure for sharing logs with CISA and the FBI, and ML and AI in operations. The capabilities here are the ones an agency grows into once the lower levels hold.',
+    ids: ['jit-access', 'authorized-production', 'time-sync', 'zero-trust', 'hva', 'ai-audit', 'cost'],
   },
 ]

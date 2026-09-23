@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { LIVE_KIBANA_BASE, withAnonHint } from '../data/liveLinks.js'
 
 function ScreenshotImage({ src, alt }) {
   return (
@@ -45,20 +46,22 @@ function tocOf(md) {
 }
 
 // Split the guide at its first section heading so the title and the
-// introductory paragraphs render above the table of contents.
-function splitIntro(md) {
+// introductory paragraphs render above the table of contents. When the
+// generated TOC box is shown, a trailing rule before the first heading is
+// dropped (the box already separates them); otherwise the rule is kept.
+function splitIntro(md, stripRule) {
   const lines = md.split('\n')
   const first = lines.findIndex(l => /^##\s+\S/.test(l))
   if (first < 0) return { intro: md, rest: '' }
   let end = first
-  while (end > 0 && /^(---\s*)?$/.test(lines[end - 1])) end--
+  if (stripRule) while (end > 0 && /^(---\s*)?$/.test(lines[end - 1])) end--
   return { intro: lines.slice(0, end).join('\n'), rest: lines.slice(first).join('\n') }
 }
 
 const MD_CLASS = `
         [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:mt-0 [&_h1]:mb-4 [&_h1]:text-text-primary [&_h1]:leading-tight
-        [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-14 [&_h2]:mb-4 [&_h2]:text-text-primary [&_h2]:leading-snug
-        [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-10 [&_h3]:mb-3 [&_h3]:text-text-primary
+        [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-14 [&_h2]:mb-4 [&_h2]:text-text-neutral [&_h2]:leading-snug
+        [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-10 [&_h3]:mb-3 [&_h3]:text-text-neutral
         [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-6 [&_h4]:mb-2 [&_h4]:text-text-primary
         [&_p]:text-base [&_p]:text-text-primary [&_p]:leading-relaxed [&_p]:mb-5
         [&_a]:text-accent-teal [&_a]:no-underline [&_a:hover]:underline
@@ -76,6 +79,11 @@ const MD_CLASS = `
         [&_hr]:border-line [&_hr]:my-10 [&_hr]:border-t`
 
 const MD_COMPONENTS = {
+  // Demo-cluster links open as the anonymous read-only viewer.
+  a: ({ href, children }) => {
+    const demo = href?.startsWith(LIVE_KIBANA_BASE)
+    return <a href={demo ? withAnonHint(href) : href} {...(demo ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{children}</a>
+  },
   img: ({ src, alt }) => <ScreenshotImage src={src} alt={alt} />,
   // Markdown wraps a lone image in a paragraph; the image renders as a
   // <figure>, which is not valid inside <p>, so unwrap that case.
@@ -88,11 +96,15 @@ const MD_COMPONENTS = {
   h3: ({ children }) => <h3 id={slug(textOf(children))} className="scroll-mt-24">{children}</h3>,
 }
 
-export default function DemoGuide({ src = '/docs/demo-guide.md' }) {
+// `embedded`: rendered inside another page's <main> (the Readiness Pack
+// walkthrough tab), so no page wrapper of its own.
+// `toc`: render the generated "On this page" box. The walkthrough carries its
+// own linked section table in the intro, so the tab passes false.
+export default function DemoGuide({ src = '/docs/demo-guide.md', embedded = false, toc: showToc = true }) {
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
   const toc = useMemo(() => tocOf(text), [text])
-  const { intro, rest } = useMemo(() => splitIntro(text), [text])
+  const { intro, rest } = useMemo(() => splitIntro(text, showToc), [text, showToc])
 
   useEffect(() => {
     fetch(src)
@@ -109,14 +121,15 @@ export default function DemoGuide({ src = '/docs/demo-guide.md' }) {
     )
   }
 
+  const Wrap = embedded ? 'div' : 'main'
   return (
-    <main className="mx-auto max-w-5xl px-8 py-12">
+    <Wrap className={embedded ? '' : 'mx-auto max-w-5xl px-8 py-12'}>
       <div className={MD_CLASS}>
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
           {intro}
         </ReactMarkdown>
       </div>
-      {toc.length > 2 && (
+      {showToc && toc.length > 2 && (
         <nav className="my-10 rounded-lg border border-line bg-ink-800 px-6 py-5" style={{ borderStyle: 'solid' }}>
           <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">On this page</p>
           <ol className="list-none pl-0 space-y-1.5">
@@ -133,6 +146,6 @@ export default function DemoGuide({ src = '/docs/demo-guide.md' }) {
           {rest}
         </ReactMarkdown>
       </div>
-    </main>
+    </Wrap>
   )
 }
