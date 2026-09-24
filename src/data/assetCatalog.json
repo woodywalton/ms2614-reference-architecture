@@ -1636,7 +1636,7 @@
    "id": "m_26_14-alert-coverage-daily",
    "type": "transform",
    "name": "m_26_14-alert-coverage-daily",
-   "description": "M-26-14 Appendix B alert coverage — daily buckets per detection category",
+   "description": "M-26-14 Appendix B alert coverage — daily buckets per detection category R-129: the runtime category field emits EVERY Appendix-B-* tag on the rule, so an alert from a rule tagged for two categories counts under both (a composite terms source buckets a multi-valued field once per value); before, only the first tag was emitted and a category evidenced solely by a multi-tagged rule showed zero alerts while the latest store marked it covered.",
    "delivery": "bootstrap",
    "facts": {
     "kind": "pivot",
