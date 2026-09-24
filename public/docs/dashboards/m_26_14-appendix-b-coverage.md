@@ -71,7 +71,7 @@ Eleven metric tiles, one per Appendix B category, arranged six across (A–F) an
 
 | Panel | Type | Columns |
 |-------|------|---------|
-| **Appendix B Coverage — Full Detail** | Data table | `category` (a–k, sorted ascending), `label`, `status`, `rules`, `alerts` — one row per category; this is the audit-ready evidence export |
+| **Appendix B Coverage — Full Detail** | Data table | `cat` (the rule tag, `Appendix-B-A` to `-K`, sorted ascending), `category` (label), `status`, `rules` (distinct rules that alerted), `last_alert` — one row per category; this is the audit-ready evidence export. Row click offers three evidence views: the rules that alerted (Discover on the latest store), the alerts in Security → Alerts filtered on the tag over the last 30 days, and the alert volume per day |
 
 ---
 
@@ -115,7 +115,7 @@ Categories A–J each map to one or more dedicated detection rules; Category K i
 2. **Read the KPI row first.** A clean submission shows Fully Covered = 11, Partial = 0, No Coverage = 0. Any non-zero "No Coverage" value blocks submission until remediated or documented.
 3. **Scan the tile grid for non-teal tiles.** Each yellow or orange tile is a finding. The Full Detail table tells you whether the issue is missing rules (`rules` is 0) or rules without evidence (`rules` above 0 with `alerts` at 0).
 4. **Use the two bar charts to distinguish gap types.** A category present in the *Rules* chart but absent from the *Alerts* chart means rules are deployed but silent — verify the data source is flowing before concluding the rule is broken.
-5. **Export the Full Detail table** (panel menu → *Download as CSV*) as the per-category evidence artifact. Its five columns (`category`, `label`, `status`, `rules`, `alerts`) map directly to an Appendix B readiness worksheet.
+5. **Export the Full Detail table** (panel menu → *Download as CSV*) as the per-category evidence artifact. Its five columns (`cat`, `category`, `status`, `rules`, `last_alert`) map directly to an Appendix B readiness worksheet, and a row click reaches the underlying rules, alerts and daily volume when the auditor asks to see the evidence behind a `covered` row.
 6. **Document residual gaps.** Any `partial` or `none` row requires a POA&M entry with a remediation date; attach the exported CSV and a dashboard screenshot to the AO package.
 7. **Return to the Maturity Overview** via the back link to capture the agency-wide maturity score in the same evidence package.
 

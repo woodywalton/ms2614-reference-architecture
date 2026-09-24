@@ -6,7 +6,7 @@
   {
    "key": "index_template",
    "label": "Index templates",
-   "count": 38,
+   "count": 39,
    "delivery": "Bootstrap",
    "list_path": "/app/management/data/index_management/templates",
    "stack_management": true
@@ -134,7 +134,7 @@
   {
    "key": "workflow",
    "label": "Workflows",
-   "count": 14,
+   "count": 15,
    "delivery": "Bootstrap (Kibana API)",
    "list_path": "/app/workflows",
    "stack_management": false
@@ -623,6 +623,21 @@
    "live_path": "/app/management/data/index_management/templates/m_26_14-pipeline-health"
   },
   {
+   "id": "m_26_14-poam-drafts",
+   "type": "index_template",
+   "name": "m_26_14-poam-drafts",
+   "description": "M-26-14 POA&M drafts store: one document per run of the m_26_14-poam-draft workflow, carrying the full markdown Plan of Action and Milestones the POA&M drafting agent produced (m_26_14.poam.report) with its finding counts by risk rating, the run id, the trigger (scheduled or manual) and the lookback. Read by the POA&M drafts table on the Readiness Attestation dashboard (row click opens the draft in Discover). Drafts are ISSO-reviewed before they reach the POA&M of record.",
+   "delivery": "bootstrap",
+   "facts": {
+    "index_patterns": [
+     "m_26_14-poam-drafts"
+    ],
+    "data_stream": false,
+    "priority": 500
+   },
+   "live_path": "/app/management/data/index_management/templates/m_26_14-poam-drafts"
+  },
+  {
    "id": "m_26_14-production-ledger",
    "type": "index_template",
    "name": "m_26_14-production-ledger",
@@ -807,10 +822,10 @@
    "id": "m_26_14-alert-coverage-daily-provenance",
    "type": "ingest_pipeline",
    "name": "m_26_14-alert-coverage-daily-provenance",
-   "description": "Dest pipeline for the m_26_14-alert-coverage-daily transform (daily alert counts per Appendix B category). Design call DC-4 (2026-09-18): every transform output carries the D-13 provenance append and derived stamp (producer, method, pack version, computation time) so consumer-without-producer and unstamped-derived-data classes are closed for this store. No field logic here; the transform body owns the aggregation.",
+   "description": "Dest pipeline for the m_26_14-alert-coverage-daily transform (daily alert counts per Appendix B category). Design call DC-4 (2026-09-18): every transform output carries the D-13 provenance append and derived stamp (producer, method, pack version, computation time) so consumer-without-producer and unstamped-derived-data classes are closed for this store. Stamps @timestamp from day_bucket (R-128); no other field logic here, the transform body owns the aggregation.",
    "delivery": "bootstrap",
    "facts": {
-    "processors": 2,
+    "processors": 3,
     "processor_types": [
      "append",
      "set"
@@ -3005,7 +3020,7 @@
    "id": "m_26_14-alert-coverage",
    "type": "dashboard",
    "name": "M-26-14 Alert Coverage (Appendix B)",
-   "description": "Element 3: Appendix B category coverage from the pack alert stores (m_26_14-metrics-alert-coverage-latest per rule, -by-day per category and day). A category is covered when one of its rules alerted in the last 30 days.",
+   "description": "Element 3: Appendix B category coverage from the pack alert stores (m_26_14-metrics-alert-coverage-latest per rule, -by-day per category and day). A category is covered when one of its rules alerted in the last 30 days. Evidence trail (R-127): both stores are written by the m_26_14-alert-coverage-latest and m_26_14-alert-coverage-daily transforms from .alerts-security.alerts-*; a category is covered when a rule tagged Appendix-B-<letter> alerted in the last 30 days. Row click on the category table offers three evidence views: the rules that alerted (latest store), the alerts themselves in the Security app filtered by the category tag, and the alert volume per day.",
    "delivery": "epr",
    "facts": {
     "panels": 8
@@ -3016,7 +3031,7 @@
    "id": "m_26_14-appendix-b-coverage",
    "type": "dashboard",
    "name": "M-26-14 Appendix B Coverage Matrix",
-   "description": "Element 3: MITRE ATT&CK-style detection coverage grid for all 11 Appendix B log categories, read from the pack alert stores (latest alert per rule, alerts per category per day).",
+   "description": "Element 3: MITRE ATT&CK-style detection coverage grid for all 11 Appendix B log categories, read from the pack alert stores (latest alert per rule, alerts per category per day). Evidence trail (R-127): both stores are written by the m_26_14-alert-coverage-latest and m_26_14-alert-coverage-daily transforms from .alerts-security.alerts-*; a category is covered when a rule tagged Appendix-B-<letter> alerted in the last 30 days. Row click on the category table offers three evidence views: the rules that alerted (latest store), the alerts themselves in the Security app filtered by the category tag, and the alert volume per day.",
    "delivery": "epr",
    "facts": {
     "panels": 19
@@ -3049,10 +3064,10 @@
    "id": "m_26_14-hwam-gaps",
    "type": "dashboard",
    "name": "M-26-14 HWAM — Coverage Gaps",
-   "description": "M-26-14 readiness gap dashboard. Identifies assets with no Element 1/2 coverage, missing encryption status, and no MDM enrollment. Drives self-attestation gap closure.",
+   "description": "M-26-14 readiness gap dashboard. Identifies assets with no Element 1/2 coverage, missing encryption status, and no MDM enrollment. Drives self-attestation gap closure. The software-inventory gap is split (R-126): managed assets are the agency's to fix; unmanaged or unclaimed devices belong to the unknown-device triage runbook, and the table beneath lists the managed ones only.",
    "delivery": "epr",
    "facts": {
-    "panels": 9
+    "panels": 10
    },
    "live_path": "/app/dashboards#/view/m_26_14-hwam-gaps?_g=(time:(from:now-30d,to:now))"
   },
@@ -3115,10 +3130,10 @@
    "id": "m_26_14-readiness-attestation-dash",
    "type": "dashboard",
    "name": "M-26-14 Readiness Attestation — Appendix B Detection Coverage",
-   "description": "Executive attestation view: active category count, per-category evidence table, and alert volume summary for AO submissions",
+   "description": "Executive attestation view: active category count, per-category evidence table, and alert volume summary for AO submissions Evidence trail (R-127): both stores are written by the m_26_14-alert-coverage-latest and m_26_14-alert-coverage-daily transforms from .alerts-security.alerts-*; a category is covered when a rule tagged Appendix-B-<letter> alerted in the last 30 days. Row click on the category table offers three evidence views: the rules that alerted (latest store), the alerts themselves in the Security app filtered by the category tag, and the alert volume per day. The POA&M drafts table lists every pre-generated Plan of Action and Milestones written to m_26_14-poam-drafts by the m_26_14-poam-draft workflow (weekly schedule, ships disabled); row click opens the full markdown draft in Discover.",
    "delivery": "epr",
    "facts": {
-    "panels": 7
+    "panels": 8
    },
    "live_path": "/app/dashboards#/view/m_26_14-readiness-attestation-dash?_g=(time:(from:now-30d,to:now))"
   },
@@ -5143,6 +5158,22 @@
     "ships_enabled": false
    },
    "live_path": "/app/workflows/m-26-14-ops-metrics-snapshot"
+  },
+  {
+   "id": "m-26-14-poa-m-draft",
+   "type": "workflow",
+   "name": "M-26-14 POA&M Draft",
+   "description": "Weekly pre-generated Plan of Action and Milestones: runs the pack's POA&M drafting agent over the open findings (unresolved Cases, retirement gaps, unclassified data, recurring alerts, inventory gaps) and writes the full markdown draft with its finding counts by risk rating to m_26_14-poam-drafts, so the Readiness Attestation dashboard can list and open the latest draft without a live Agent Builder session.",
+   "delivery": "bootstrap",
+   "facts": {
+    "source_file": "m_26_14-poam-draft",
+    "triggers": [
+     "scheduled",
+     "manual"
+    ],
+    "ships_enabled": false
+   },
+   "live_path": "/app/workflows/m-26-14-poa-m-draft"
   },
   {
    "id": "m-26-14-retrieval-drill",

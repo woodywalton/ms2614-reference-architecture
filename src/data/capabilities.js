@@ -330,9 +330,10 @@ export const CAPABILITIES = [
       'Three Agent Builder agents answer readiness questions from live data: a POA&M drafting agent that turns open findings (unresolved Cases, retirement gaps, unclassified data, recurring alerts) into formatted Plan of Action and Milestones entries, an After-Action Report agent that reconstructs an incident timeline from logs and Cases, and a threat-investigation agent that produces an audit-ready summary from alerts, entity risk and asset context. Four pack tools give them the same indices the dashboards read.',
       'AI-assisted work carries its own audit trail: every Agent Builder trace span is copied into an audit store with HVA retention on the source stream, rules watch the Kibana audit log for connector changes and knowledge-base edits, and a phrase-match rule flags prompt-injection phrasings in traces.',
     ],
-    contributes: 'The three agents and four tools; the ai-audit transform, index template and normalize pipeline; and the three AI Kibana-audit rules.',
+    contributes: 'The three agents and four tools; the weekly POA&M draft workflow and its drafts store; the ai-audit transform, index template and normalize pipeline; and the three AI Kibana-audit rules.',
     assets: [
       'm_26_14-poam-drafting-agent', 'm_26_14-aar-agent', 'm_26_14-threat-investigation-agent',
+      'm-26-14-poa-m-draft', 'm_26_14-poam-drafts',
       'm_26_14-asset-inventory-search', 'm_26_14-readiness-posture-query', 'm_26_14-classification-audit-query', 'm_26_14-retirement-audit-query',
       'm_26_14-ai-audit', 'm_26_14-ai-audit', 'm_26_14-ai-audit-normalize',
       'm_26_14-ai-assistant-knowledge-base-modified', 'm_26_14-ai-connector-lifecycle', 'm_26_14-ai-guardrail-indicators',
