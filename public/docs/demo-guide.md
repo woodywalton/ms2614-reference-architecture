@@ -29,10 +29,10 @@ The five questions are also the maturity ladder in walking order. Each section s
 
 The first thing you'll notice is the headline count: **60 total assets discovered**. But the more interesting number is the split: 55 managed, 5 not. Those 5 devices in the bottom-left table — the UNKNOWN-* entries — were found via network discovery. No Elastic Agent, no MDM enrollment, no OS telemetry. They just showed up.
 
-Look at the three Element coverage KPIs across the top row:
+Look at the three inventory KPIs across the top row (together they are the evidence for the memo's Inventory Visibility element):
 
-- **Element 1 Covered: 55** — every managed device has a current hardware inventory record. 100%.
-- **Element 2 Covered: 55** — software inventory is running on all of them.
+- **Hardware Inventory Covered: 55** — every managed device has a current hardware inventory record. 100%.
+- **Software Inventory Covered: 55** — software inventory is running on all of them.
 - **Total Baseline Snapshots: 55** — a cryptographic configuration snapshot exists for every one of the 55 managed assets.
 
 Click any row in the Unmanaged Assets table to open a Discover view filtered to that specific device. You'll see its manufacturer, last-seen timestamp, and the discovery source — but nothing else, because there's no agent to report back from.
@@ -53,7 +53,7 @@ Click any row in the Unmanaged Assets table to open a Discover view filtered to 
 
 Knowing devices exist is one requirement. Knowing they're compliant is another. This dashboard answers the posture question: encrypted? MDM-enrolled? Running authorized software?
 
-Four gap tiles line the top row: **No Element 1 Coverage (5)**, **No Element 2 Coverage (5)**, **Unknown Encryption Status (5)**, and **No MDM Enrollment (4)** — devices missing a hardware inventory record, a software inventory, a confirmed disk-encryption state, or MDM enrollment. Click any tile to open a Discover view showing exactly which devices — names, OS versions, last-seen times. This is what you hand the ISO instead of a manual audit spreadsheet.
+Four gap tiles line the top row: **No Hardware Inventory (5)**, **No Software Inventory (5)**, **Unknown Encryption Status (5)**, and **No MDM Enrollment (4)** — devices missing a hardware inventory record, a software inventory, a confirmed disk-encryption state, or MDM enrollment. Click any tile to open a Discover view showing exactly which devices — names, OS versions, last-seen times. This is what you hand the ISO instead of a manual audit spreadsheet.
 
 > **Where this data comes from:** Encryption status is reported by osquery's `disk_encryption` table query, which runs every few hours on each enrolled endpoint and returns the state of every mounted volume. MDM enrollment status comes separately from the Microsoft Intune integration, which pushes device compliance records directly to Elasticsearch without requiring a query agent on the device. The `m_26_14-asset-entity-resolution` transform merges both sources into a single posture record per device — if osquery can't confirm a device's encryption state and Intune has no record of MDM enrollment, the combined record reflects both gaps simultaneously. Both the Coverage Gaps and the Asset Inventory dashboard draw from the same `m_26_14-assets` index — [you can navigate between them using the links at the top of each dashboard](https://pubsec-m2614-63e0e0.kb.us-east4.gcp.elastic-cloud.com/app/dashboards#/view/m_26_14-hwam-overview).
 
@@ -202,23 +202,25 @@ Behind this view:
 
 ## 7 — From Level 2 to Level 3, and what Level 4 adds
 
-The fleet you just walked through is attested at Level 2: every Appendix B category is collected, the inventory is reflected in the logging pipeline, and logs are retrievable for twelve months on the `m_26_14-retention-l1` policy. The Maturity Overview scores it that way from the thresholds in the `m_26_14-config` document, the same ones printed on the [Maturity Levels](/maturity/small/1) page of this site.
+The fleet you just walked through is attested at Level 2. M-26-14 Appendix C scores five elements, and an agency's level is the lowest of the five: Inventory Visibility, Collection Coverage, Collection Operations, Data Retention and Log Management. The Maturity Overview scores each of them from the thresholds in the `m_26_14-config` document, the same ones printed on the [Maturity Levels](/maturity/small/1) page of this site, and every number below comes from the memo's Appendix C table, not from this pack.
 
-**Level 3 asks for four new things, and the pack already carries each of them; the agency's work is to turn them on for its own streams and let the scores prove it.**
+**Level 3 (Advanced) raises each element, and the pack already carries the evidence for each; the agency's work is to reach the number on its own estate and let the scores prove it.**
 
-- **Three months searchable.** Move the streams that carry Appendix B data from the Level 1 policy to `m_26_14-logs-l3-hot-frozen` (90 days hot, then frozen). The dataset-retention transform measures the realized searchable horizon per stream, so the Retention Readiness bars in section 4 change on their own; nothing is asserted.
-- **Automated threat and anomaly detection.** Section 3 is the evidence: the Appendix B rules and the ML detection rules behind them are enabled on this cluster now. For a real agency the step is coverage, not installation: every category green on the Coverage Matrix, and the rule-silence ML job quiet.
-- **Sensitive-data protection before storage.** The policy enforcement point runs inside `m_26_14-final` before the integrity hash: pattern-bank redaction, per-dataset minimization, sensitivity and sharing-class tags, restricted routing. It is on for pack-owned streams already; agency streams managed by Fleet pick it up through the `logs@custom` hook the pack ships, which is the one binding step an agency does by hand.
-- **Regular hashing.** Section 4 again: the hash is computed on every document at ingest, the hash-coverage rollup measures it per stream, and the Element 5 ML job alerts when a stream's coverage drops.
+- **Inventory Visibility: 90% of IT, OT and IoT assets in the central HWAM/SWAM inventory, updated daily.** Section 1 is the evidence: the hardware and software inventory tiles, the unmanaged-device table, and the freshness threshold the inventory score applies (`thresholds.inventory_fresh_days`, one day as shipped).
+- **Collection Coverage: logs searchable and retrievable for 90% of the assets in that inventory.** Sections 1 and 3 together: the per-asset coverage score joins the inventory against what is actually being collected, so a device in the inventory with no logs pulls the number down.
+- **Collection Operations: alerts covering at least 70% of the Appendix B baseline, routinely tuned.** Section 3 is the evidence: the Appendix B rules alerting on this cluster and the rule-silence ML job. The operations score counts the categories with an alert in the last 30 days against the eleven the memo lists.
+- **Data Retention: three months searchable and twelve months retrievable.** Move the streams that carry Appendix B data from the Level 1 policy to `m_26_14-logs-l3-hot-frozen` (90 days hot, then frozen). The retention score reads the configured ILM and snapshot policies per stream (its default basis), and the dataset-retention transform measures the realized horizon beside it, so the Retention Readiness bars in section 4 change on their own; nothing is asserted.
+- **Log Management: encrypted in transit and at rest, and regularly hashed for veracity.** Section 4 again for the hash: it is computed on every document at ingest and the hash-coverage rollup measures it per stream. Encryption is attested by the operator in the config document (Elastic Cloud Hosted encrypts both by default; self-managed operators verify first); the Element 5 score stops at Level 1 until those attestations are set.
 
-**Level 4 is governance and context rather than more collection.** The pieces are installed and demonstrated here, with the ones that change data left inactive by design:
+The pack also ships things the memo does not score by level: the Appendix B detection rules and the prebuilt ML behind them (the THIRF objective, Appendix B item 5), and the policy enforcement point that redacts and minimizes sensitive fields before storage inside `m_26_14-final`. They matter, and the Coverage Matrix in section 3 shows them, but they are not what moves an element from Level 2 to Level 3.
 
+**Level 4 (Optimal) is the last few points on every element plus governance.** The pieces are installed and demonstrated here, with the ones that change data left inactive by design:
+
+- **Inventory Visibility 95%, Collection Coverage 95%, Collection Operations 95% with ML and AI tuning the alerts**: the readiness-health ML jobs and the three Agent Builder agents, every trace copied to the AI audit store.
 - **Six months searchable**: `m_26_14-logs-l4-hot-frozen` (180 days hot).
-- **Just-in-time privileged access**: the two JIT watchers are the only active watchers on this cluster; grants expire and are revoked mechanically.
-- **Two-gate retirement**: the four-step chain in section 4, human-approved twice, with legal hold as a mechanical block.
-- **NTP-traceable timestamps**: the NTP attestation on every asset score and the offset rule in section 4.
-- **A tested procedure for producing logs to CISA and the FBI**: the Authorized Production workflow makes each production a Case, a redaction profile and a manifest in the production ledger.
-- **ML and AI in operations**: the readiness-health ML jobs and the three Agent Builder agents, every trace copied to the AI audit store.
+- **Just-in-time privileged access to the logs, and access that is itself monitored**: the two JIT watchers are the only active watchers on this cluster; grants expire and are revoked mechanically, and the Elasticsearch audit rules watch who reads the stores.
+- **Two-gate retirement**: the four-step chain in section 4, human-approved twice, with legal hold as a mechanical block. This, JIT access and access monitoring are the three Level 4 attestations in the config document.
+- **NTP-traceable timestamps** (Appendix B) and **a tested procedure for producing logs to CISA and the FBI** (the memo's sharing requirement): the NTP attestation on every asset score, the offset rule in section 4, and the Authorized Production workflow that makes each production a Case, a redaction profile and a manifest in the production ledger.
 
 Read the Maturity Overview last with that list in hand: the element scores tell you which of these the agency has evidence for today, and the gaps are the Plan of Action the POA&M agent can draft.
 
