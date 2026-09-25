@@ -12,6 +12,7 @@
 //     same image.
 //   - public/docs/*.pdf: NOT embedded (3.4 MB, the page has a 10 MB ceiling on the
 //     host). Links are rewritten to the public GitHub repo, which renders PDFs.
+//   - SINGLE_NO_EXTERNAL=1 drops the Google Fonts links and the favicon (compat build).
 //   - Routing: main.jsx switches to HashRouter under VITE_HASH_ROUTER=1 because a
 //     single page has no server rewrite for /enablement and friends.
 import { defineConfig } from 'vite'
@@ -25,6 +26,7 @@ import { tmpdir } from 'node:os'
 const DOCS_BASE = 'https://github.com/elastic/m-26-14-logging-readiness/blob/main/public/docs/'
 const SHOT_WIDTH = process.env.SINGLE_SHOT_WIDTH || '1600'
 const SHOT_QUALITY = process.env.SINGLE_SHOT_QUALITY || 'low'
+const NO_EXTERNAL = process.env.SINGLE_NO_EXTERNAL === '1'
 
 function walk(dir, out = []) {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
@@ -59,9 +61,13 @@ function inlinePublicAssets() {
             join('public/screenshots', f), '--out', out], { stdio: 'ignore' })
           images[basename(f, '.png')] = readFileSync(out).toString('base64')
         }
-        const payload = JSON.stringify({ text, docs, images }).replace(/<\//g, '<\\/')
+        // Text payload travels base64-wrapped so no host-side template engine,
+        // sanitizer or re-serializer can touch markdown punctuation ({{ }}, </, <!--).
+        // Images are already base64, so their map is emitted as plain JSON.
+        const textB64 = Buffer.from(JSON.stringify({ text, docs }), 'utf8').toString('base64')
+        const imagesJson = JSON.stringify(images)
         const shim = `(function(){
-var A=${payload};var blobs={};
+var A=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob("${textB64}"),function(c){return c.charCodeAt(0)})));A.images=${imagesJson};var blobs={};
 function shot(id){if(!blobs[id]){var b=atob(A.images[id]),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);blobs[id]=URL.createObjectURL(new Blob([u],{type:'image/jpeg'}))}return blobs[id]}
 function path(u){try{return decodeURIComponent(new URL(String(u),location.href).pathname)}catch(e){return String(u)}}
 function docKey(p){var i=p.indexOf('/docs/');return i>=0?p.slice(i):null}
@@ -74,9 +80,16 @@ if(k&&A.text[k]!=null)return Promise.resolve(new Response(A.text[k],{status:200,
 var sa=Element.prototype.setAttribute;Element.prototype.setAttribute=function(n,v){if(n==='src'||n==='href')v=map(v);return sa.call(this,n,v)};
 [[HTMLImageElement,'src'],[HTMLAnchorElement,'href']].forEach(function(pr){var d=Object.getOwnPropertyDescriptor(pr[0].prototype,pr[1]);if(d&&d.set)Object.defineProperty(pr[0].prototype,pr[1],{get:d.get,set:function(v){d.set.call(this,map(v))},configurable:true})});
 })();`
-        const favicon = 'data:image/svg+xml;base64,' + readFileSync('public/favicon.svg').toString('base64')
-        html = html.replace('href="/favicon.svg"', `href="${favicon}"`)
-        return html.replace('<title>', `<script>${shim}</script>\n    <title>`)
+        if (NO_EXTERNAL) {
+          // Compatibility variant: no <link> to Google Fonts or a favicon at all,
+          // matching the head shape of the earlier hand-uploaded page.
+          html = html.replace(/\s*<link[^>]*(fonts\.googleapis|fonts\.gstatic|favicon\.svg)[^>]*>/g, '')
+        } else {
+          const favicon = 'data:image/svg+xml;base64,' + readFileSync('public/favicon.svg').toString('base64')
+          html = html.replace('href="/favicon.svg"', `href="${favicon}"`)
+        }
+        // Shim goes right after <title> so the head reads title-first like the earlier page.
+        return html.replace('</title>', `</title>\n    <script>${shim}</script>`)
       },
     },
   }
