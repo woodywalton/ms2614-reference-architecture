@@ -67,6 +67,7 @@ function inlinePublicAssets() {
         const textB64 = Buffer.from(JSON.stringify({ text, docs }), 'utf8').toString('base64')
         const imagesJson = JSON.stringify(images)
         const shim = `(function(){
+(function(){var mem=function(){var m={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null},setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:function(){m={}},key:function(i){return Object.keys(m)[i]||null},get length(){return Object.keys(m).length}}};["localStorage","sessionStorage"].forEach(function(n){try{window[n].getItem("__probe")}catch(e){try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e2){}}})})();
 var A=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob("${textB64}"),function(c){return c.charCodeAt(0)})));A.images=${imagesJson};var blobs={};
 function shot(id){if(!blobs[id]){var b=atob(A.images[id]),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);blobs[id]=URL.createObjectURL(new Blob([u],{type:'image/jpeg'}))}return blobs[id]}
 function path(u){try{return decodeURIComponent(new URL(String(u),location.href).pathname)}catch(e){return String(u)}}
