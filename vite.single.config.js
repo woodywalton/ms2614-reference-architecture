@@ -14,7 +14,7 @@
 //     host). Links are rewritten to the public GitHub repo, which renders PDFs.
 //   - SINGLE_NO_EXTERNAL=1 drops the Google Fonts links and the favicon (compat build).
 //   - Routing: main.jsx switches to HashRouter under VITE_HASH_ROUTER=1 because a
-//     single page has no server rewrite for /enablement and friends.
+//     single page has no server rewrite for deep links.
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { viteSingleFile } from 'vite-plugin-singlefile'
