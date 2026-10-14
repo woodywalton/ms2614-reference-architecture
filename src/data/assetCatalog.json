@@ -1085,7 +1085,7 @@
    "id": "m_26_14-inventory-csv",
    "type": "ingest_pipeline",
    "name": "m_26_14-inventory-csv",
-   "description": "Parses CDM/CMDB CSV export lines into the m_26_14-inventory contract and derives host.name so the 9.4 Entity Store mints canonical 'expected' host entities (decision #21). Expected column order: asset_id,hostname,component,type,criticality,source,last_seen,ip(optional). Header lines, comments (#), and blank lines are dropped; rows without an asset_id are dropped. WHAT THE STORE USES (validated on-cluster): host.name (lowercased asset.hostname) is the host-engine identity field -- the only load-bearing field for extraction besides @timestamp; the store recomputes entity.id='host:<host.name>' (ignores any entity.id we set) and RETAINS asset.id + asset.criticality on the entity (that retained asset.id is the canonical/inventory link the scoring collector joins on). Do NOT stamp event.dataset here: entity.source on the stored entity is the OBSERVED data_stream.dataset axis, and a value would make every inventory host look 'observed' and erase the coverage-gap signal. (We deliberately set no entity.* fields -- the 9.4 host engine ignores them.) Sets _id from asset.id so re-ingesting a refreshed export upserts rather than duplicates. JSON documents posted directly (already shaped) pass through apart from _id/@timestamp/host.name stamping. Set as index.default_pipeline on m_26_14-inventory* by the index template.",
+   "description": "Parses CDM/CMDB CSV export lines into the m_26_14-inventory contract and derives host.name so the 9.4 Entity Store mints canonical 'expected' host entities (decision #21). Expected column order: asset_id,hostname,component,type,criticality,source,last_seen,ip(optional). Header lines, comments (#), and blank lines are dropped; rows without an asset_id are dropped. WHAT THE STORE USES (validated on-cluster): host.name (lowercased asset.hostname) is the host-engine identity field -- the only load-bearing field for extraction besides @timestamp; the store recomputes entity.id='host:<host.name>' (ignores any entity.id we set) and RETAINS asset.id + asset.criticality on the entity (that retained asset.id is the canonical/inventory link the scoring collector joins on). Do NOT stamp event.dataset here: entity.source on the stored entity is the OBSERVED data_stream.dataset axis, and a value would make every inventory host look 'observed' and erase the coverage-gap signal. (We deliberately set no entity.* fields -- the 9.4 host engine ignores them.) Every row is appended as a new event (the inventory target is the data stream logs-m_26_14_asset.inventory-default, which cannot update a document in place, R-133); the m_26_14-asset-entity-resolution transform keeps the latest values per asset.id in m_26_14-assets. Send CSV lines with ?pipeline=m_26_14-inventory-csv; the pipeline ends by calling the stream's default pipeline m_26_14-asset-normalize, which a request pipeline would otherwise replace. Shaped JSON documents go straight to the stream through that default pipeline and must carry @timestamp and host.name themselves.",
    "delivery": "bootstrap",
    "facts": {
     "processors": 15,
@@ -1095,6 +1095,7 @@
      "date",
      "drop",
      "lowercase",
+     "pipeline",
      "remove",
      "set"
     ]
