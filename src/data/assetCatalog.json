@@ -1,6 +1,6 @@
 {
  "pack_version": "0.3.1",
- "generated": "2026-09-24",
+ "generated": "2026-10-14",
  "generator": "tools/gen-asset-catalog.py",
  "types": [
   {
@@ -1902,7 +1902,7 @@
    "id": "m_26_14-score-entity",
    "type": "transform",
    "name": "m_26_14-score-entity",
-   "description": "Stage 1 — per-entity inventory + coverage scoring (decisions #21/#22). Sources from the Entity Store v2 backing alias 'entities-latest-default' (one doc per canonical host entity). Uses a latest transform (unique_key: entity.id) to pass each entity doc through the m_26_14-score-entity-pipeline dest pipeline, which: (1) enriches m_26_14-inventory by host.name to establish canonical status (asset.id present = inventory-sourced); (2) enriches m_26_14-observed by host.name for last_log/first_log/datasets; (3) enriches config thresholds; (4) computes score_inventory (0/1 freshness within 7d), score_coverage (0/1 has datasets), effective_horizon_days (empirical retention from first_log), provenance, is_canonical, and quadrant. Produces element:'asset' docs in m_26_14-scores with _id='asset::<effective_asset_id>'. Space: default (hardcoded; make a Fleet policy var at M8). Phase 1 NOTE: IP-fold (folding observed-<ip>@collector into canonical entities) is deferred -- entities only visible via IP-keyed observed entries appear as expected_silent. See m_26_14-score-entity-pipeline _meta for details. Run AFTER enrich policies are executed and m_26_14-observed has data.",
+   "description": "Stage 1b — per-entity inventory + coverage scoring (decisions #21/#22). Sources m_26_14-observed (the observed-host ledger built by m_26_14-observed-assets; canary documents excluded). A latest transform (unique_key: host.name) passes each host's newest ledger doc through the m_26_14-score-entity-pipeline dest pipeline, which: (1) enriches m_26_14-inventory-enrich by host.name to establish canonical status (provenance inventory, else a retained asset.id = store_retained, else an entity resolution target = resolution_target, else unexpected and is_canonical false); (2) enriches m_26_14-observed-enrich by host.name for last_log/first_log/datasets; (3) enriches m_26_14-config-enrich thresholds and m_26_14-ntp-enrich clock offset; (4) computes score_inventory (0/1: a log within thresholds.inventory_fresh_days, 1 as shipped, R-115), score_coverage (0/1 has datasets), effective_horizon_days (empirical retention from first_log), provenance, is_canonical, and the evidence object (quadrant, NTP attestation). Produces element:'asset' docs in m_26_14-scores with _id='asset::<effective_asset_id>'. IP-fold (folding observed-<ip>@collector into canonical entities) is deferred. See m_26_14-score-entity-pipeline _meta for details. Run AFTER enrich policies are executed and m_26_14-observed has data.",
    "delivery": "bootstrap",
    "facts": {
     "kind": "latest",
